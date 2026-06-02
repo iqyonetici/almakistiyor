@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import { useAuth } from '../context/AuthContext'
 import styles from './giris.module.css'
 
-// Demo kullanıcılar
+// Demo kullanıcılar — şifre: test123
 const DEMO_USERS = [
-  { email: 'ali@test.com', sifre: '123456', ad: 'Ali', soyad: 'Yılmaz', telefon: '0532 111 22 33', sehir: 'İstanbul' },
-  { email: 'ayse@test.com', sifre: '123456', ad: 'Ayşe', soyad: 'Kaya', telefon: '0541 444 55 66', sehir: 'Ankara' },
+  { email: 'ali@test.com', sifre: 'test123', ad: 'Ali', soyad: 'Yılmaz', telefon: '0532 111 22 33', sehir: 'İstanbul' },
+  { email: 'ayse@test.com', sifre: 'test123', ad: 'Ayşe', soyad: 'Kaya', telefon: '0541 444 55 66', sehir: 'Ankara' },
 ]
 
 function randomCaptcha() {
@@ -17,6 +18,7 @@ function randomCaptcha() {
 
 export default function Giris() {
   const { girisYap } = useAuth()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [sifre, setSifre] = useState('')
   const [captcha] = useState(randomCaptcha())
@@ -29,21 +31,26 @@ export default function Giris() {
     setHata('')
 
     if (parseInt(captchaInput) !== captcha.answer) {
-      setHata('Robot doğrulaması hatalı.')
+      setHata('Robot doğrulaması hatalı. ' + captcha.a + ' + ' + captcha.b + ' = ' + captcha.answer)
       return
     }
 
+    const emailTemiz = email.trim().toLowerCase()
+    const sifreTemiz = sifre.trim()
+
     setYukleniyor(true)
     setTimeout(() => {
-      const user = DEMO_USERS.find(u => u.email === email && u.sifre === sifre)
+      const user = DEMO_USERS.find(u =>
+        u.email.toLowerCase() === emailTemiz && u.sifre === sifreTemiz
+      )
       if (user) {
         girisYap(user)
-        window.location.href = '/panel'
+        router.push('/panel')
       } else {
-        setHata('E-posta veya şifre hatalı.')
+        setHata('E-posta veya şifre hatalı. Demo: ali@test.com / test123')
         setYukleniyor(false)
       }
-    }, 600)
+    }, 500)
   }
 
   return (
@@ -66,8 +73,8 @@ export default function Giris() {
 
           <div className={styles.demoBox}>
             <strong>🔧 Demo hesaplar:</strong><br/>
-            ali@test.com / 123456<br/>
-            ayse@test.com / 123456
+            ali@test.com / test123<br/>
+            ayse@test.com / test123
           </div>
 
           <form onSubmit={handleSubmit} className={styles.form}>
