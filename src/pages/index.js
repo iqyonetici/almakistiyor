@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
 import Navbar from '../components/Navbar'
 import IlanKarti from '../components/IlanKarti'
@@ -18,6 +19,7 @@ const demoIlanlar = [
 ]
 
 export default function Home() {
+  const { user } = useAuth()
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [filterSehir, setFilterSehir] = useState('')
@@ -245,7 +247,7 @@ export default function Home() {
 
       <Footer />
 
-      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
+      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} user={user} />
     </>
   )
 }

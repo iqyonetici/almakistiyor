@@ -54,9 +54,9 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
         </div>
 
         <div className={styles.right}>
-          {/* + Talep Ver her zaman görünür */}
+          {/* + Almak İstiyorum her zaman görünür */}
           <button className={styles.btnTalep} onClick={onIlanVer}>
-            + Talep Ver
+            + Almak İstiyorum
           </button>
 
           {user ? (
@@ -124,7 +124,7 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
           <div className={styles.mobileBtns}>
             <button className={styles.btnTalep} style={{width:'100%',justifyContent:'center'}}
               onClick={() => { onIlanVer && onIlanVer(); setMenuOpen(false) }}>
-              + Talep Ver
+              + Almak İstiyorum
             </button>
             {user ? (
               <>

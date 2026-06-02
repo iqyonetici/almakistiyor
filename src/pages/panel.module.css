@@ -95,3 +95,36 @@
 .yanitBasarili { text-align: center; padding: 16px 0; }
 .yanitBasarili h3 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .yanitBasarili p { font-size: 14px; color: var(--text-2); }
+
+/* İLAN DETAY */
+.ilanDetay { font-size: 12px; color: var(--text-3); margin: 4px 0 8px; line-height: 1.5; }
+
+/* MESAJ FİLTRE */
+.filtreRow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.filtreBtn { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--border); color: var(--text-2); background: none; cursor: pointer; transition: all 0.12s; font-family: inherit; }
+.filtreBtn:hover { border-color: var(--teal); color: var(--teal); }
+.filtreSel { background: var(--teal) !important; color: white !important; border-color: var(--teal) !important; }
+
+/* MESAJ KARTI */
+.mesajFirma { font-size: 11px; color: var(--text-3); font-weight: 400; background: var(--bg); border: 1px solid var(--border); padding: 1px 7px; border-radius: 10px; }
+.yanıtBadge { font-size: 11px; color: var(--green); font-weight: 500; }
+.mesajOnizleme { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-top: 8px; }
+
+/* MESAJ DETAY */
+.geriBtn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 13px; color: var(--text-2); cursor: pointer; font-family: inherit; transition: all 0.12s; }
+.geriBtn:hover { border-color: var(--teal); color: var(--teal); }
+.mesajDetayKart { background: white; border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow-sm); }
+.detayGonderen { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.detayIlanTag { font-size: 12px; color: var(--text-3); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; margin-bottom: 20px; display: inline-block; }
+
+/* KONUŞMA BALONLARI */
+.konusma { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; padding: 16px; background: var(--bg); border-radius: 10px; max-height: 340px; overflow-y: auto; }
+.mesajBalon { display: flex; flex-direction: column; align-items: flex-start; max-width: 80%; }
+.mesajBalonBen { display: flex; flex-direction: column; align-items: flex-end; max-width: 80%; align-self: flex-end; }
+.balonSatici { background: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; padding: 12px 16px; font-size: 14px; color: var(--text); line-height: 1.6; box-shadow: var(--shadow-sm); }
+.balonBen { background: var(--teal); border-radius: 12px 12px 2px 12px; padding: 12px 16px; font-size: 14px; color: white; line-height: 1.6; }
+.balonMeta { font-size: 11px; color: var(--text-3); margin-top: 4px; padding: 0 4px; }
+
+/* YANIT KUTUSU */
+.yanitKutu { border-top: 1px solid var(--border); padding-top: 20px; }
+.basariliMesaj { background: #EBF8F0; border: 1px solid #A3D9B8; color: #1A5C35; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 8px; }

@@ -4,10 +4,15 @@ import { useRouter } from 'next/router'
 import { useAuth } from '../context/AuthContext'
 import styles from './giris.module.css'
 
-// Demo kullanıcılar — şifre: test123
+// Demo kullanıcılar
 const DEMO_USERS = [
-  { email: 'ali@test.com', sifre: 'test123', ad: 'Ali', soyad: 'Yılmaz', telefon: '0532 111 22 33', sehir: 'İstanbul' },
-  { email: 'ayse@test.com', sifre: 'test123', ad: 'Ayşe', soyad: 'Kaya', telefon: '0541 444 55 66', sehir: 'Ankara' },
+  // Alıcı hesapları (ücretsiz)
+  { email: 'alici1@demo.com', sifre: 'Alici123!', ad: 'Mehmet', soyad: 'Arslan', telefon: '0532 111 22 33', sehir: 'İstanbul', tur: 'alici' },
+  { email: 'alici2@demo.com', sifre: 'Alici123!', ad: 'Zeynep', soyad: 'Koçak', telefon: '0541 333 44 55', sehir: 'Ankara', tur: 'alici' },
+  // Pro satıcı hesabı
+  { email: 'satici@demo.com', sifre: 'Satici123!', ad: 'Emre', soyad: 'Yıldız', telefon: '0212 555 66 77', sehir: 'İstanbul', firma: 'Yıldız Emlak & Danışmanlık', paket: 'Pro', kalanHak: 999, tur: 'satici' },
+  // Starter satıcı hesabı
+  { email: 'galeri@demo.com', sifre: 'Galeri123!', ad: 'Burak', soyad: 'Demir', telefon: '0216 888 99 00', sehir: 'İstanbul', firma: 'Demir Oto Galerisi', paket: 'Starter', kalanHak: 7, tur: 'satici' },
 ]
 
 function randomCaptcha() {
@@ -72,9 +77,13 @@ export default function Giris() {
           <p className={styles.sub}>Hesabınıza giriş yapın</p>
 
           <div className={styles.demoBox}>
-            <strong>🔧 Demo hesaplar:</strong><br/>
-            ali@test.com / test123<br/>
-            ayse@test.com / test123
+            <strong>🔧 Demo hesaplar:</strong><br/><br/>
+            <strong>👤 Alıcı hesabı:</strong><br/>
+            alici1@demo.com / Alici123!<br/><br/>
+            <strong>🏢 Pro Satıcı (Yıldız Emlak):</strong><br/>
+            satici@demo.com / Satici123!<br/><br/>
+            <strong>🚗 Starter Satıcı (Demir Oto):</strong><br/>
+            galeri@demo.com / Galeri123!
           </div>
 
           <form onSubmit={handleSubmit} className={styles.form}>
