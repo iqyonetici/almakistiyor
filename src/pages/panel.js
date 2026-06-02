@@ -85,7 +85,7 @@ const DEMO_MESAJLAR = [
 ]
 
 export default function Panel() {
-  const { user, cikisYap } = useAuth()
+  const { user, cikisYap, yuklendi } = useAuth()
   const router = useRouter()
   const [aktifTab, setAktifTab] = useState('talepler')
   const [formOpen, setFormOpen] = useState(false)
@@ -105,6 +105,7 @@ export default function Panel() {
     if (router.query.tab) setAktifTab(router.query.tab)
   }, [user, router.query.tab])
 
+  if (!yuklendi) return null
   if (!user) return null
 
   function ilanSil(id) { setTalepler(p => p.filter(i => i.id !== id)) }

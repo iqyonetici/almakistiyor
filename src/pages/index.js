@@ -19,7 +19,7 @@ const demoIlanlar = [
 ]
 
 export default function Home() {
-  const { user } = useAuth()
+  const { user, yuklendi } = useAuth()
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [filterSehir, setFilterSehir] = useState('')

@@ -17,7 +17,7 @@ function initials(ad, soyad) {
 }
 
 export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVer }) {
-  const { user, cikisYap } = useAuth()
+  const { user, cikisYap, yuklendi } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropOpen, setDropOpen] = useState(false)
   const dropRef = useRef(null)

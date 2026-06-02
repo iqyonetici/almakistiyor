@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -21,8 +23,16 @@ const paketler = [
 ]
 
 export default function Satici() {
-  const [girisYapildi, setGirisYapildi] = useState(false)
+  const { user, cikisYap } = useAuth()
+  const router = useRouter()
+  const [girisYapildi, setGirisYapildi] = useState(false) // legacy, user ile override edilecek
   const [aktifTab, setAktifTab] = useState('ilanlar')
+  
+  useEffect(() => {
+    if (user && user.tur === 'satici') {
+      setGirisYapildi(true)
+    }
+  }, [user])
   const [formOpen, setFormOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [sifre, setSifre] = useState('')
@@ -151,13 +161,13 @@ export default function Satici() {
           <div className={styles.userCard}>
             <div className={styles.userAvatar}>IQ</div>
             <div>
-              <div className={styles.userName}>IQ TEKNO</div>
-              <div className={styles.userEmail}>iqyonetici@gmail.com</div>
+              <div className={styles.userName}>{user?.firma || (user?.ad + ' ' + user?.soyad) || 'IQ TEKNO'}</div>
+              <div className={styles.userEmail}>{user?.email || 'iqyonetici@gmail.com'}</div>
             </div>
           </div>
 
           <div className={styles.hakKart}>
-            <div className={styles.hakBaslik}>Ücretsiz Hak</div>
+            <div className={styles.hakBaslik}>{user?.paket ? user.paket + ' Paket' : 'Ücretsiz Hak'}</div>
             <div className={styles.hakBar}>
               <div className={styles.hakDolu} style={{width: `${(kullanilanHak/uccretsiHak)*100}%`}} />
             </div>
@@ -184,7 +194,7 @@ export default function Satici() {
             ))}
           </nav>
 
-          <button className={styles.cikisBtn} onClick={() => setGirisYapildi(false)}>
+          <button className={styles.cikisBtn} onClick={() => { cikisYap(); router.push('/'); }}>
             ← Çıkış Yap
           </button>
         </aside>

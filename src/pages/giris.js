@@ -50,7 +50,8 @@ export default function Giris() {
       )
       if (user) {
         girisYap(user)
-        router.push('/panel')
+        // Satıcı hesabı ise satıcı paneline, alıcı ise kullanıcı paneline
+        router.push(user.tur === 'satici' ? '/satici' : '/panel')
       } else {
         setHata('E-posta veya şifre hatalı. Demo: ali@test.com / test123')
         setYukleniyor(false)
