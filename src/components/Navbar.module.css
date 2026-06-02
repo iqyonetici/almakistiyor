@@ -1,0 +1,45 @@
+.nav {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 24px; height: 62px;
+}
+.logo { flex-shrink: 0; display: flex; align-items: center; }
+.cats {
+  display: flex; gap: 2px; flex: 1;
+  overflow-x: auto; scrollbar-width: none;
+}
+.cats::-webkit-scrollbar { display: none; }
+.cat {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  white-space: nowrap; border: none; background: none;
+  transition: all 0.15s;
+}
+.cat:hover { background: var(--teal-light); color: var(--teal); }
+.catActive { background: var(--teal) !important; color: white !important; }
+.right { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+.burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; }
+.burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+
+.mobileMenu {
+  background: white; border-top: 1px solid var(--border);
+  padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 4px;
+}
+.mobileCat {
+  padding: 10px 14px; border-radius: 8px; text-align: left;
+  font-size: 14px; color: var(--text-2); background: none; border: none;
+  transition: background 0.12s;
+}
+.mobileCat:hover { background: var(--teal-light); color: var(--teal); }
+.mobileBtns { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+@media (max-width: 768px) {
+  .cats { display: none; }
+  .right { display: none; }
+  .burger { display: flex; }
+}

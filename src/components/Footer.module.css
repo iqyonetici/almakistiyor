@@ -1,0 +1,13 @@
+.footer { background: var(--teal-dark); color: rgba(255,255,255,0.7); padding: 48px 24px 24px; margin-top: 48px; }
+.inner { }
+.grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 36px; }
+.brand p { font-size: 13px; line-height: 1.8; margin-top: 12px; }
+.badges { display: flex; gap: 8px; margin-top: 14px; }
+.badge { font-size: 11px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 20px; }
+.col h6 { font-size: 12px; font-weight: 600; color: white; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.8px; }
+.col a { display: block; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 9px; transition: color 0.15s; }
+.col a:hover { color: white; }
+.bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: rgba(255,255,255,0.4); flex-wrap: wrap; gap: 8px; }
+.motto { }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
