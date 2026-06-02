@@ -40,6 +40,9 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
         </div>
 
         <div className={styles.right}>
+          <a href="/kayit" className="btn-outline" style={{fontSize:'13px', padding:'7px 14px'}}>
+            Kayıt Ol
+          </a>
           <a href="/satici" className="btn-outline" style={{fontSize:'13px', padding:'7px 14px'}}>
             Satıcı Girişi
           </a>

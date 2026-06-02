@@ -93,7 +93,7 @@ export default function Satici() {
             </form>
 
             <p className={styles.loginAlt}>
-              Henüz hesabınız yok mu? <a href="#" onClick={e=>{e.preventDefault();setGirisYapildi(true)}}>Ücretsiz kaydolun</a>
+              Henüz hesabınız yok mu? <a href="/kayit">Ücretsiz kaydolun</a>
             </p>
           </div>
 
