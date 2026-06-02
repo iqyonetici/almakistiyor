@@ -35,8 +35,28 @@ function validate(step, data, giris) {
   switch(step) {
     case 1: return !!data.kategori
     case 2: return !!data.sehir
-    case 3: return true // isteğe bağlı
-    case 4: return true
+    case 3: {
+      // Fiyat zorunlu
+      if (!data.fiyatMin || !data.fiyatMax) return false
+      if (Number(data.fiyatMin) <= 0 || Number(data.fiyatMax) <= 0) return false
+      if (Number(data.fiyatMin) > Number(data.fiyatMax)) return false
+      // Emlak için ek zorunlular
+      if (data.kategori === 'emlak') {
+        if (!data.emlakTip) return false
+        if (!data.m2Min || !data.m2Max) return false
+        if (Number(data.m2Min) <= 0 || Number(data.m2Max) <= 0) return false
+        if (Number(data.m2Min) > Number(data.m2Max)) return false
+        if (data.oda.length === 0) return false
+      }
+      // Vasıta için ek zorunlular
+      if (data.kategori === 'vasita') {
+        if (!data.yilMin || !data.yilMax) return false
+        if (Number(data.yilMin) < 1950 || Number(data.yilMax) > 2025) return false
+        if (Number(data.yilMin) > Number(data.yilMax)) return false
+      }
+      return true
+    }
+    case 4: return data.aciklama.trim().length >= 10
     case 5:
       if (giris) return true
       return !!(data.ad && data.telefon && data.telefon.replace(/\D/g,'').length >= 10)
@@ -363,6 +383,27 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                   {!['emlak','vasita'].includes(data.kategori) && (
                     <p className={styles.hint}>Fiyat aralığı yeterli — diğer kategoriler için ek alan gerekmez.</p>
                   )}
+
+                  {/* Zorunlu alan uyarısı */}
+                  {data.kategori === 'emlak' && (
+                    <div className={styles.zorunluUyari}>
+                      {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı zorunlu</span>}
+                      {!data.emlakTip && <span>• Emlak tipi seçin</span>}
+                      {(!data.m2Min || !data.m2Max) && <span>• Metrekare aralığı zorunlu</span>}
+                      {data.oda.length === 0 && <span>• Oda sayısı seçin</span>}
+                    </div>
+                  )}
+                  {data.kategori === 'vasita' && (!data.fiyatMin || !data.fiyatMax || !data.yilMin || !data.yilMax) && (
+                    <div className={styles.zorunluUyari}>
+                      {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı zorunlu</span>}
+                      {(!data.yilMin || !data.yilMax) && <span>• Model yılı aralığı zorunlu</span>}
+                    </div>
+                  )}
+                  {!['emlak','vasita'].includes(data.kategori) && (!data.fiyatMin || !data.fiyatMax) && (
+                    <div className={styles.zorunluUyari}>
+                      <span>• Bütçe aralığı zorunlu</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -370,11 +411,23 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
               {step===4 && (
                 <div>
                   <div className={styles.fieldGroup}>
-                    <label className="form-label">Açıklama (isteğe bağlı)</label>
+                    <label className="form-label">
+                      Açıklama
+                      <span style={{fontWeight:400, color: data.aciklama.trim().length >= 10 ? 'var(--green)' : 'var(--red)', marginLeft:8, fontSize:11}}>
+                        {data.aciklama.trim().length}/10 karakter minimum
+                        {data.aciklama.trim().length >= 10 ? ' ✓' : ''}
+                      </span>
+                    </label>
                     <textarea className="form-input" rows={5}
                       placeholder="Örn: Ocak ayına kadar taşınmam gerekiyor. Balkon ve asansör şart. Hafta sonu görüşmeye uygunum."
-                      style={{resize:'vertical',lineHeight:1.6}}
+                      style={{resize:'vertical',lineHeight:1.6,
+                        borderColor: data.aciklama.length > 0 && data.aciklama.trim().length < 10 ? 'var(--red)' : undefined}}
                       value={data.aciklama} onChange={e => set('aciklama',e.target.value)} />
+                    {data.aciklama.length > 0 && data.aciklama.trim().length < 10 && (
+                      <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>
+                        ⚠️ En az 10 karakter yazın ({10 - data.aciklama.trim().length} karakter daha)
+                      </p>
+                    )}
                     <p className={styles.hint}>Detay verdikçe daha doğru eşleşme sağlanır.</p>
                   </div>
                 </div>

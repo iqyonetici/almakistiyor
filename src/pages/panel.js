@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar'
 import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import styles from './panel.module.css'
+import { kullanicIlanlari, ilanSil as dbIlanSil, ilanDurumGuncelle, mesajlariGetir, mesajOkunduIsaretle, yanıtGonder as dbYanitGonder } from '../lib/db'
 
 // Demo ilanlar — alici1@demo.com hesabına ait
 const DEMO_TALEPLER = [
@@ -100,10 +101,34 @@ export default function Panel() {
   const okunmamisSayi = mesajlar.filter(m => !m.okundu).length
 
   useEffect(() => {
-    if (!yuklendi) return // localStorage henüz yüklenmedi, bekle
+    if (!yuklendi) return
     if (!user) { router.push('/giris'); return }
     setProfil({ ad: user.ad, soyad: user.soyad, email: user.email, telefon: user.telefon || '', sehir: user.sehir || '', iletisimTercihi: 'ikisi' })
     if (router.query.tab) setAktifTab(router.query.tab)
+    
+    // DB'den ilanları ve mesajları yükle
+    if (user.email) {
+      kullanicIlanlari(user.email).then(({ data }) => {
+        if (data && data.length > 0) setTalepler(data.map(d => ({
+          id: d.id,
+          baslik: d.aciklama?.slice(0,60) || d.sehir + ' ' + d.kategori + ' arıyorum',
+          kategori: d.kategori.charAt(0).toUpperCase() + d.kategori.slice(1),
+          tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+          durum: d.durum, goruntuleme: d.goruntuleme || 0,
+          mesajSayisi: 0,
+          detay: [d.fiyat_min && d.fiyat_max ? '₺'+Number(d.fiyat_min).toLocaleString('tr-TR')+' – ₺'+Number(d.fiyat_max).toLocaleString('tr-TR') : null, d.m2_min && d.m2_max ? d.m2_min+'–'+d.m2_max+' m²' : null, d.oda, d.emlak_tip].filter(Boolean).join(' | ')
+        })))
+      })
+      mesajlariGetir(user.email).then(({ data }) => {
+        if (data && data.length > 0) setMesajlar(data.map(d => ({
+          id: d.id, ilanId: d.ilan_id,
+          gonderen: d.gonderen_ad, firma: d.gonderen_firma || '',
+          ilan: d.ilanlar?.baslik || 'İlan',
+          mesaj: d.metin, tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+          okundu: d.okundu, yanıtlar: []
+        })))
+      })
+    }
   }, [yuklendi, user, router.query.tab])
 
   if (!yuklendi) return <div style={{minHeight:'100vh',background:'var(--bg)'}} />

@@ -112,3 +112,12 @@
 .success p { font-size:14px; color:var(--text-2); margin-bottom:16px; }
 .successInfo { background:var(--teal-light); border:1px solid var(--teal-mid); border-radius:10px; padding:12px 14px; text-align:left; margin-bottom:16px; }
 .successInfo p { font-size:13px; color:var(--teal-dark); line-height:1.8; }
+
+/* ZORUNLU ALAN UYARISI */
+.zorunluUyari {
+  display: flex; flex-direction: column; gap: 3px;
+  background: #FEF2F2; border: 1px solid #FECACA;
+  border-radius: 8px; padding: 10px 14px; margin-top: 12px;
+  font-size: 12px; color: #991B1B; line-height: 1.6;
+}
+.zorunluUyari span { display: block; }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
 import Navbar from '../components/Navbar'
@@ -6,6 +6,7 @@ import IlanKarti from '../components/IlanKarti'
 import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import { sehirler } from '../data/sehirler'
+import { ilanListele, ilanOlustur } from '../lib/db'
 import styles from './index.module.css'
 
 // Demo ilanlar
@@ -27,6 +28,38 @@ export default function Home() {
   const [filterFiyatMin, setFilterFiyatMin] = useState('')
   const [filterFiyatMax, setFilterFiyatMax] = useState('')
   const [ilanlar, setIlanlar] = useState(demoIlanlar)
+  const [dbHata, setDbHata] = useState(false)
+
+  useEffect(() => {
+    async function yukle() {
+      const { data, error } = await ilanListele({ kategori: activeCategory || undefined, sehir: filterSehir || undefined })
+      if (data && data.length > 0) {
+        setIlanlar(data.map(d => ({
+          id: d.id,
+          kategori: d.kategori,
+          ad: d.kullanici_ad + ' ' + (d.kullanici_soyad || ''),
+          sehir: d.sehir, ilce: d.ilce,
+          baslik: d.aciklama?.slice(0,60) || d.sehir + ' ' + d.kategori + ' arıyorum',
+          fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
+          tags: [
+            d.oda ? {label: d.oda.replace(',', ', '), variant:'tag-gray'} : null,
+            d.m2_min && d.m2_max ? {label: d.m2_min + '–' + d.m2_max + ' m²', variant:'tag-gray'} : null,
+            d.emlak_tip ? {label: d.emlak_tip, variant:'tag-gray'} : null,
+            d.markalar ? {label: d.markalar.replace(',', ', '), variant:'tag-gray'} : null,
+            d.yil_min && d.yil_max ? {label: d.yil_min + '–' + d.yil_max, variant:'tag-gray'} : null,
+          ].filter(Boolean),
+          aciklama: d.aciklama,
+          tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+          goruntuleme: d.goruntuleme || 0,
+          telefon: d.kullanici_telefon,
+          email: d.kullanici_email,
+        })))
+      } else if (error) {
+        setDbHata(true) // DB bağlı değil, demo verilerle devam
+      }
+    }
+    yukle()
+  }, [activeCategory, filterSehir])
   const [sort, setSort] = useState('yeni')
   const [mesajHaklari, setMesajHaklari] = useState({}) // {ilanId: {gonderilenBuKisiye: N}}
   const [kalanGenel, setKalanGenel] = useState(3) // ücretsiz mesaj hakkı
@@ -37,7 +70,14 @@ export default function Home() {
     .filter(i => !filterSehir || i.sehir === filterSehir)
     .sort((a, b) => sort === 'yeni' ? b.id - a.id : sort === 'cok-goruntulenen' ? b.goruntuleme - a.goruntuleme : 0)
 
-  function handleSubmit(data) {
+  async function handleSubmit(data) {
+    // Önce DB'ye kaydet
+    const { data: saved, error } = await ilanOlustur(data, user)
+    if (error) {
+      console.error('İlan kaydedilemedi:', error)
+      // DB yoksa lokal state'e ekle (fallback)
+    }
+  
     const yeni = {
       id: Date.now(),
       kategori: data.kategori,
