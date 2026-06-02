@@ -1,149 +1,150 @@
 .wrap {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--teal-dark) 0%, #0a4a3f 100%);
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 20px 16px;
 }
-.box {
-  background: white; border-radius: 20px;
-  padding: 40px; width: 600px; max-width: 100%;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
-  max-height: 95vh; overflow-y: auto;
-}
-.logo { display: flex; justify-content: center; margin-bottom: 28px; }
 
-/* PROGRESS */
-.progress {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 12px; gap: 4px;
+/* Küçük kutu — doğrulama adımı için */
+.boxSm {
+  background: white; border-radius: 16px; padding: 32px;
+  width: 420px; max-width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  text-align: center; margin-top: 40px;
 }
-.progStep { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+
+/* Geniş kutu — form adımları için */
+.boxFull {
+  background: white; border-radius: 16px;
+  width: 680px; max-width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+.boxHeader {
+  padding: 20px 28px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap; padding-bottom: 16px;
+}
+
+.progRow {
+  display: flex; gap: 6px; align-items: center;
+}
+.progItem { display: flex; align-items: center; gap: 6px; }
+.progItem:not(:last-child)::after { content: '→'; font-size: 11px; color: var(--text-3); margin-left: 6px; }
 .progDot {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
   background: var(--border); color: var(--text-3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; transition: all 0.2s;
-  flex-shrink: 0;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; transition: all 0.2s;
 }
 .progDone { background: var(--teal); color: white; }
 .progActive { background: var(--accent); color: white; }
-.progLabel { font-size: 10px; color: var(--text-3); text-align: center; line-height: 1.3; }
-.progBar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 28px; overflow: hidden; }
-.progFill { height: 100%; background: var(--teal); border-radius: 2px; transition: width 0.3s; }
+.progLabel { font-size: 12px; color: var(--text-3); white-space: nowrap; }
 
-.stepTitle { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.stepSub { font-size: 13px; color: var(--text-3); margin-bottom: 24px; line-height: 1.6; }
+.boxBody { padding: 24px 28px 28px; }
 
-/* HESAP TÜRÜ */
-.turGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 8px; }
+/* Logo */
+.logo { display: inline-flex; align-items: center; }
+
+/* Tipografi */
+.stepTitle { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.stepSub { font-size: 13px; color: var(--text-3); margin-bottom: 20px; line-height: 1.5; }
+.girisLink { text-align: center; font-size: 13px; color: var(--text-3); margin-top: 12px; }
+.girisLink a { color: var(--teal); font-weight: 500; }
+
+/* ADIM 1 */
+.turAdim { }
+.turGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
 .turBtn {
-  padding: 20px 16px; border-radius: 12px;
+  padding: 16px 14px; border-radius: 12px;
   border: 2px solid var(--border); background: none;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
   text-align: center; transition: all 0.15s; cursor: pointer;
 }
 .turBtn:hover { border-color: var(--teal-mid); background: var(--teal-light); }
 .turSel { border-color: var(--teal) !important; background: var(--teal-light) !important; }
-.turIcon { font-size: 32px; }
-.turAd { font-size: 16px; font-weight: 600; color: var(--text); }
-.turAcik { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.turIcon { font-size: 28px; }
+.turAd { font-size: 15px; font-weight: 600; color: var(--text); }
+.turAcik { font-size: 12px; color: var(--text-3); line-height: 1.4; }
 .turUcret { font-size: 11px; font-weight: 600; color: var(--green); background: #EBF8F0; padding: 2px 8px; border-radius: 10px; }
 .turUcret2 { font-size: 11px; font-weight: 600; color: #7A4F01; background: var(--accent-light); padding: 2px 8px; border-radius: 10px; }
 
-/* FORM */
-.formGrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+/* ADIM 2 — kompakt grid */
+.kompaktGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 16px;
+}
+.kompaktInput { padding: 9px 12px !important; font-size: 13px !important; }
 .fg { display: flex; flex-direction: column; }
-.inputHata { border-color: var(--red) !important; }
-.hata { font-size: 11px; color: var(--red); margin-top: 3px; }
+.fgFull { grid-column: 1/-1; display: flex; flex-direction: column; }
 
-/* İLETİŞİM TERCİHİ */
-.iletisimGrid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+/* Telefon prefix */
+.telWrap { display: flex; }
+.telPrefiks {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border: 1.5px solid var(--border); border-right: none;
+  border-radius: 9px 0 0 9px; padding: 0 10px;
+  font-size: 13px; font-weight: 500; color: var(--text-2); white-space: nowrap;
+}
+
+/* ADIM 3 */
+.iletisimGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .iletisimBtn {
-  padding: 16px; border-radius: 10px;
-  border: 2px solid var(--border); background: none;
-  display: flex; align-items: flex-start; gap: 14px; text-align: left;
-  transition: all 0.15s; cursor: pointer;
+  padding: 10px 8px; border-radius: 10px; border: 2px solid var(--border);
+  background: none; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; text-align: center; transition: all 0.15s;
 }
 .iletisimBtn:hover { border-color: var(--teal-mid); background: var(--teal-light); }
 .iletisimSel { border-color: var(--teal) !important; background: var(--teal-light) !important; }
-.iletisimIcon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
-.iletisimAd { font-size: 14px; font-weight: 600; color: var(--text); display: block; margin-bottom: 3px; }
-.iletisimAcik { font-size: 12px; color: var(--text-2); line-height: 1.5; display: block; }
 
-/* FİRMA TÜR */
-.firmaTurGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.firmaBlok { margin-bottom: 14px; }
+.firmaTurGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 0; }
 .firmaTurBtn {
-  padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  padding: 9px 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
   border: 1.5px solid var(--border); background: none;
-  display: flex; align-items: center; gap: 7px; color: var(--text-2);
-  transition: all 0.12s; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; color: var(--text-2);
+  transition: all 0.12s; cursor: pointer; font-family: inherit;
 }
 .firmaTurBtn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
-.firmaTurSel { border-color: var(--teal) !important; color: var(--teal) !important; background: var(--teal-light) !important; font-weight: 600; }
+.firmaTurSel { border-color: var(--teal) !important; color: var(--teal) !important; background: var(--teal-light) !important; }
 
-/* UYARI KUTUSU */
 .uyariBox {
-  display: flex; gap: 10px; align-items: flex-start;
+  display: flex; gap: 8px; align-items: flex-start;
   background: var(--accent-light); border: 1px solid #F5CC80;
-  border-radius: 10px; padding: 14px; margin-bottom: 18px; font-size: 13px; color: #7A4F01; line-height: 1.6;
+  border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #7A4F01;
+  line-height: 1.5; margin-top: 12px;
 }
-.uyariIcon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
 
-/* CAPTCHA */
 .captchaBox {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   background: var(--bg); border: 1px solid var(--border);
-  border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
 }
-.captchaBaslik { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
-.captchaIcerik { display: flex; align-items: center; gap: 14px; }
-.captchaSoru {
-  font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700;
-  color: var(--teal); background: var(--teal-light); padding: 8px 16px;
-  border-radius: 8px; letter-spacing: 2px;
-}
+.captchaSoru { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--teal); }
 
-/* SÖZLEŞME */
-.sozlesmeBox { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-.checkRow {
-  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
-  font-size: 13px; color: var(--text-2); line-height: 1.5;
-}
-.checkRow input { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--teal); }
+.sozlesmeBox { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+.checkRow { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.checkRow input { margin-top: 2px; width: 15px; height: 15px; flex-shrink: 0; accent-color: var(--teal); }
 .checkRow a { color: var(--teal); font-weight: 500; }
 
-/* NAV BTNS */
-.navBtns { display: flex; gap: 10px; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--border); }
+.navBtns { display: flex; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); }
 
-/* DOĞRULAMA */
-.dogrulamaWrap { text-align: center; padding: 8px 0; }
-.dogrulamaIcon { font-size: 52px; margin-bottom: 16px; }
-.demoBox {
-  background: #FEF3DC; border: 1px solid #F5CC80; border-radius: 10px;
-  padding: 12px 16px; font-size: 13px; color: #7A4F01; text-align: left;
-  margin-bottom: 20px; line-height: 1.7;
-}
-.demoKod { font-size: 16px; letter-spacing: 3px; font-family: 'Sora', sans-serif; }
-.kodInputWrap { margin-bottom: 20px; }
-.tekrarBtn {
-  background: none; border: none; color: var(--teal); font-size: 13px;
-  cursor: pointer; text-decoration: underline; font-family: inherit;
-}
+/* Hatalar */
+.inputHata { border-color: var(--red) !important; }
+.hata { font-size: 11px; color: var(--red); margin-top: 2px; }
 
-/* SUCCESS */
-.successIcon { font-size: 56px; text-align: center; margin-bottom: 16px; }
-.successTitle { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); text-align: center; margin-bottom: 8px; }
-.successSub { font-size: 14px; color: var(--text-2); text-align: center; margin-bottom: 20px; line-height: 1.7; }
-.successInfo {
-  background: var(--teal-light); border: 1px solid var(--teal-mid);
-  border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; color: var(--teal-dark); line-height: 1.7;
-}
-.girisLink { text-align: center; font-size: 13px; color: var(--text-3); margin-top: 16px; }
-.girisLink a { color: var(--teal); font-weight: 500; }
+/* Doğrulama */
+.dogrulamaIcon { font-size: 44px; margin-bottom: 12px; }
+.demoBox { background: var(--accent-light); border: 1px solid #F5CC80; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #7A4F01; line-height: 1.7; }
+.tekrarBtn { background: none; border: none; color: var(--teal); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
 
-@media (max-width: 600px) {
-  .box { padding: 24px 16px; }
+@media (max-width: 720px) {
+  .boxFull { border-radius: 12px; }
+  .kompaktGrid { grid-template-columns: 1fr; }
   .turGrid { grid-template-columns: 1fr; }
-  .formGrid2 { grid-template-columns: 1fr; }
+  .iletisimGrid { grid-template-columns: 1fr; }
   .firmaTurGrid { grid-template-columns: 1fr 1fr; }
-  .progLabel { display: none; }
+  .boxHeader { flex-direction: column; align-items: flex-start; gap: 12px; }
 }

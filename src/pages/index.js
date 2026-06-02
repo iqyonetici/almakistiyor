@@ -146,6 +146,40 @@ export default function Home() {
         </div>
       </div>
 
+      {/* KULLANICI KARŞILAMA BANNER */}
+      {user && (
+        <div style={{background:'var(--teal-light)',borderBottom:'1px solid var(--teal-mid)',padding:'10px 24px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:'var(--teal)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Sora,sans-serif',fontWeight:700,fontSize:12,flexShrink:0}}>
+                {(user.ad?.[0]||'')+(user.soyad?.[0]||'')}
+              </div>
+              <span style={{fontSize:14,color:'var(--teal-dark)',fontWeight:500}}>
+                Merhaba, {user.ad}! {user.tur === 'satici' ? (user.firma || 'Profesyonel hesap') : 'Alıcı hesabı'}
+              </span>
+              {ilanlar.some(i => i.goruntuleme > 0) && (
+                <span style={{background:'var(--teal)',color:'white',fontSize:11,fontWeight:600,padding:'2px 9px',borderRadius:20}}>
+                  İlanlarınıza bakıldı
+                </span>
+              )}
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <a href="/panel" style={{fontSize:13,padding:'6px 14px',borderRadius:8,background:'var(--teal)',color:'white',fontWeight:500,display:'inline-flex',alignItems:'center',gap:5}}>
+                📋 İlanlarım
+              </a>
+              <a href="/panel?tab=mesajlar" style={{fontSize:13,padding:'6px 14px',borderRadius:8,border:'1.5px solid var(--teal)',color:'var(--teal)',fontWeight:500,display:'inline-flex',alignItems:'center',gap:5}}>
+                💬 Mesajlarım <span style={{background:'var(--teal)',color:'white',borderRadius:20,padding:'1px 6px',fontSize:11}}>2</span>
+              </a>
+              {user.tur === 'satici' && (
+                <a href="/satici" style={{fontSize:13,padding:'6px 14px',borderRadius:8,border:'1.5px solid var(--teal)',color:'var(--teal)',fontWeight:500}}>
+                  Satıcı Paneli →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MAIN */}
       <div className={`container ${styles.main}`}>
 
