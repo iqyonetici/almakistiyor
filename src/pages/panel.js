@@ -6,7 +6,7 @@ import Navbar from '../components/Navbar'
 import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import styles from './panel.module.css'
-import { kullanicIlanlari, ilanSil as dbIlanSil, ilanDurumGuncelle, mesajlariGetir, mesajOkunduIsaretle, yanıtGonder as dbYanitGonder } from '../lib/db'
+import { kullanicIlanlari, konusmalariGetir, konusmaMesajlariGetir, konusmaMesajGonder, konusmaOkunduIsaretle } from '../lib/db'
 
 // Demo ilanlar — alici1@demo.com hesabına ait
 const DEMO_TALEPLER = [
@@ -91,45 +91,39 @@ export default function Panel() {
   const [aktifTab, setAktifTab] = useState('talepler')
   const [formOpen, setFormOpen] = useState(false)
   const [talepler, setTalepler] = useState(DEMO_TALEPLER)
-  const [mesajlar, setMesajlar] = useState(DEMO_MESAJLAR)
-  const [profil, setProfil] = useState({})
-  const [seciliMesaj, setSeciliMesaj] = useState(null)
+  const [konusmalar, setKonusmalar] = useState([]) // Gerçek konuşmalar
+  const [seciliKonusma, setSeciliKonusma] = useState(null)
+  const [konusmaMesajlar, setKonusmaMesajlar] = useState([]) // Seçili konuşmanın mesajları
   const [yanitMetni, setYanitMetni] = useState('')
-  const [yanitGonderildi, setYanitGonderildi] = useState(false)
-  const [filtreIlan, setFiltreIlan] = useState('hepsi')
+  const [yanitGonderiliyor, setYanitGonderiliyor] = useState(false)
+  const [profil, setProfil] = useState({})
 
-  const okunmamisSayi = mesajlar.filter(m => !m.okundu).length
+  const okunmamisSayi = konusmalar.reduce((t, k) => {
+    const rolAlici = k.alici_email === user?.email
+    return t + (rolAlici ? (k.okunmamis_alici||0) : (k.okunmamis_satici||0))
+  }, 0)
 
   useEffect(() => {
     if (!yuklendi) return
     if (!user) { router.push('/giris'); return }
     setProfil({ ad: user.ad, soyad: user.soyad, email: user.email, telefon: user.telefon || '', sehir: user.sehir || '', iletisimTercihi: 'ikisi' })
     if (router.query.tab) setAktifTab(router.query.tab)
-    
-    // DB'den ilanları ve mesajları yükle
     if (user.email) {
+      // İlanları yükle
       kullanicIlanlari(user.email).then(({ data }) => {
         if (data && data.length > 0) setTalepler(data.map(d => ({
           id: d.id,
-          baslik: d.aciklama?.slice(0,60) || d.sehir + ' ' + d.kategori + ' arıyorum',
-          kategori: d.kategori.charAt(0).toUpperCase() + d.kategori.slice(1),
+          baslik: (d.sehir||'') + (d.ilce?' '+d.ilce:'') + ' — ' + (d.kategori||'') + ' arıyorum',
+          kategori: d.kategori ? d.kategori.charAt(0).toUpperCase() + d.kategori.slice(1) : 'Diğer',
           tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
           durum: d.durum, goruntuleme: d.goruntuleme || 0,
           mesajSayisi: 0,
-          detay: [d.fiyat_min && d.fiyat_max ? '₺'+Number(d.fiyat_min).toLocaleString('tr-TR')+' – ₺'+Number(d.fiyat_max).toLocaleString('tr-TR') : null, d.m2_min && d.m2_max ? d.m2_min+'–'+d.m2_max+' m²' : null, d.oda, d.emlak_tip].filter(Boolean).join(' | ')
+          detay: [d.fiyat_min&&d.fiyat_max ? '₺'+Number(d.fiyat_min).toLocaleString('tr-TR')+' – ₺'+Number(d.fiyat_max).toLocaleString('tr-TR') : null, d.m2_min&&d.m2_max ? d.m2_min+'–'+d.m2_max+' m²' : null, d.oda, d.emlak_tip].filter(Boolean).join(' | ')
         })))
       })
-      mesajlariGetir(user.email).then(({ data }) => {
-        if (data && data.length > 0) setMesajlar(data.map(d => ({
-          id: d.id, ilanId: d.ilan_id,
-          gonderen: d.gonderen_ad || 'Satıcı',
-          firma: d.gonderen_firma || '',
-          ilan: 'Talep ilanınız',
-          mesaj: d.metin || '',
-          tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
-          okundu: d.okundu || false,
-          yanıtlar: []
-        })))
+      // Konuşmaları yükle
+      konusmalariGetir(user.email).then(({ data }) => {
+        if (data) setKonusmalar(data)
       })
     }
   }, [yuklendi, user, router.query.tab])
@@ -140,36 +134,50 @@ export default function Panel() {
   function ilanSil(id) { setTalepler(p => p.filter(i => i.id !== id)) }
   function ilanToggle(id) { setTalepler(p => p.map(i => i.id === id ? {...i, durum: i.durum==='aktif'?'pasif':'aktif'} : i)) }
 
-  function mesajAc(m) {
-    setSeciliMesaj(m)
+  async function konusmaAc(k) {
+    setSeciliKonusma(k)
     setYanitMetni('')
-    setYanitGonderildi(false)
-    setMesajlar(p => p.map(x => x.id === m.id ? {...x, okundu: true} : x))
-  }
-
-  async function yanitGonder() {
-    if (!yanitMetni.trim()) return
-    // DB'ye kaydet
-    await dbYanitGonder({
-      mesajId: seciliMesaj.id,
-      gonderenEmail: user?.email || '',
-      gonderenAd: user ? `${user.ad} ${user.soyad||''}`.trim() : 'Kullanıcı',
-      metin: yanitMetni,
-    })
-    const yeniYanit = { metin: yanitMetni, tarih: 'Az önce', benden: true }
-    setMesajlar(p => p.map(x => x.id === seciliMesaj.id
-      ? {...x, yanıtlar: [...(x.yanıtlar||[]), yeniYanit]}
+    // Mesajları yükle
+    const { data } = await konusmaMesajlariGetir(k.id)
+    setKonusmaMesajlar(data || [])
+    // Okundu işaretle
+    const rolAlici = k.alici_email === user.email
+    await konusmaOkunduIsaretle(k.id, user.email, rolAlici)
+    setKonusmalar(p => p.map(x => x.id === k.id
+      ? {...x, okunmamis_alici: rolAlici ? 0 : x.okunmamis_alici, okunmamis_satici: !rolAlici ? 0 : x.okunmamis_satici}
       : x
     ))
-    setSeciliMesaj(p => ({...p, yanıtlar: [...(p.yanıtlar||[]), yeniYanit]}))
-    setYanitMetni('')
-    setYanitGonderildi(true)
-    setTimeout(() => setYanitGonderildi(false), 2000)
   }
 
-  const filtrelenmis = filtreIlan === 'hepsi'
-    ? mesajlar
-    : mesajlar.filter(m => m.ilanId === parseInt(filtreIlan))
+  async function mesajGonderKonusma() {
+    if (!yanitMetni.trim() || !seciliKonusma || yanitGonderiliyor) return
+    setYanitGonderiliyor(true)
+    const rolAlici = seciliKonusma.alici_email === user.email
+    const { data } = await konusmaMesajGonder({
+      konusmaId: seciliKonusma.id,
+      gonderenEmail: user.email,
+      gonderenAd: `${user.ad||''} ${user.soyad||''}`.trim(),
+      metin: yanitMetni,
+      gonderenAliciMi: rolAlici,
+    })
+    if (data) {
+      setKonusmaMesajlar(p => [...p, data])
+      setKonusmalar(p => p.map(x => x.id === seciliKonusma.id
+        ? {...x, son_mesaj: yanitMetni.slice(0,100), guncellendi_at: new Date().toISOString()}
+        : x
+      ))
+    }
+    setYanitMetni('')
+    setYanitGonderiliyor(false)
+  }
+
+  // Konuşmaları ilan bazlı grupla
+  const konusmaGruplari = konusmalar.reduce((acc, k) => {
+    const key = k.ilan_id || 'genel'
+    if (!acc[key]) acc[key] = { ilanBaslik: k.ilan_baslik || 'Genel', ilanKategori: k.ilan_kategori, konusmalar: [] }
+    acc[key].konusmalar.push(k)
+    return acc
+  }, {})
 
   return (
     <>
@@ -195,7 +203,7 @@ export default function Panel() {
             ].map(m => (
               <button key={m.id}
                 className={`${styles.navItem} ${aktifTab===m.id ? styles.navActive : ''}`}
-                onClick={() => { setAktifTab(m.id); setSeciliMesaj(null) }}>
+                onClick={() => { setAktifTab(m.id); setSeciliKonusma(null) }}>
                 <span className={styles.navIcon}>{m.icon}</span>
                 <span>{m.label}</span>
                 {m.badge ? <span className={styles.badge}>{m.badge}</span> : null}
@@ -261,60 +269,61 @@ export default function Panel() {
             </div>
           )}
 
-          {/* MESAJLARIM */}
-          {aktifTab === 'mesajlar' && !seciliMesaj && (
+          {/* MESAJLARIM — Konuşma bazlı */}
+          {aktifTab === 'mesajlar' && !seciliKonusma && (
             <div>
               <div className={styles.pageHeader}>
                 <div>
                   <h1 className={styles.pageTitle}>Mesajlarım</h1>
-                  <p className={styles.pageSub}>Satıcılardan gelen mesajlar — tıklayın okuyun, yanıtlayın</p>
+                  <p className={styles.pageSub}>İlan bazlı özel konuşmalar</p>
                 </div>
                 {okunmamisSayi > 0 && <span className={styles.okunmamisBadge}>{okunmamisSayi} okunmamış</span>}
               </div>
 
-              {/* İlan filtresi */}
-              <div className={styles.filtreRow}>
-                <button className={`${styles.filtreBtn} ${filtreIlan==='hepsi'?styles.filtreSel:''}`}
-                  onClick={() => setFiltreIlan('hepsi')}>Tümü ({mesajlar.length})</button>
-                {talepler.map(t => {
-                  const sayi = mesajlar.filter(m => m.ilanId === t.id).length
-                  return (
-                    <button key={t.id}
-                      className={`${styles.filtreBtn} ${filtreIlan===String(t.id)?styles.filtreSel:''}`}
-                      onClick={() => setFiltreIlan(String(t.id))}>
-                      {t.kategori} ({sayi})
-                    </button>
-                  )
-                })}
-              </div>
-
-              {filtrelenmis.length === 0 ? (
+              {konusmalar.length === 0 ? (
                 <div className={styles.bosKart}>
                   <div className={styles.bosIcon}>💬</div>
-                  <h3>Bu ilan için mesaj yok</h3>
+                  <h3>Henüz mesajınız yok</h3>
+                  <p>Talep ilanı verdiğinizde satıcılar size mesaj gönderebilir.</p>
                 </div>
               ) : (
-                <div className={styles.mesajListesi}>
-                  {filtrelenmis.map(m => (
-                    <div key={m.id}
-                      className={`${styles.mesajKarti} ${!m.okundu?styles.mesajYeni:''}`}
-                      onClick={() => mesajAc(m)}>
-                      <div className={styles.mesajUst}>
-                        <div className={styles.mesajAvatar} style={{background: m.okundu ? 'var(--teal-light)' : 'var(--teal)', color: m.okundu ? 'var(--teal)' : 'white'}}>
-                          {m.gonderen[0]}
-                        </div>
-                        <div className={styles.mesajInfo}>
-                          <div className={styles.mesajGonderen}>
-                            {m.gonderen}
-                            <span className={styles.mesajFirma}>{m.firma}</span>
-                            {!m.okundu && <span className={styles.yeniBadge}>Yeni</span>}
-                            {m.yanıtlar?.length > 0 && <span className={styles.yanıtBadge}>✓ Yanıtlandı</span>}
-                          </div>
-                          <div className={styles.mesajIlan}>📋 {m.ilan}</div>
-                        </div>
-                        <div className={styles.mesajTarih}>{m.tarih}</div>
+                <div>
+                  {/* Konuşmaları ilan bazlı grupla — ilan başlığı en üstte */}
+                  {Object.entries(konusmaGruplari).map(([ilanId, grup]) => (
+                    <div key={ilanId} className={styles.konusmaGrup}>
+                      <div className={styles.konusmaGrupBaslik}>
+                        <span className={styles.ilanKat}>{grup.ilanKategori || 'Genel'}</span>
+                        <span className={styles.konusmaGrupIlan}>📋 {grup.ilanBaslik || 'Talep ilanı'}</span>
                       </div>
-                      <p className={styles.mesajOnizleme}>{m.mesaj.slice(0,120)}{m.mesaj.length>120?'…':''}</p>
+                      {grup.konusmalar.map(k => {
+                        const rolAlici = k.alici_email === user.email
+                        const karsiTarafAd = rolAlici ? (k.satici_ad||'Satıcı') : (k.alici_ad||'Alıcı')
+                        const karsiTarafFirma = rolAlici ? (k.satici_firma||'') : ''
+                        const okunmamis = rolAlici ? (k.okunmamis_alici||0) : (k.okunmamis_satici||0)
+                        return (
+                          <div key={k.id}
+                            className={`${styles.konusmaKarti} ${okunmamis > 0 ? styles.konusmaYeni : ''}`}
+                            onClick={() => konusmaAc(k)}>
+                            <div className={styles.mesajUst}>
+                              <div className={styles.mesajAvatar}
+                                style={{background: okunmamis > 0 ? 'var(--teal)' : 'var(--teal-light)', color: okunmamis > 0 ? 'white' : 'var(--teal)'}}>
+                                {(karsiTarafAd[0]||'?').toUpperCase()}
+                              </div>
+                              <div className={styles.mesajInfo}>
+                                <div className={styles.mesajGonderen}>
+                                  {karsiTarafAd}
+                                  {karsiTarafFirma && <span className={styles.mesajFirma}>{karsiTarafFirma}</span>}
+                                  {okunmamis > 0 && <span className={styles.yeniBadge}>{okunmamis} yeni</span>}
+                                </div>
+                                {k.son_mesaj && <p className={styles.mesajOnizleme}>{k.son_mesaj.slice(0,80)}{k.son_mesaj.length>80?'…':''}</p>}
+                              </div>
+                              <div className={styles.mesajTarih}>
+                                {new Date(k.guncellendi_at||k.created_at).toLocaleDateString('tr-TR')}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   ))}
                 </div>
@@ -322,70 +331,65 @@ export default function Panel() {
             </div>
           )}
 
-          {/* MESAJ DETAY + YANIT */}
-          {aktifTab === 'mesajlar' && seciliMesaj && (
-            <div>
-              <div className={styles.pageHeader}>
-                <button className={styles.geriBtn} onClick={() => setSeciliMesaj(null)}>
+          {/* KONUŞMA DETAYI */}
+          {aktifTab === 'mesajlar' && seciliKonusma && (
+            <div style={{display:'flex',flexDirection:'column',height:'calc(100vh - 130px)'}}>
+              {/* Başlık */}
+              <div className={styles.pageHeader} style={{flexShrink:0}}>
+                <button className={styles.geriBtn} onClick={() => setSeciliKonusma(null)}>
                   ← Tüm mesajlar
                 </button>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:15,color:'var(--text)'}}>
+                    {seciliKonusma.alici_email === user.email
+                      ? (seciliKonusma.satici_ad||'Satıcı')
+                      : (seciliKonusma.alici_ad||'Alıcı')}
+                    {seciliKonusma.satici_firma && <span style={{fontSize:12,color:'var(--text-3)',marginLeft:8}}>{seciliKonusma.satici_firma}</span>}
+                  </div>
+                  <div className={styles.detayIlanTag} style={{marginBottom:0}}>
+                    📋 {seciliKonusma.ilan_baslik || 'Talep ilanı'}
+                  </div>
+                </div>
               </div>
 
-              <div className={styles.mesajDetayKart}>
-                {/* Gönderen */}
-                <div className={styles.detayGonderen}>
-                  <div className={styles.mesajAvatar} style={{width:44,height:44,fontSize:17,background:'var(--teal)',color:'white'}}>
-                    {seciliMesaj.gonderen[0]}
+              {/* Mesaj balonları */}
+              <div className={styles.konusma} style={{flex:1,maxHeight:'none'}}>
+                {konusmaMesajlar.length === 0 && (
+                  <div style={{textAlign:'center',color:'var(--text-3)',fontSize:13,padding:'24px 0'}}>
+                    Henüz mesaj yok — ilk mesajı siz gönderin
                   </div>
-                  <div>
-                    <div style={{fontWeight:600,fontSize:15,color:'var(--text)'}}>{seciliMesaj.gonderen}</div>
-                    <div style={{fontSize:12,color:'var(--text-3)'}}>{seciliMesaj.firma} · {seciliMesaj.tarih}</div>
-                  </div>
-                </div>
-                <div className={styles.detayIlanTag}>📋 {seciliMesaj.ilan}</div>
-
-                {/* Konuşma akışı */}
-                <div className={styles.konusma}>
-                  {/* Gelen mesaj */}
-                  <div className={styles.mesajBalon}>
-                    <div className={styles.balonSatici}>{seciliMesaj.mesaj}</div>
-                    <div className={styles.balonMeta}>{seciliMesaj.gonderen} · {seciliMesaj.tarih}</div>
-                  </div>
-
-                  {/* Yanıtlar */}
-                  {seciliMesaj.yanıtlar?.map((y, i) => (
-                    <div key={i} className={y.benden ? styles.mesajBalonBen : styles.mesajBalon}>
-                      <div className={y.benden ? styles.balonBen : styles.balonSatici}>{y.metin}</div>
-                      <div className={styles.balonMeta} style={{textAlign: y.benden ? 'right' : 'left'}}>
-                        {y.benden ? 'Siz' : seciliMesaj.gonderen} · {y.tarih}
+                )}
+                {konusmaMesajlar.map(m => {
+                  const benden = m.gonderen_email === user.email
+                  return (
+                    <div key={m.id} className={benden ? styles.mesajBalonBen : styles.mesajBalon}>
+                      <div className={benden ? styles.balonBen : styles.balonSatici}>{m.metin}</div>
+                      <div className={styles.balonMeta} style={{textAlign:benden?'right':'left'}}>
+                        {benden ? 'Siz' : (m.gonderen_ad||'Karşı taraf')} · {new Date(m.created_at).toLocaleString('tr-TR',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )
+                })}
+              </div>
 
-                {/* Yanıt kutusu */}
-                <div className={styles.yanitKutu}>
-                  <textarea
-                    className="form-input"
-                    rows={4}
-                    placeholder={`${seciliMesaj.gonderen} adlı satıcıya yanıt yazın...`}
-                    style={{resize:'vertical', lineHeight:1.6}}
+              {/* Mesaj gönder */}
+              <div className={styles.yanitKutu} style={{flexShrink:0}}>
+                <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
+                  <textarea className="form-input" rows={3}
+                    placeholder="Mesajınızı yazın..."
+                    style={{resize:'none',lineHeight:1.6,flex:1}}
                     value={yanitMetni}
                     onChange={e => setYanitMetni(e.target.value)}
+                    onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); mesajGonderKonusma() }}}
                   />
-                  {yanitGonderildi && (
-                    <div className={styles.basariliMesaj}>✅ Yanıtınız gönderildi!</div>
-                  )}
-                  <div style={{display:'flex', gap:10, marginTop:10}}>
-                    <button className="btn-ghost" onClick={() => setSeciliMesaj(null)}>← Geri</button>
-                    <button className="btn-primary"
-                      style={{flex:1, justifyContent:'center'}}
-                      disabled={!yanitMetni.trim()}
-                      onClick={yanitGonder}>
-                      Yanıt Gönder →
-                    </button>
-                  </div>
+                  <button className="btn-primary"
+                    style={{padding:'12px 20px',flexShrink:0}}
+                    disabled={!yanitMetni.trim() || yanitGonderiliyor}
+                    onClick={mesajGonderKonusma}>
+                    {yanitGonderiliyor ? '...' : 'Gönder →'}
+                  </button>
                 </div>
+                <p style={{fontSize:11,color:'var(--text-3)',marginTop:4}}>Enter ile gönder, Shift+Enter yeni satır</p>
               </div>
             </div>
           )}

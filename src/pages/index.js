@@ -320,16 +320,27 @@ export default function Home() {
                     gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0
                   }}
                   onMesajGonder={async ({ilan: il, mesaj}) => {
-                    // DB'ye kaydet
-                    const { mesajGonder } = await import('../lib/db')
-                    await mesajGonder({
+                    const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
+                    // Konuşma başlat veya mevcut konuşmayı getir
+                    const { data: konusma } = await kBVG({
                       ilanId: il.id,
-                      gonderenEmail: user?.email || 'anonim',
-                      gonderenAd: user ? `${user.ad} ${user.soyad||''}`.trim() : 'Anonim',
-                      gonderenFirma: user?.firma || null,
+                      ilanBaslik: il.baslik,
+                      ilanKategori: il.kategori,
                       aliciEmail: il.email || '',
-                      metin: mesaj,
+                      aliciAd: il.ad || '',
+                      saticiEmail: user?.email || 'anonim',
+                      saticiAd: user ? `${user.ad||''} ${user.soyad||''}`.trim() : 'Anonim',
+                      saticiIfirma: user?.firma || null,
                     })
+                    if (konusma) {
+                      await kMG({
+                        konusmaId: konusma.id,
+                        gonderenEmail: user?.email || 'anonim',
+                        gonderenAd: user ? `${user.ad||''} ${user.soyad||''}`.trim() : 'Anonim',
+                        metin: mesaj,
+                        gonderenAliciMi: false,
+                      })
+                    }
                     setMesajHaklari(p => ({
                       ...p,
                       [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye||0) + 1 }
