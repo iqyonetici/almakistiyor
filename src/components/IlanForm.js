@@ -114,21 +114,26 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
   return (
     <div className={styles.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={styles.box}>
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.title}>{stepBaslik}</h2>
-            {!done && <p className={styles.sub}>Adım {step} / {TOPLAM}</p>}
+        {/* SABİT HEADER */}
+        <div className={styles.boxTop}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+            <div>
+              <h2 className={styles.title}>{stepBaslik}</h2>
+              {!done && <p className={styles.sub}>Adım {step} / {TOPLAM}</p>}
+            </div>
+            <button className={styles.close} onClick={onClose}>✕</button>
           </div>
-          <button className={styles.close} onClick={onClose}>✕</button>
+          {!done && (
+            <div className={styles.progress}>
+              {STEPS.map(s => (
+                <div key={s.id} className={`${styles.prog} ${step > s.id ? styles.progDone : ''} ${step === s.id ? styles.progActive : ''}`} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {!done && (
-          <div className={styles.progress}>
-            {STEPS.map(s => (
-              <div key={s.id} className={`${styles.prog} ${step > s.id ? styles.progDone : ''} ${step === s.id ? styles.progActive : ''}`} />
-            ))}
-          </div>
-        )}
+        {/* SCROLL'LANIR İÇERİK */}
+        <div className={styles.boxBody}>
 
         {done ? (
           <div className={styles.success}>
@@ -413,6 +418,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
             )}
           </>
         )}
+        </div>{/* boxBody sonu */}
       </div>
     </div>
   )

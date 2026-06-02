@@ -28,6 +28,9 @@ export default function Home() {
   const [filterFiyatMax, setFilterFiyatMax] = useState('')
   const [ilanlar, setIlanlar] = useState(demoIlanlar)
   const [sort, setSort] = useState('yeni')
+  const [mesajHaklari, setMesajHaklari] = useState({}) // {ilanId: {gonderilenBuKisiye: N}}
+  const [kalanGenel, setKalanGenel] = useState(3) // ücretsiz mesaj hakkı
+  const [paketModal, setPaketModal] = useState(false)
 
   const filtered = ilanlar
     .filter(i => !activeCategory || i.kategori === activeCategory)
@@ -262,7 +265,23 @@ export default function Home() {
               </div>
             ) : (
               filtered.map((ilan, i) => (
-                <IlanKarti key={ilan.id} ilan={ilan} locked={i >= 3} />
+                <IlanKarti
+                  key={ilan.id}
+                  ilan={ilan}
+                  user={user}
+                  mesajHaklari={{
+                    kalanGenel,
+                    gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0
+                  }}
+                  onMesajGonder={({ilan: il, mesaj}) => {
+                    setMesajHaklari(p => ({
+                      ...p,
+                      [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye||0) + 1 }
+                    }))
+                    setKalanGenel(p => Math.max(0, p-1))
+                  }}
+                  onTelefonGoster={(il) => setPaketModal(true)}
+                />
               ))
             )}
           </div>
@@ -281,6 +300,24 @@ export default function Home() {
 
       <Footer />
 
+      {paketModal && (
+        <div style={{position:'fixed',inset:0,zIndex:300,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+          onClick={e => e.target===e.currentTarget && setPaketModal(false)}>
+          <div style={{background:'white',borderRadius:16,padding:32,width:400,maxWidth:'100%',boxShadow:'0 12px 40px rgba(0,0,0,0.2)',textAlign:'center'}}>
+            <div style={{fontSize:48,marginBottom:12}}>🔒</div>
+            <h3 style={{fontFamily:'Sora,sans-serif',fontSize:20,fontWeight:700,color:'var(--text)',marginBottom:8}}>Telefon numarası için paket gerekli</h3>
+            <p style={{fontSize:14,color:'var(--text-2)',marginBottom:20,lineHeight:1.7}}>
+              Alıcının telefon numarasını görmek için <strong>Starter veya üzeri</strong> paket satın almanız gerekiyor.
+            </p>
+            <a href="/pro" style={{display:'block',padding:'12px 24px',borderRadius:9,background:'var(--teal)',color:'white',fontFamily:'Sora,sans-serif',fontWeight:600,fontSize:15,marginBottom:10}}>
+              Paketlere Bak →
+            </a>
+            <button onClick={() => setPaketModal(false)} style={{background:'none',border:'none',color:'var(--text-3)',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+              Şimdilik geç
+            </button>
+          </div>
+        </div>
+      )}
       <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} user={user} />
     </>
   )
