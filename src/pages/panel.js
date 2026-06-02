@@ -100,16 +100,14 @@ export default function Panel() {
   const okunmamisSayi = mesajlar.filter(m => !m.okundu).length
 
   useEffect(() => {
+    if (!yuklendi) return // localStorage henüz yüklenmedi, bekle
     if (!user) { router.push('/giris'); return }
     setProfil({ ad: user.ad, soyad: user.soyad, email: user.email, telefon: user.telefon || '', sehir: user.sehir || '', iletisimTercihi: 'ikisi' })
     if (router.query.tab) setAktifTab(router.query.tab)
-  }, [user, router.query.tab])
+  }, [yuklendi, user, router.query.tab])
 
-  if (!yuklendi) return <div style={{minHeight:'100vh'}} />
-  if (!user) { 
-    if (typeof window !== 'undefined') window.location.href = '/giris'
-    return <div style={{minHeight:'100vh'}} />
-  }
+  if (!yuklendi) return <div style={{minHeight:'100vh',background:'var(--bg)'}} />
+  if (!user) return <div style={{minHeight:'100vh',background:'var(--bg)'}} />
 
   function ilanSil(id) { setTalepler(p => p.filter(i => i.id !== id)) }
   function ilanToggle(id) { setTalepler(p => p.map(i => i.id === id ? {...i, durum: i.durum==='aktif'?'pasif':'aktif'} : i)) }

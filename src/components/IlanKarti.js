@@ -23,10 +23,10 @@ function maskedName(name) {
   return p.length === 1 ? p[0] : p[0] + ' ' + p[p.length-1][0] + '.'
 }
 function maskedPhone(tel) {
-  // 0532 111 22 33 → 0532 *** ** 33
+  // 0532 111 22 33 → 0532 111 ** **
   const d = tel.replace(/\D/g,'')
   if (d.length < 10) return tel
-  return d.slice(0,4) + ' *** ** ' + d.slice(-2)
+  return d.slice(0,3) + ' ' + d.slice(3,6) + ' ** **'
 }
 
 // user: giriş yapan kullanıcı, mesajHaklari: {kalan, gonderilenBuKisiye}
