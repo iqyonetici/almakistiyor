@@ -122,10 +122,13 @@ export default function Panel() {
       mesajlariGetir(user.email).then(({ data }) => {
         if (data && data.length > 0) setMesajlar(data.map(d => ({
           id: d.id, ilanId: d.ilan_id,
-          gonderen: d.gonderen_ad, firma: d.gonderen_firma || '',
-          ilan: d.ilanlar?.baslik || 'İlan',
-          mesaj: d.metin, tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
-          okundu: d.okundu, yanıtlar: []
+          gonderen: d.gonderen_ad || 'Satıcı',
+          firma: d.gonderen_firma || '',
+          ilan: 'Talep ilanınız',
+          mesaj: d.metin || '',
+          tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+          okundu: d.okundu || false,
+          yanıtlar: []
         })))
       })
     }
@@ -144,8 +147,15 @@ export default function Panel() {
     setMesajlar(p => p.map(x => x.id === m.id ? {...x, okundu: true} : x))
   }
 
-  function yanitGonder() {
+  async function yanitGonder() {
     if (!yanitMetni.trim()) return
+    // DB'ye kaydet
+    await dbYanitGonder({
+      mesajId: seciliMesaj.id,
+      gonderenEmail: user?.email || '',
+      gonderenAd: user ? `${user.ad} ${user.soyad||''}`.trim() : 'Kullanıcı',
+      metin: yanitMetni,
+    })
     const yeniYanit = { metin: yanitMetni, tarih: 'Az önce', benden: true }
     setMesajlar(p => p.map(x => x.id === seciliMesaj.id
       ? {...x, yanıtlar: [...(x.yanıtlar||[]), yeniYanit]}

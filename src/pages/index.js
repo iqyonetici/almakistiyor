@@ -319,7 +319,17 @@ export default function Home() {
                     kalanGenel,
                     gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0
                   }}
-                  onMesajGonder={({ilan: il, mesaj}) => {
+                  onMesajGonder={async ({ilan: il, mesaj}) => {
+                    // DB'ye kaydet
+                    const { mesajGonder } = await import('../lib/db')
+                    await mesajGonder({
+                      ilanId: il.id,
+                      gonderenEmail: user?.email || 'anonim',
+                      gonderenAd: user ? `${user.ad} ${user.soyad||''}`.trim() : 'Anonim',
+                      gonderenFirma: user?.firma || null,
+                      aliciEmail: il.email || '',
+                      metin: mesaj,
+                    })
                     setMesajHaklari(p => ({
                       ...p,
                       [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye||0) + 1 }

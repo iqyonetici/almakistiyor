@@ -99,7 +99,7 @@ export async function mesajlariGetir(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
   return await supabase
     .from('mesajlar')
-    .select('*, ilanlar(baslik, kategori, sehir)')
+    .select('*')
     .eq('alici_email', kullaniciEmail)
     .order('created_at', { ascending: false })
 }
