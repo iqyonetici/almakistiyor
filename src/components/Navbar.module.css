@@ -1,45 +1,44 @@
-.nav {
-  background: white;
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 100;
-}
-.inner {
-  max-width: 1200px; margin: 0 auto;
-  display: flex; align-items: center; gap: 20px;
-  padding: 0 24px; height: 62px;
-}
-.logo { flex-shrink: 0; display: flex; align-items: center; }
-.cats {
-  display: flex; gap: 2px; flex: 1;
-  overflow-x: auto; scrollbar-width: none;
-}
+.nav { background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+.inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 0 24px; height: 62px; }
+.logoWrap { flex-shrink: 0; display: flex; align-items: center; }
+.cats { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .cats::-webkit-scrollbar { display: none; }
-.cat {
-  padding: 6px 14px; border-radius: 20px;
-  font-size: 13px; font-weight: 500; color: var(--text-2);
-  white-space: nowrap; border: none; background: none;
-  transition: all 0.15s;
-}
+.cat { padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--text-2); white-space: nowrap; border: none; background: none; transition: all 0.15s; cursor: pointer; }
 .cat:hover { background: var(--teal-light); color: var(--teal); }
 .catActive { background: var(--teal) !important; color: white !important; }
 .right { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
-.burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; }
-.burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
 
-.mobileMenu {
-  background: white; border-top: 1px solid var(--border);
-  padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 4px;
-}
-.mobileCat {
-  padding: 10px 14px; border-radius: 8px; text-align: left;
-  font-size: 14px; color: var(--text-2); background: none; border: none;
-  transition: background 0.12s;
-}
+/* BUTONLAR */
+.btnTalep { padding: 8px 16px; border-radius: 8px; background: var(--teal); color: white; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Sora', sans-serif; transition: all 0.15s; white-space: nowrap; }
+.btnTalep:hover { background: var(--teal-dark); }
+.btnGiris { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border); color: var(--text-2); background: none; font-size: 13px; font-weight: 500; transition: all 0.15s; white-space: nowrap; }
+.btnGiris:hover { border-color: var(--teal); color: var(--teal); }
+.btnKayit { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--teal); color: var(--teal); background: none; font-size: 13px; font-weight: 500; transition: all 0.15s; white-space: nowrap; }
+.btnKayit:hover { background: var(--teal-light); }
+
+/* AVATAR & DROPDOWN */
+.avatarWrap { position: relative; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); color: white; border: none; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.avatar:hover { background: var(--teal-dark); box-shadow: 0 0 0 3px var(--teal-light); }
+.dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 230px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; z-index: 200; }
+.dropUser { display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 4px; }
+.dropAvatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.dropAd { font-size: 14px; font-weight: 500; color: var(--text); }
+.dropEmail { font-size: 11px; color: var(--text-3); }
+.dropDivider { height: 1px; background: var(--border); margin: 4px 0; }
+.dropItem { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--text-2); transition: background 0.12s; }
+.dropItem:hover { background: var(--bg); color: var(--text); }
+.dropItemPro { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--teal); font-weight: 500; transition: background 0.12s; }
+.dropItemPro:hover { background: var(--teal-light); }
+.dropCikis { width: 100%; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--red); background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.12s; }
+.dropCikis:hover { background: #FEF2F2; }
+
+/* BURGER */
+.burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; }
+.burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+.mobileMenu { background: white; border-top: 1px solid var(--border); padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+.mobileCat { padding: 10px 14px; border-radius: 8px; text-align: left; font-size: 14px; color: var(--text-2); background: none; border: none; transition: background 0.12s; cursor: pointer; }
 .mobileCat:hover { background: var(--teal-light); color: var(--teal); }
 .mobileBtns { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 
-@media (max-width: 768px) {
-  .cats { display: none; }
-  .right { display: none; }
-  .burger { display: flex; }
-}
+@media (max-width: 900px) { .cats { display: none; } .right { display: none; } .burger { display: flex; } }
