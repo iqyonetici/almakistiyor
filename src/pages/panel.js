@@ -27,6 +27,13 @@ export default function Panel() {
   const [mesajlar, setMesajlar] = useState(demoMesajlar)
   const [profil, setProfil] = useState({ ad: '', soyad: '', telefon: '', sehir: '', iletisimTercihi: 'ikisi' })
 
+  // Yanıtla modal
+  const [yanitlananMesaj, setYanitlananMesaj] = useState(null)
+  const [yanitMetni, setYanitMetni] = useState('')
+  const [yanitGonderildi, setYanitGonderildi] = useState(false)
+
+  const okunmamisMesaj = mesajlar.filter(m => !m.okundu).length
+
   useEffect(() => {
     if (!user) { router.push('/giris'); return }
     setProfil({ ad: user.ad, soyad: user.soyad, email: user.email, telefon: user.telefon || '', sehir: user.sehir || '', iletisimTercihi: 'ikisi' })
@@ -35,11 +42,19 @@ export default function Panel() {
 
   if (!user) return null
 
-  const okunmamisMesaj = mesajlar.filter(m => !m.okundu).length
-
   function ilanSil(id) { setTalepler(prev => prev.filter(i => i.id !== id)) }
   function ilanDurumToggle(id) { setTalepler(prev => prev.map(i => i.id === id ? {...i, durum: i.durum === 'aktif' ? 'pasif' : 'aktif'} : i)) }
   function mesajOku(id) { setMesajlar(prev => prev.map(m => m.id === id ? {...m, okundu: true} : m)) }
+
+  function yanitGonder() {
+    if (!yanitMetni.trim()) return
+    setYanitGonderildi(true)
+    setTimeout(() => {
+      setYanitlananMesaj(null)
+      setYanitMetni('')
+      setYanitGonderildi(false)
+    }, 1500)
+  }
 
   return (
     <>
@@ -105,9 +120,7 @@ export default function Panel() {
                   <div className={styles.bosIcon}>📋</div>
                   <h3>Henüz talep ilanınız yok</h3>
                   <p>Ne aradığınızı yazın, satıcılar sizi bulsun.</p>
-                  <button className="btn-primary" onClick={() => setFormOpen(true)}>
-                    İlk talebinizi verin →
-                  </button>
+                  <button className="btn-primary" onClick={() => setFormOpen(true)}>İlk talebinizi verin →</button>
                 </div>
               ) : (
                 <div className={styles.ilanListesi}>
@@ -123,11 +136,9 @@ export default function Panel() {
                             <span>💬 {ilan.mesajSayisi} mesaj</span>
                           </div>
                         </div>
-                        <div className={styles.ilanSag}>
-                          <span className={`${styles.durumBadge} ${ilan.durum === 'aktif' ? styles.durumAktif : styles.durumPasif}`}>
-                            {ilan.durum}
-                          </span>
-                        </div>
+                        <span className={`${styles.durumBadge} ${ilan.durum === 'aktif' ? styles.durumAktif : styles.durumPasif}`}>
+                          {ilan.durum}
+                        </span>
                       </div>
                       <div className={styles.ilanAlt}>
                         <button className={styles.ilanBtn} onClick={() => setAktifTab('mesajlar')}>
@@ -169,7 +180,8 @@ export default function Panel() {
               ) : (
                 <div className={styles.mesajListesi}>
                   {mesajlar.map(m => (
-                    <div key={m.id} className={`${styles.mesajKarti} ${!m.okundu ? styles.mesajYeni : ''}`}
+                    <div key={m.id}
+                      className={`${styles.mesajKarti} ${!m.okundu ? styles.mesajYeni : ''}`}
                       onClick={() => mesajOku(m.id)}>
                       <div className={styles.mesajUst}>
                         <div className={styles.mesajAvatar}>{m.gonderen[0]}</div>
@@ -178,15 +190,18 @@ export default function Panel() {
                             {m.gonderen}
                             {!m.okundu && <span className={styles.yeniBadge}>Yeni</span>}
                           </div>
-                          <div className={styles.mesajIlan}>"{m.ilan}"</div>
+                          <div className={styles.mesajIlan}>İlan: "{m.ilan}"</div>
                         </div>
                         <div className={styles.mesajTarih}>{m.tarih}</div>
                       </div>
                       <p className={styles.mesajMetin}>{m.mesaj}</p>
-                      <div className={styles.mesajAlt}>
-                        <button className={styles.ilanBtn}>↩ Yanıtla</button>
+                      <div className={styles.mesajAlt} onClick={e => e.stopPropagation()}>
+                        <button className={styles.yanitlaBtn}
+                          onClick={() => { mesajOku(m.id); setYanitlananMesaj(m); setYanitMetni('') }}>
+                          ↩ Yanıtla
+                        </button>
                         <button className={`${styles.ilanBtn} ${styles.ilanSilBtn}`}
-                          onClick={e => { e.stopPropagation(); setMesajlar(prev => prev.filter(x => x.id !== m.id)) }}>
+                          onClick={() => setMesajlar(prev => prev.filter(x => x.id !== m.id))}>
                           🗑 Sil
                         </button>
                       </div>
@@ -254,10 +269,67 @@ export default function Panel() {
       </div>
 
       <Footer />
+
       <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={d => {
         const yeni = { id: Date.now(), baslik: `${d.sehir} ${d.kategori} arıyorum`, kategori: d.kategori, tarih: 'Az önce', durum: 'aktif', goruntuleme: 0, mesajSayisi: 0 }
         setTalepler(prev => [yeni, ...prev])
       }} />
+
+      {/* YANITLA MODAL */}
+      {yanitlananMesaj && (
+        <div className={styles.modalOverlay} onClick={e => { if(e.target === e.currentTarget) setYanitlananMesaj(null) }}>
+          <div className={styles.modalBox}>
+            {yanitGonderildi ? (
+              <div className={styles.yanitBasarili}>
+                <div style={{fontSize:48,marginBottom:14}}>✅</div>
+                <h3>Yanıtınız gönderildi!</h3>
+                <p>{yanitlananMesaj.gonderen} adlı satıcıya yanıtınız iletildi.</p>
+              </div>
+            ) : (
+              <>
+                <div className={styles.modalHeader}>
+                  <div>
+                    <h3 className={styles.modalBaslik}>Yanıt Gönder</h3>
+                    <p className={styles.modalSub}>{yanitlananMesaj.gonderen} · "{yanitlananMesaj.ilan}"</p>
+                  </div>
+                  <button className={styles.modalKapat} onClick={() => setYanitlananMesaj(null)}>✕</button>
+                </div>
+
+                <div className={styles.orijinalMesaj}>
+                  <div className={styles.orijinalBaslik}>Gelen mesaj:</div>
+                  <p>{yanitlananMesaj.mesaj}</p>
+                </div>
+
+                <div style={{marginBottom:16}}>
+                  <label className="form-label">Yanıtınız</label>
+                  <textarea
+                    className="form-input"
+                    rows={5}
+                    placeholder="Mesajınızı yazın..."
+                    style={{resize:'vertical', lineHeight:1.6}}
+                    value={yanitMetni}
+                    onChange={e => setYanitMetni(e.target.value)}
+                    autoFocus
+                  />
+                  <p style={{fontSize:12,color:'var(--text-3)',marginTop:4}}>
+                    💡 Telefon veya adres paylaşmak istiyorsanız yazabilirsiniz.
+                  </p>
+                </div>
+
+                <div style={{display:'flex',gap:10}}>
+                  <button className="btn-ghost" onClick={() => setYanitlananMesaj(null)}>İptal</button>
+                  <button className="btn-primary"
+                    style={{flex:1,justifyContent:'center'}}
+                    disabled={!yanitMetni.trim()}
+                    onClick={yanitGonder}>
+                    Gönder →
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -316,11 +316,19 @@ export default function IlanForm({ open, onClose, onSubmit }) {
                     <p>Telefon numaranız satıcılara gizlidir. Yalnızca adınız ve soyad baş harfiniz ilanda görünür.</p>
                   </div>
                 </div>
-                <div className={styles.fieldGroup}>
-                  <label className="form-label">Adınız</label>
-                  <input className="form-input" type="text" placeholder="Adınız (örn. Mehmet)"
-                    value={data.ad} onChange={e => set('ad', e.target.value)} />
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div className={styles.fieldGroup}>
+                    <label className="form-label">Adınız</label>
+                    <input className="form-input" type="text" placeholder="Mehmet"
+                      value={data.ad} onChange={e => set('ad', e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className="form-label">Soyadınız</label>
+                    <input className="form-input" type="text" placeholder="Yılmaz"
+                      value={data.soyad || ''} onChange={e => set('soyad', e.target.value)} />
+                  </div>
                 </div>
+                <p className={styles.hint} style={{marginTop:'-6px',marginBottom:'10px'}}>İlanda sadece adınız ve soyadınızın baş harfi görünür (örn. Mehmet Y.)</p>
                 <div className={styles.fieldGroup}>
                   <label className="form-label">Telefon numaranız</label>
                   <input className="form-input" type="tel" placeholder="0532 000 00 00"

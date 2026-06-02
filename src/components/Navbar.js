@@ -60,10 +60,14 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
           </button>
 
           {user ? (
-            /* GİRİŞ YAPILMIŞ — Avatar + Dropdown */
+            /* GİRİŞ YAPILMIŞ — Avatar + İsim + Dropdown */
             <div className={styles.avatarWrap} ref={dropRef}>
-              <button className={styles.avatar} onClick={() => setDropOpen(!dropOpen)}>
-                {initials(user.ad, user.soyad)}
+              <button className={styles.avatarBtn} onClick={() => setDropOpen(!dropOpen)}>
+                <div className={styles.avatar}>{initials(user.ad, user.soyad)}</div>
+                <span className={styles.avatarAd}>Merhaba, {user.ad}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{color:'var(--text-3)'}}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
               </button>
               {dropOpen && (
                 <div className={styles.dropdown}>
