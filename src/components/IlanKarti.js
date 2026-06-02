@@ -17,13 +17,17 @@ const avatarColors = [
   { bg:'#FEF3DC', color:'#7A4F01' },
 ]
 
-function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) }
+function initials(name) {
+  if (!name || typeof name !== 'string') return '?'
+  return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)
+}
 function maskedName(name) {
+  if (!name || typeof name !== 'string') return 'Kullanıcı'
   const p = name.trim().split(' ')
-  return p.length === 1 ? p[0] : p[0] + ' ' + p[p.length-1][0] + '.'
+  return p.length === 1 ? p[0] : p[0] + ' ' + (p[p.length-1][0] || '') + '.'
 }
 function maskedPhone(tel) {
-  // 0532 111 22 33 → 0532 111 ** **
+  if (!tel || typeof tel !== 'string') return '*** *** ** **'
   const d = tel.replace(/\D/g,'')
   if (d.length < 10) return tel
   return d.slice(0,3) + ' ' + d.slice(3,6) + ' ** **'
@@ -31,8 +35,15 @@ function maskedPhone(tel) {
 
 // user: giriş yapan kullanıcı, mesajHaklari: {kalan, gonderilenBuKisiye}
 export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onTelefonGoster }) {
-  const cat = catColors[ilan.kategori] || catColors['ikinci-el']
-  const av  = avatarColors[ilan.id % avatarColors.length]
+  const cat = catColors[ilan?.kategori] || catColors['ikinci-el']
+  const idStr = String(ilan?.id || '')
+  const idHash = idStr.split('').reduce((a,c) => a + c.charCodeAt(0), 0)
+  const av = avatarColors[idHash % avatarColors.length] || avatarColors[0]
+  const ilanAd = ilan?.ad || 'Kullanıcı'
+  const ilanBaslik = ilan?.baslik || 'Talep ilanı'
+  const ilanSehir = ilan?.sehir || ''
+  const ilanIlce = ilan?.ilce || ''
+  const ilanTelefon = ilan?.telefon || ''
 
   const [mesajAcik, setMesajAcik] = useState(false)
   const [mesajMetni, setMesajMetni] = useState('')
@@ -88,29 +99,28 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
 
   return (
     <div className={styles.card}>
-      {/* Üst: avatar + isim + konum + kategori + tarih */}
       <div className={styles.top}>
         <div className={styles.left}>
           <div className={styles.avatar} style={{background:av.bg, color:av.color}}>
-            {initials(ilan.ad)}
+            {initials(ilanAd)}
           </div>
           <div>
             <div className={styles.name}>
-              {maskedName(ilan.ad)}
+              {maskedName(ilanAd)}
               <span className={styles.lockBadge}>🔒 Tel gizli</span>
             </div>
             <div className={styles.location}>
-              📍 {ilan.sehir}{ilan.ilce ? ` — ${ilan.ilce}` : ''}
+              📍 {ilanSehir}{ilanIlce ? ` — ${ilanIlce}` : ''}
             </div>
           </div>
         </div>
         <div className={styles.metaRight}>
-          <div className={styles.date}>{ilan.tarih}</div>
+          <div className={styles.date}>{ilan?.tarih || ''}</div>
           <span className={styles.catBadge} style={{background:cat.bg, color:cat.color}}>{cat.label}</span>
         </div>
       </div>
 
-      <div className={styles.title}>{ilan.baslik}</div>
+      <div className={styles.title}>{ilanBaslik}</div>
 
       {/* Taglar */}
       <div className={styles.tags}>
@@ -174,11 +184,11 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
           {/* Telefon butonu */}
           {telefonAcik ? (
             <span className={styles.telefonAcik}>
-              📞 {ilan.telefon || maskedPhone('05321112233')}
+              📞 {ilanTelefon || 'Bilgi yok'}
             </span>
           ) : (
             <button className={styles.btnTelefon} onClick={handleTelefon}>
-              📞 {maskedPhone(ilan.telefon || '05321112233')}
+              📞 {maskedPhone(ilanTelefon)}
               <span className={styles.kilidAc}>Göster</span>
             </button>
           )}

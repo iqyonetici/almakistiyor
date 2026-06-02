@@ -36,23 +36,24 @@ export default function Home() {
       if (data && data.length > 0) {
         setIlanlar(data.map(d => ({
           id: d.id,
-          kategori: d.kategori,
-          ad: d.kullanici_ad + ' ' + (d.kullanici_soyad || ''),
-          sehir: d.sehir, ilce: d.ilce,
-          baslik: d.aciklama?.slice(0,60) || d.sehir + ' ' + d.kategori + ' arıyorum',
+          kategori: d.kategori || 'ikinci-el',
+          ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
+          sehir: d.sehir || '', ilce: d.ilce || '',
+          baslik: (d.sehir || '') + (d.ilce ? ' ' + d.ilce : '') + ' — ' + (d.kategori || '') + ' arıyorum',
           fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
           tags: [
-            d.oda ? {label: d.oda.replace(',', ', '), variant:'tag-gray'} : null,
+            d.oda ? {label: d.oda, variant:'tag-gray'} : null,
             d.m2_min && d.m2_max ? {label: d.m2_min + '–' + d.m2_max + ' m²', variant:'tag-gray'} : null,
             d.emlak_tip ? {label: d.emlak_tip, variant:'tag-gray'} : null,
-            d.markalar ? {label: d.markalar.replace(',', ', '), variant:'tag-gray'} : null,
+            d.markalar ? {label: d.markalar, variant:'tag-gray'} : null,
             d.yil_min && d.yil_max ? {label: d.yil_min + '–' + d.yil_max, variant:'tag-gray'} : null,
           ].filter(Boolean),
-          aciklama: d.aciklama,
+          aciklama: d.aciklama || '',
           tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
           goruntuleme: d.goruntuleme || 0,
-          telefon: d.kullanici_telefon,
-          email: d.kullanici_email,
+          telefon: d.kullanici_telefon || '',
+          email: d.kullanici_email || '',
+          created_at: d.created_at,
         })))
       } else if (error) {
         setDbHata(true) // DB bağlı değil, demo verilerle devam
@@ -68,7 +69,12 @@ export default function Home() {
   const filtered = ilanlar
     .filter(i => !activeCategory || i.kategori === activeCategory)
     .filter(i => !filterSehir || i.sehir === filterSehir)
-    .sort((a, b) => sort === 'yeni' ? b.id - a.id : sort === 'cok-goruntulenen' ? b.goruntuleme - a.goruntuleme : 0)
+    .sort((a, b) => {
+      if (sort === 'cok-goruntulenen') return (b.goruntuleme||0) - (a.goruntuleme||0)
+      const ta = String(a.created_at || a.id || '')
+      const tb = String(b.created_at || b.id || '')
+      return tb > ta ? 1 : tb < ta ? -1 : 0
+    })
 
   async function handleSubmit(data) {
     // Önce DB'ye kaydet

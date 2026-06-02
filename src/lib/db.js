@@ -20,7 +20,6 @@ export async function ilanOlustur(ilanData, user) {
   const { data, error } = await supabase
     .from('ilanlar')
     .insert([{
-      kullanici_id: user?.id || null,
       kullanici_ad: user?.ad || ilanData.ad,
       kullanici_soyad: user?.soyad || ilanData.soyad,
       kullanici_telefon: user?.telefon || ilanData.telefon,
