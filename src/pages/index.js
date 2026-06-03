@@ -43,42 +43,62 @@ export default function Home() {
     }
     loadStats()
     async function yukle() {
-      const { data, error } = await ilanListele({ kategori: activeCategory || undefined, sehir: filterSehir || undefined })
+      // Alt kategori mi ana kategori mi?
+      const isAltKat = activeCategory && !['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca'].includes(activeCategory)
+      const { data, error } = await ilanListele({
+        kategori: isAltKat ? undefined : (activeCategory || undefined),
+        altKategori: isAltKat ? activeCategory : undefined,
+        sehir: filterSehir || undefined,
+        ilce: filterIlce || undefined,
+      })
       if (data && data.length > 0) {
         setIlanlar(data.map(d => ({
           id: d.id,
           kategori: d.kategori || 'ikinci-el',
+          altKategori: d.alt_kategori || '',
           ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
           sehir: d.sehir || '', ilce: d.ilce || '',
           baslik: (() => {
-            const sehirStr = d.sehir ? (d.ilce ? d.sehir + ' ' + d.ilce : d.sehir) : ''
+            const sehirStr = [d.sehir, d.ilce].filter(Boolean).join(' ')
             const tip = d.emlak_tip || ''
             const marka = d.markalar || ''
-            if (d.kategori === 'emlak' && tip) return sehirStr + "'da " + tip + ' arıyorum'
-            if (d.kategori === 'vasita' && marka) return marka + ' ' + (d.yil_min && d.yil_max ? d.yil_min + '-' + d.yil_max + ' model ' : '') + 'arıyorum'
-            return (sehirStr ? sehirStr + " — " : '') + (d.kategori || '') + ' arıyorum'
+            const yilStr = d.yil_min && d.yil_max ? `${d.yil_min}-${d.yil_max} model ` : ''
+            if (d.kategori === 'emlak') {
+              if (tip) return `${sehirStr ? sehirStr+"'da " : ''}${tip} arıyorum`
+              if (d.alt_kategori === 'emlak-arsa') return `${sehirStr ? sehirStr+' ' : ''}Arsa arıyorum`
+              if (d.alt_kategori === 'emlak-isyeri') return `${sehirStr ? sehirStr+"'da " : ''}İş yeri arıyorum`
+              return `${sehirStr ? sehirStr+"'da " : ''}Emlak arıyorum`
+            }
+            if (d.kategori === 'vasita') {
+              if (marka) return `${marka} ${yilStr}arıyorum`
+              return `Araç ${yilStr}arıyorum`
+            }
+            return (sehirStr ? sehirStr + ' — ' : '') + (d.aciklama?.slice(0,50) || (d.kategori || '') + ' arıyorum')
           })(),
           fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
           tags: [
             d.oda ? {label: d.oda, variant:'tag-gray'} : null,
-            d.m2_min && d.m2_max ? {label: d.m2_min + '–' + d.m2_max + ' m²', variant:'tag-gray'} : null,
+            d.m2_min && d.m2_max ? {label: d.m2_min+'–'+d.m2_max+' m²', variant:'tag-gray'} : null,
             d.emlak_tip ? {label: d.emlak_tip, variant:'tag-gray'} : null,
-            d.markalar ? {label: d.markalar, variant:'tag-gray'} : null,
-            d.yil_min && d.yil_max ? {label: d.yil_min + '–' + d.yil_max, variant:'tag-gray'} : null,
+            d.markalar && d.kategori==='vasita' ? {label: d.markalar, variant:'tag-gray'} : null,
+            d.yil_min && d.yil_max ? {label: d.yil_min+'–'+d.yil_max, variant:'tag-gray'} : null,
+            d.km_max ? {label: 'Max '+Number(d.km_max).toLocaleString('tr-TR')+' km', variant:'tag-gray'} : null,
           ].filter(Boolean),
           aciklama: d.aciklama || '',
           tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
           goruntuleme: d.goruntuleme || 0,
           telefon: d.kullanici_telefon || '',
           email: d.kullanici_email || '',
+          iletisimTercihi: d.iletisim_tercihi || 'mesaj',
           created_at: d.created_at,
+          emlak_tip: d.emlak_tip,
         })))
       } else if (error) {
-        setDbHata(true) // DB bağlı değil, demo verilerle devam
+        setDbHata(true)
       }
     }
     yukle()
-  }, [activeCategory, filterSehir])
+  }, [activeCategory, filterSehir, filterIlce])
   const [sort, setSort] = useState('yeni')
   const [mesajHaklari, setMesajHaklari] = useState({}) // {ilanId: {gonderilenBuKisiye: N}}
   const [kalanGenel, setKalanGenel] = useState(3) // ücretsiz mesaj hakkı

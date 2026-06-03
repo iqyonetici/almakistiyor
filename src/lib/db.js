@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 // ==================== İLAN FONKSİYONLARI ====================
 
-export async function ilanListele({ kategori, sehir, limit = 20 } = {}) {
+export async function ilanListele({ kategori, altKategori, sehir, ilce, limit = 50 } = {}) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
   let q = supabase
     .from('ilanlar')
@@ -10,13 +10,34 @@ export async function ilanListele({ kategori, sehir, limit = 20 } = {}) {
     .eq('durum', 'aktif')
     .order('created_at', { ascending: false })
     .limit(limit)
-  if (kategori) q = q.eq('kategori', kategori)
+  // Alt kategori varsa onu filtrele, yoksa ana kategoriyi
+  if (altKategori) {
+    q = q.eq('alt_kategori', altKategori)
+  } else if (kategori) {
+    q = q.eq('kategori', kategori)
+  }
   if (sehir) q = q.eq('sehir', sehir)
+  if (ilce) q = q.eq('ilce', ilce)
   return await q
 }
 
 export async function ilanOlustur(ilanData, user) {
   if (!supabase) return { data: null, error: 'Supabase bağlı değil' }
+
+  // Vasıta marka: wizard'dan seçilen marka öncelikli, yoksa markalar array'i
+  const vasitaMarka = ilanData.vasitaMarka ||
+    (ilanData.markalar?.length ? ilanData.markalar[0] : null)
+  const vasitaModel = ilanData.vasitaModel || null
+  const vasitaVersiyon = ilanData.vasitaVersiyon || null
+
+  // Markalar string: wizard'dan seçilen veya çoklu seçim
+  let markaStr = null
+  if (vasitaMarka) {
+    markaStr = vasitaModel ? `${vasitaMarka} ${vasitaModel}${vasitaVersiyon?' '+vasitaVersiyon:''}` : vasitaMarka
+  } else if (ilanData.markalar?.length) {
+    markaStr = ilanData.markalar.join(',')
+  }
+
   const { data, error } = await supabase
     .from('ilanlar')
     .insert([{
@@ -25,6 +46,7 @@ export async function ilanOlustur(ilanData, user) {
       kullanici_telefon: user?.telefon || ilanData.telefon,
       kullanici_email: user?.email || null,
       kategori: ilanData.kategori,
+      alt_kategori: ilanData.altKategori || ilanData.vasitaAltTip || null,
       islem_turu: ilanData.islemTuru,
       sehir: ilanData.sehir,
       ilce: ilanData.ilce || null,
@@ -35,16 +57,16 @@ export async function ilanOlustur(ilanData, user) {
       oda: ilanData.oda?.length ? ilanData.oda.join(',') : null,
       tercihler: ilanData.tercihler?.length ? ilanData.tercihler.join(',') : null,
       emlak_tip: ilanData.emlakTip || null,
-      markalar: ilanData.markalar?.length ? ilanData.markalar.join(',') : null,
+      markalar: markaStr,
       yil_min: ilanData.yilMin ? Number(ilanData.yilMin) : null,
       yil_max: ilanData.yilMax ? Number(ilanData.yilMax) : null,
-      km_min: ilanData.kmMin ? Number(ilanData.kmMin) : null,
       km_max: ilanData.kmMax ? Number(ilanData.kmMax) : null,
       yakit: ilanData.yakit?.length ? ilanData.yakit.join(',') : null,
       vites: ilanData.vites?.length ? ilanData.vites.join(',') : null,
       aciklama: ilanData.aciklama || null,
       durum: 'aktif',
       goruntuleme: 0,
+      iletisim_tercihi: ilanData.iletisimTercihi || 'mesaj',
     }])
     .select()
     .single()

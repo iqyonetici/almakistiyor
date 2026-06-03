@@ -470,15 +470,33 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
 
                   {/* VASITA ÖZELLİKLERİ */}
                   {data.kategori==='vasita' && <>
-                    <div className={styles.fieldGroup}>
-                      <label className="form-label">Marka tercihleri</label>
-                      <div className={styles.chipGroup}>
-                        {vasitaMarkalar.map(m => (
-                          <button key={m} className={`${styles.chip} ${data.markalar.includes(m)?styles.chipSel:''}`}
-                            onClick={() => toggle('markalar',m)}>{m}</button>
-                        ))}
+                    {/* Wizard'dan marka seçildiyse özet göster, yoksa chip listesi */}
+                    {data.vasitaMarka ? (
+                      <div className={styles.fieldGroup}>
+                        <div style={{background:'var(--teal-light)',border:'1px solid var(--teal-mid)',borderRadius:10,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                          <div>
+                            <div style={{fontSize:12,fontWeight:600,color:'var(--teal-dark)',marginBottom:2}}>✓ Araç Seçimi (Adım 1'den)</div>
+                            <div style={{fontSize:14,fontWeight:700,color:'var(--teal-dark)'}}>
+                              {data.vasitaMarka} {data.vasitaModel||''} {data.vasitaVersiyon||''}
+                            </div>
+                          </div>
+                          <button onClick={() => { set('vasitaMarka',''); set('vasitaModel',''); set('vasitaVersiyon','') }}
+                            style={{fontSize:11,color:'var(--text-3)',background:'none',border:'1px solid var(--border)',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontFamily:'inherit'}}>
+                            Değiştir
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className={styles.fieldGroup}>
+                        <label className="form-label">Marka tercihleri <span style={{fontWeight:400,fontSize:11,color:'var(--text-3)'}}>(veya Adım 1'den detaylı seçin)</span></label>
+                        <div className={styles.chipGroup}>
+                          {vasitaMarkalar.map(m => (
+                            <button key={m} className={`${styles.chip} ${data.markalar.includes(m)?styles.chipSel:''}`}
+                              onClick={() => toggle('markalar',m)}>{m}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Model yılı aralığı *</label>
