@@ -1,58 +1,55 @@
 .card {
-  background: white; border: 1px solid var(--border);
-  border-radius: var(--r); padding: 16px 18px;
-  box-shadow: var(--shadow-sm); transition: box-shadow 0.15s, border-color 0.15s;
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s, transform 0.1s;
+  position: relative;
 }
-.card:hover { box-shadow: var(--shadow-md); border-color: var(--teal-mid); }
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); }
+.cardLink { position: absolute; inset: 0; z-index: 0; border-radius: 13px; }
+
+/* ÜST */
 .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .left { display: flex; align-items: center; gap: 10px; }
-.avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; flex-shrink: 0; }
-.name { font-weight: 500; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.lockBadge { font-size: 11px; color: var(--text-3); font-weight: 400; background: var(--bg); border: 1px solid var(--border); padding: 1px 7px; border-radius: 10px; }
-.location { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-.metaRight { text-align: right; flex-shrink: 0; }
-.date { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
-.catBadge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-.title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
-.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
-.desc { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family:'Sora',sans-serif; font-weight:700; font-size:14px; flex-shrink:0; }
+.name { font-weight:500; font-size:14px; color:var(--text); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.lockBadge { font-size:11px; color:var(--text-3); font-weight:400; background:rgba(0,0,0,0.06); padding:1px 7px; border-radius:10px; }
+.telAcikBadge { font-size:11px; color:#15803D; font-weight:500; background:#DCFCE7; padding:2px 8px; border-radius:10px; }
+.location { font-size:11px; color:var(--text-3); margin-top:2px; }
+.metaRight { text-align:right; flex-shrink:0; }
+.date { font-size:11px; color:var(--text-3); margin-bottom:4px; }
+.catBadge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+
+/* İÇERİK */
+.title { font-size:15px; font-weight:600; color:var(--text); margin-bottom:8px; line-height:1.4; position:relative; z-index:1; }
+.tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; position:relative; z-index:1; }
+.desc { font-size:12px; color:var(--text-2); line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
 /* UYARI */
-.uyariBox { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 9px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+.uyariBox { background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:500; margin-bottom:10px; }
 
 /* MESAJ KUTUSU */
-.mesajKutu { background: var(--teal-light); border: 1px solid var(--teal-mid); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-.mesajHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-.mesajBaslik { font-size: 13px; font-weight: 600; color: var(--teal-dark); }
-.mesajInput { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--teal-mid); background: white; font-size: 13px; color: var(--text); font-family: inherit; resize: vertical; line-height: 1.5; }
-.mesajInput:focus { outline: none; border-color: var(--teal); }
-.mesajAlt { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
-.iptalBtn { padding: 7px 14px; border-radius: 7px; border: 1px solid var(--teal-mid); background: none; color: var(--teal-dark); font-size: 13px; cursor: pointer; font-family: inherit; }
-.gonderBtn { padding: 7px 18px; border-radius: 7px; background: var(--teal); color: white; border: none; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-.gonderBtn:hover { background: var(--teal-dark); }
-.gonderBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-.mesajBasarili { text-align: center; font-size: 13px; color: var(--teal-dark); font-weight: 500; padding: 8px; }
+.mesajKutu { border:1.5px solid; border-radius:10px; padding:14px; margin-bottom:10px; background:rgba(255,255,255,0.7); position:relative; z-index:1; }
+.mesajHeader { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+.mesajBaslik { font-size:13px; font-weight:600; color:var(--text); }
+.mesajInput { width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid rgba(0,0,0,0.12); background:white; font-size:13px; color:var(--text); font-family:inherit; resize:vertical; line-height:1.5; box-sizing:border-box; }
+.mesajInput:focus { outline:none; border-color:var(--teal); }
+.mesajAlt { display:flex; gap:8px; margin-top:8px; justify-content:flex-end; }
+.iptalBtn { padding:7px 14px; border-radius:7px; border:1px solid rgba(0,0,0,0.15); background:white; color:var(--text-2); font-size:13px; cursor:pointer; font-family:inherit; }
+.gonderBtn { padding:7px 18px; border-radius:7px; background:var(--teal); color:white; border:none; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+.gonderBtn:hover { background:var(--teal-dark); }
+.gonderBtn:disabled { opacity:0.5; cursor:not-allowed; }
+.mesajBasarili { text-align:center; font-size:13px; color:var(--teal-dark); font-weight:500; padding:8px; }
 
-/* ALT FOOTEr */
-.footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
-.views { font-size: 11px; color: var(--text-3); }
-.butonlar { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+/* ALT */
+.footer { display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1px solid rgba(0,0,0,0.07); flex-wrap:wrap; gap:8px; position:relative; z-index:1; }
+.views { font-size:11px; color:var(--text-3); }
+.butonlar { display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
+.btnTelefon { display:inline-flex; align-items:center; gap:5px; padding:7px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.15); background:white; font-size:12px; color:var(--text-2); cursor:pointer; font-family:inherit; transition:all 0.12s; }
+.btnTelefon:hover { background:rgba(0,0,0,0.04); }
+.kilidAc { background:var(--teal); color:white; font-size:10px; font-weight:600; padding:1px 6px; border-radius:8px; }
+.telefonAcik { display:inline-flex; align-items:center; gap:5px; padding:7px 12px; border-radius:8px; background:#EBF8F0; border:1px solid #A3D9B8; font-size:13px; font-weight:600; color:#1A5C35; }
+.btnMesaj { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:8px; color:white; border:none; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; transition:filter 0.15s; }
+.btnMesaj:hover { filter:brightness(0.9); }
 
-/* TELEFON BUTONU */
-.btnTelefon { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); font-size: 12px; color: var(--text-2); cursor: pointer; font-family: inherit; transition: all 0.12s; }
-.btnTelefon:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
-.kilidAc { background: var(--teal); color: white; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; }
-.telefonAcik { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 8px; background: #EBF8F0; border: 1px solid #A3D9B8; font-size: 13px; font-weight: 600; color: #1A5C35; }
-
-/* MESAJ BUTONU */
-.btnMesaj { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; background: var(--teal); color: white; border: none; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-.btnMesaj:hover { background: var(--teal-dark); }
-
-@media (max-width: 600px) { .metaRight { display: none; } .title { font-size: 14px; } }
-
-/* Detay sayfası linki */
-.card { position: relative; }
-.cardLink { position: absolute; inset: 0; z-index: 0; border-radius: var(--r); }
-.butonlar { position: relative; z-index: 1; }
-.views { position: relative; z-index: 1; }
-.tags { position: relative; z-index: 1; }
+@media (max-width:600px) { .metaRight { display:none; } .title { font-size:14px; } }

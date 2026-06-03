@@ -420,7 +420,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
               {step===5 && (
                 <div>
                   <p style={{fontSize:14,color:'var(--text-2)',marginBottom:16,lineHeight:1.7}}>
-                    Satıcılar size nasıl ulaşsın? <strong>Mesaj her zaman açık</strong> kalır. Telefon numaranızı yalnızca siz karar verirseniz gösterin.
+                    Satıcılar size nasıl ulaşsın? <strong>💬 Mesaj her zaman açık</strong> kalır. Telefon eklemek daha hızlı iletişim sağlar.
                   </p>
 
                   <div className={styles.iletisimKartlar}>
@@ -430,28 +430,31 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                       onClick={() => set('iletisimTercihi','mesaj')}>
                       <div className={styles.iletisimUst}>
                         <span className={styles.iletisimIcon}>💬</span>
-                        <span className={`${styles.iletisimOneri} ${data.iletisimTercihi==='mesaj'?styles.iletisimOneriSel:''}`}>ÖNERİLEN</span>
                       </div>
                       <div className={styles.iletisimBaslik}>Sadece Mesaj</div>
                       <div className={styles.iletisimAcik}>Satıcılar platform üzerinden mesaj gönderir. Telefon numaranız <strong>gizli</strong> kalır.</div>
                       <div className={styles.iletisimTag}>🔒 Telefonunuz kimseye gösterilmez</div>
                     </button>
 
-                    {/* MESAJ + TELEFON */}
+                    {/* MESAJ + TELEFON — ÖNERİLEN */}
                     <button
                       className={`${styles.iletisimKart} ${data.iletisimTercihi==='telefon'?styles.iletisimSel:''}`}
                       onClick={() => set('iletisimTercihi','telefon')}>
                       <div className={styles.iletisimUst}>
                         <span className={styles.iletisimIcon}>📞</span>
+                        <span className={`${styles.iletisimOneri} ${data.iletisimTercihi==='telefon'?styles.iletisimOneriSel:''}`}>ÖNERİLEN</span>
                       </div>
                       <div className={styles.iletisimBaslik}>Mesaj + Telefon</div>
-                      <div className={styles.iletisimAcik}>Mesajın yanı sıra ücretli üyeler telefon numaranızı da görebilir.</div>
-                      <div className={styles.iletisimTag} style={{background:'#FEF3DC',color:'#7A4F01'}}>📱 Numaranız görünür olur</div>
+                      <div className={styles.iletisimAcik}>Hem mesaj hem telefon açık olur. Acil ihtiyaçlarda satıcılar sizi <strong>doğrudan arayabilir</strong>.</div>
+                      <div className={styles.iletisimTag} style={{background:'#DCFCE7',color:'#15803D'}}>⚡ Daha hızlı iletişim</div>
                     </button>
                   </div>
 
                   <div className={styles.iletisimNot}>
-                    <strong>💬 Mesaj sistemi:</strong> Her iki seçenekte de satıcılar size mesaj gönderebilir ve siz yanıtlayabilirsiniz.
+                    {data.iletisimTercihi === 'mesaj'
+                      ? '💬 Satıcılar size platform üzerinden mesaj gönderir. Telefon numaranız kimseye gösterilmez.'
+                      : '📞 Satıcılar hem mesaj gönderebilir hem de telefon numaranızı görebilir. İstediğiniz zaman ayarlardan değiştirebilirsiniz.'
+                    }
                   </div>
                 </div>
               )}
