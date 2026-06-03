@@ -1,29 +1,28 @@
 /* =====================
-   HEADER
+   MASAÜSTÜ HEADER
    ===================== */
 .header {
   position: sticky;
   top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* ÜST BAR */
 .topBar {
-  background: #1a5c3a;
+  background: #085549;
   padding: 0 16px;
 }
+
 .topBarInner {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  height: 58px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
-/* Logo */
 .logo {
   display: flex;
   align-items: center;
@@ -32,268 +31,209 @@
   flex-shrink: 0;
 }
 .logoIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  background: #fff;
-  color: #1a5c3a;
+  width: 28px; height: 28px;
+  background: white; color: #085549;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
 }
 .logoText {
-  color: #fff;
-  font-size: 18px;
-  font-weight: 400;
+  color: white; font-size: 17px; font-weight: 400;
 }
 .logoText strong { font-weight: 700; }
 
-/* Butonlar */
 .topActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 8px;
 }
+
 .btnIlan {
-  display: inline-flex;
-  align-items: center;
-  background: #f5a623;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
+  background: #F5A623; color: white;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600;
+  border: none; cursor: pointer; white-space: nowrap;
   transition: background 0.15s;
 }
 .btnIlan:hover { background: #e09010; }
+
 .btnGiris {
-  color: rgba(255,255,255,0.88);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 7px 12px;
-  border-radius: 7px;
-  transition: background 0.15s;
+  color: rgba(255,255,255,0.85);
+  font-size: 14px; font-weight: 500;
+  text-decoration: none; padding: 7px 12px;
+  border-radius: 7px; transition: background 0.15s;
 }
-.btnGiris:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.btnGiris:hover { background: rgba(255,255,255,0.1); color: white; }
+
 .btnKayit {
-  background: #fff;
-  color: #1a5c3a;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  padding: 7px 14px;
-  border-radius: 7px;
-  transition: background 0.15s;
+  background: white; color: #085549;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none; padding: 7px 14px;
+  border-radius: 7px; transition: background 0.15s;
 }
 .btnKayit:hover { background: #e8f5ee; }
 
-/* Hamburger */
-.mobilHamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-}
-.mobilHamburger span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: #fff;
-  border-radius: 2px;
-  transition: all 0.2s;
-}
-
 /* =====================
-   KATEGORİ BARI
+   MOBİL OVERLAY & DRAWER
    ===================== */
-.categoryBar {
-  background: #fff;
-  border-bottom: 1px solid #e4ebe6;
-}
-.categoryBarInner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 16px;
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
   display: flex;
-  align-items: stretch;
-  overflow-x: auto;
-  scrollbar-width: none;
+  align-items: flex-end;
 }
-.categoryBarInner::-webkit-scrollbar { display: none; }
 
-.catItem {
-  position: relative;
-  flex-shrink: 0;
-}
-.catLink {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 11px 12px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #333;
-  text-decoration: none;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-}
-.catLink:hover { color: #1a5c3a; border-bottom-color: #1a5c3a; }
-.catLinkActive { color: #1a5c3a; font-weight: 600; border-bottom-color: #1a5c3a; }
-.catIcon { font-size: 15px; }
-.catArrow {
-  opacity: 0.45;
-  flex-shrink: 0;
-  transition: transform 0.2s;
-}
-.catArrowOpen { transform: rotate(180deg); opacity: 0.7; }
-
-/* =====================
-   DROPDOWN
-   ===================== */
-.dropdown {
-  position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
-  min-width: 210px;
-  background: #fff;
-  border: 1px solid #dde8e1;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.09);
-  padding: 8px 0;
-  z-index: 200;
-  animation: dropFade 0.15s ease;
-}
-@keyframes dropFade {
-  from { opacity: 0; transform: translateY(-5px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.dropdownHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px 6px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  border-bottom: 1px solid #f0f4f1;
-  margin-bottom: 4px;
-}
-.dropdownList { list-style: none; margin: 0; padding: 0; }
-.dropdownItem {
-  display: block;
-  padding: 9px 16px;
-  font-size: 14px;
-  color: #333;
-  text-decoration: none;
-  transition: background 0.1s, color 0.1s;
-  cursor: pointer;
-}
-.dropdownItem:hover { background: #f0f7f3; color: #1a5c3a; }
-.dropdownTumu {
-  display: block;
-  margin: 6px 8px 4px;
-  padding: 8px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a5c3a;
-  text-decoration: none;
-  background: #f0f7f3;
-  border-radius: 7px;
-  text-align: center;
-  transition: background 0.15s;
-}
-.dropdownTumu:hover { background: #daeee3; }
-
-/* =====================
-   MOBİL MENÜ
-   ===================== */
-.mobilMenu {
-  background: #fff;
-  border-top: 1px solid #e4ebe6;
-  max-height: calc(100vh - 58px);
-  overflow-y: auto;
-}
-.mobilMenuIcin { padding: 4px 0 16px; }
-.mobilKatItem { border-bottom: 1px solid #f0f4f1; }
-.mobilKatBtn {
+.drawer {
+  background: white;
   width: 100%;
+  max-height: 85vh;
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+.drawerHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 20px;
-  font-size: 14.5px;
-  font-weight: 500;
-  color: #222;
-  background: none;
-  border: none;
-  cursor: pointer;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
 }
-.mobilKatBtn:hover { background: #f5faf7; }
-.mobilAltKat { background: #f8faf9; padding: 4px 0 8px; }
-.mobilAltKatLink {
-  display: block;
-  padding: 10px 32px;
-  font-size: 14px;
-  color: #555;
-  text-decoration: none;
-  transition: color 0.1s;
+
+.drawerKapat {
+  width: 32px; height: 32px;
+  border-radius: 50%; border: none;
+  background: #f5f5f5; color: #666;
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
-.mobilAltKatLink:hover { color: #1a5c3a; }
-.mobilAuthBtnler {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+
+.drawerKategoriler {
+  padding: 8px 0;
+}
+
+.drawerKatBtn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border: none; background: none;
+  font-size: 15px; font-weight: 500; color: #1a1d23;
+  cursor: pointer; font-family: inherit;
+  text-align: left;
+  border-bottom: 0.5px solid #f5f5f5;
+}
+.drawerKatBtn:active { background: #f5faf7; }
+.drawerKatAktif { color: #0D7A6B; font-weight: 600; background: #f0f9f5; }
+
+.drawerAlt {
+  background: #fafafa;
+  padding: 4px 0;
+}
+.drawerAltBtn {
+  width: 100%;
+  padding: 11px 36px;
+  border: none; background: none;
+  font-size: 14px; color: #4a5568;
+  cursor: pointer; font-family: inherit;
+  text-align: left;
+  border-bottom: 0.5px solid #f0f0f0;
+}
+.drawerAltBtn:active { background: #f0f9f5; }
+.drawerAltAktif { color: #0D7A6B; font-weight: 600; }
+
+.drawerFooter {
   padding: 16px 20px 0;
+  display: flex; gap: 10px;
 }
-.mobilAuthBtnler .btnIlan,
-.mobilAuthBtnler .btnGiris,
-.mobilAuthBtnler .btnKayit {
-  justify-content: center;
-  text-align: center;
-  padding: 11px 16px;
-  font-size: 14px;
+.drawerGiris {
+  flex: 1; text-align: center;
+  padding: 12px; border-radius: 10px;
+  border: 1.5px solid #0D7A6B; color: #0D7A6B;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none;
 }
-.mobilAuthBtnler .btnGiris {
-  background: #f0f7f3;
-  color: #1a5c3a;
-  border-radius: 8px;
+.drawerKayit {
+  flex: 1; text-align: center;
+  padding: 12px; border-radius: 10px;
+  background: #0D7A6B; color: white;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none;
 }
+
+/* =====================
+   MOBİL ALT NAVİGASYON
+   ===================== */
+.bottomNav {
+  display: none; /* masaüstünde gizli */
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: white;
+  border-top: 0.5px solid #e2e8f0;
+  z-index: 200;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+}
+
+.navItem {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px;
+  border: none; background: none;
+  cursor: pointer; font-family: inherit;
+  color: #8a95a3;
+  text-decoration: none;
+  padding: 6px 0;
+  transition: color 0.15s;
+}
+.navItem:active { opacity: 0.7; }
+.navAktif { color: #0D7A6B; }
+
+.navIcon { font-size: 22px; line-height: 1; }
+.navLabel { font-size: 10px; font-weight: 500; }
+
+.navItemAdd {
+  flex: 1.3;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px;
+  border: none; background: none;
+  cursor: pointer; font-family: inherit;
+  color: #8a95a3;
+  padding: 6px 0;
+}
+.addCircle {
+  width: 44px; height: 44px;
+  background: #F5A623;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 26px; font-weight: 300;
+  line-height: 1;
+  margin-bottom: 1px;
+  box-shadow: 0 3px 10px rgba(245,166,35,0.4);
+}
+.navItemAdd .navLabel { color: #F5A623; font-weight: 600; }
 
 /* =====================
    RESPONSIVE
    ===================== */
 @media (max-width: 768px) {
-  .categoryBar { display: none; }
-  .mobilHamburger { display: flex; }
-  .topActions .btnIlan,
-  .topActions .btnGiris,
-  .topActions .btnKayit { display: none; }
+  .topActions { display: none; }
+  .bottomNav { display: flex; }
+
+  /* Sayfa altına padding ekle (alt nav için) */
+  :global(body) {
+    padding-bottom: 64px;
+  }
 }
 
-/* Aktif mobil butonlar */
-.mobilKatBtnAktif {
-  color: #1a5c3a;
-  background: #f0f7f3;
-  font-weight: 600;
-}
-.mobilAltKatLinkAktif {
-  color: #1a5c3a;
-  font-weight: 600;
-}
-.dropdownItemActive {
-  background: #f0f7f3;
-  color: #1a5c3a;
-  font-weight: 600;
+@media (min-width: 769px) {
+  .bottomNav { display: none !important; }
+  .overlay { display: none !important; }
 }

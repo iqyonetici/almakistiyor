@@ -12,7 +12,6 @@ export const kategoriler = [
     { label: "Projeler", slug: "emlak-projeler" },
     { label: "Bina", slug: "bina" },
     { label: "Devre Mülk", slug: "devre-mulk" },
-    { label: "Turistik", slug: "emlak-turistik" },
   ]},
   { label: "Vasıta", slug: "vasita", icon: "🚗", altkategoriler: [
     { label: "Otomobil", slug: "otomobil" },
@@ -21,29 +20,26 @@ export const kategoriler = [
     { label: "Motosiklet", slug: "motosiklet" },
     { label: "Minivan", slug: "minivan" },
     { label: "Ticari", slug: "ticari" },
-    { label: "Deniz Taşıtı", slug: "deniz" },
     { label: "Karavan", slug: "karavan" },
-    { label: "Klasik", slug: "klasik" },
-    { label: "ATV / UTV", slug: "atv-utv" },
   ]},
-  { label: "Yedek Parça", slug: "yedek-parca", icon: "🔧", altkategoriler: [] },
   { label: "Alışveriş", slug: "alisveris", icon: "🛍️", altkategoriler: [] },
-  { label: "İş Makineleri", slug: "is-makineleri", icon: "🏭", altkategoriler: [] },
   { label: "Hizmetler", slug: "hizmetler", icon: "🔨", altkategoriler: [] },
   { label: "Özel Ders", slug: "ozel-ders", icon: "📚", altkategoriler: [] },
   { label: "İş İlanları", slug: "is-ilanlari", icon: "💼", altkategoriler: [] },
+  { label: "Yedek Parça", slug: "yedek-parca", icon: "🔧", altkategoriler: [] },
+  { label: "İş Makineleri", slug: "is-makineleri", icon: "🏭", altkategoriler: [] },
   { label: "Hayvanlar", slug: "hayvanlar", icon: "🐾", altkategoriler: [] },
 ];
 
 export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) {
   const router = useRouter();
   const isAnasayfa = router.pathname === "/";
-  const [mobilAcik, setMobilAcik] = useState(false);
+  const [mobilMenuAcik, setMobilMenuAcik] = useState(false);
   const [mobilAltAcik, setMobilAltAcik] = useState(null);
 
   const handleKatClick = (e, slug) => {
-    e.preventDefault();
-    setMobilAcik(false);
+    if (e && e.preventDefault) e.preventDefault();
+    setMobilMenuAcik(false);
     if (isAnasayfa && onCategoryChange) {
       onCategoryChange(slug);
       setTimeout(() => {
@@ -61,71 +57,121 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) 
     }
   }, [router.query.kategori]);
 
+  // Menü açıkken scroll engelle
+  useEffect(() => {
+    if (mobilMenuAcik) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobilMenuAcik]);
+
   return (
-    <header className={styles.header}>
-      <div className={styles.topBar}>
-        <div className={styles.topBarInner}>
-          <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon}>✓</span>
-            <span className={styles.logoText}><strong>almak</strong> istiyor</span>
-          </Link>
-          <div className={styles.topActions}>
-            <button className={styles.btnIlan} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
-              + Almak İstiyorum
-            </button>
-            <Link href="/giris" className={styles.btnGiris}>Giriş</Link>
-            <Link href="/kayit" className={styles.btnKayit}>Üye Ol</Link>
-            <button className={styles.mobilHamburger} onClick={() => setMobilAcik(!mobilAcik)} aria-label="Menü">
-              <span></span><span></span><span></span>
-            </button>
+    <>
+      {/* MASAÜSTÜ NAVBAR */}
+      <header className={styles.header}>
+        <div className={styles.topBar}>
+          <div className={styles.topBarInner}>
+            <Link href="/" className={styles.logo}>
+              <span className={styles.logoIcon}>✓</span>
+              <span className={styles.logoText}><strong>almak</strong> istiyor</span>
+            </Link>
+            <div className={styles.topActions}>
+              <button className={styles.btnIlan} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
+                + Almak İstiyorum
+              </button>
+              <Link href="/giris" className={styles.btnGiris}>Giriş</Link>
+              <Link href="/kayit" className={styles.btnKayit}>Üye Ol</Link>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {mobilAcik && (
-        <div className={styles.mobilMenu}>
-          <div className={styles.mobilMenuIcin}>
-            {kategoriler.map((kat) => {
-              const hasDropdown = kat.altkategoriler?.length > 0;
-              return (
-                <div key={kat.slug} className={styles.mobilKatItem}>
-                  <button
-                    className={`${styles.mobilKatBtn} ${(activeCategory ?? "") === kat.slug ? styles.mobilKatBtnAktif : ""}`}
-                    onClick={() => {
-                      if (hasDropdown) setMobilAltAcik(mobilAltAcik === kat.slug ? null : kat.slug);
-                      handleKatClick({ preventDefault: () => {} }, kat.slug);
-                    }}
-                  >
-                    <span>{kat.icon} {kat.label}</span>
-                    {hasDropdown && (
-                      <svg width="10" height="6" viewBox="0 0 10 6"
-                        style={{ transform: mobilAltAcik === kat.slug ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                        <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                      </svg>
+      {/* MOBİL OVERLAY MENÜ */}
+      {mobilMenuAcik && (
+        <div className={styles.overlay} onClick={() => setMobilMenuAcik(false)}>
+          <div className={styles.drawer} onClick={e => e.stopPropagation()}>
+            <div className={styles.drawerHeader}>
+              <div className={styles.logo}>
+                <span className={styles.logoIcon} style={{background:'#1a5c3a',color:'white'}}>✓</span>
+                <span style={{fontSize:16,fontWeight:600,color:'#1a1d23'}}><strong>almak</strong> istiyor</span>
+              </div>
+              <button className={styles.drawerKapat} onClick={() => setMobilMenuAcik(false)}>✕</button>
+            </div>
+
+            <div className={styles.drawerKategoriler}>
+              {kategoriler.map((kat) => {
+                const hasDropdown = kat.altkategoriler?.length > 0;
+                const isAktif = (activeCategory ?? "") === kat.slug;
+                return (
+                  <div key={kat.slug}>
+                    <button
+                      className={`${styles.drawerKatBtn} ${isAktif ? styles.drawerKatAktif : ""}`}
+                      onClick={() => {
+                        if (hasDropdown) {
+                          setMobilAltAcik(mobilAltAcik === kat.slug ? null : kat.slug);
+                        }
+                        handleKatClick(null, kat.slug);
+                      }}
+                    >
+                      <span>{kat.icon} {kat.label}</span>
+                      {hasDropdown && (
+                        <span style={{ fontSize: 11, color: "#8a95a3", transform: mobilAltAcik === kat.slug ? "rotate(180deg)" : "none", display: "inline-block", transition: "transform 0.2s" }}>▼</span>
+                      )}
+                    </button>
+                    {hasDropdown && mobilAltAcik === kat.slug && (
+                      <div className={styles.drawerAlt}>
+                        {kat.altkategoriler.map(alt => (
+                          <button key={alt.slug}
+                            className={`${styles.drawerAltBtn} ${activeCategory === alt.slug ? styles.drawerAltAktif : ""}`}
+                            onClick={() => handleKatClick(null, alt.slug)}>
+                            {alt.label}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                  </button>
-                  {hasDropdown && mobilAltAcik === kat.slug && (
-                    <div className={styles.mobilAltKat}>
-                      {kat.altkategoriler.map(alt => (
-                        <button key={alt.slug}
-                          className={`${styles.mobilAltKatLink} ${activeCategory === alt.slug ? styles.mobilAltKatLinkAktif : ""}`}
-                          onClick={() => handleKatClick({ preventDefault: () => {} }, alt.slug)}>
-                          {alt.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className={styles.mobilAuthBtnler}>
-              <button className={styles.btnIlan} onClick={() => { setMobilAcik(false); onIlanVer?.(); }}>+ Almak İstiyorum</button>
-              <Link href="/giris" className={styles.btnGiris} onClick={() => setMobilAcik(false)}>Giriş</Link>
-              <Link href="/kayit" className={styles.btnKayit} onClick={() => setMobilAcik(false)}>Üye Ol</Link>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={styles.drawerFooter}>
+              <Link href="/giris" className={styles.drawerGiris} onClick={() => setMobilMenuAcik(false)}>Giriş Yap</Link>
+              <Link href="/kayit" className={styles.drawerKayit} onClick={() => setMobilMenuAcik(false)}>Üye Ol</Link>
             </div>
           </div>
         </div>
       )}
-    </header>
+
+      {/* MOBİL ALT NAV */}
+      <nav className={styles.bottomNav}>
+        <button className={`${styles.navItem} ${isAnasayfa && !activeCategory ? styles.navAktif : ""}`}
+          onClick={() => { if (isAnasayfa) { onCategoryChange?.(""); } else { router.push("/"); } }}>
+          <span className={styles.navIcon}>🏠</span>
+          <span className={styles.navLabel}>Ana Sayfa</span>
+        </button>
+
+        <button className={styles.navItem} onClick={() => setMobilMenuAcik(true)}>
+          <span className={styles.navIcon}>☰</span>
+          <span className={styles.navLabel}>Kategoriler</span>
+        </button>
+
+        <button className={styles.navItemAdd} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
+          <span className={styles.addCircle}>+</span>
+          <span className={styles.navLabel}>İlan Ver</span>
+        </button>
+
+        <Link href="/panel?tab=mesajlar" className={styles.navItem}>
+          <span className={styles.navIcon}>💬</span>
+          <span className={styles.navLabel}>Mesajlar</span>
+        </Link>
+
+        <Link href="/panel" className={styles.navItem}>
+          <span className={styles.navIcon}>👤</span>
+          <span className={styles.navLabel}>Profil</span>
+        </Link>
+      </nav>
+    </>
   );
 }
