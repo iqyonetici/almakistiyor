@@ -22,18 +22,19 @@ function formatTel(val) {
 }
 
 export default function Kayit() {
-  const { girisYap } = useAuth()
+  const { kayitOl, demoGiris } = useAuth()
   const router = useRouter()
 
-  const [tur, setTur] = useState('')
+  // Hesap türü seçimi kaldırıldı — herkes alıcı
   const [step, setStep] = useState(1)
   const [hatalar, setHatalar] = useState({})
   const [captcha] = useState(randomCaptcha())
   const [captchaInput, setCaptchaInput] = useState('')
-  const [kodGonderildi, setKodGonderildi] = useState(false)
   const [dogrulamaKodu] = useState(fakeCode())
   const [girilenKod, setGirilenKod] = useState('')
   const [kodHata, setKodHata] = useState('')
+  const [kayitHata, setKayitHata] = useState('')
+  const [yukleniyor, setYukleniyor] = useState(false)
 
   // Form alanları
   const [ad, setAd] = useState('')
@@ -58,9 +59,9 @@ export default function Kayit() {
   const [sozlesme, setSozlesme] = useState(false)
 
   const ilceler = getIlceler(sehir)
-  const toplamStep = tur === 'satici' ? 3 : 3 // her tur için 3 adım + doğrulama
+  const toplamStep = 3 // Kişisel bilgiler → İletişim tercihi + Onay → Doğrulama
 
-  function validate2() {
+  function validate1() {
     const h = {}
     if (!ad.trim()) h.ad = 'Zorunlu'
     if (!soyad.trim()) h.soyad = 'Zorunlu'
@@ -74,50 +75,51 @@ export default function Kayit() {
     return Object.keys(h).length === 0
   }
 
-  function validate3() {
+  function validate2() {
     const h = {}
     if (parseInt(captchaInput) !== captcha.answer) h.captcha = 'Yanlış cevap'
     if (!kvkk || !sozlesme) h.sozlesme = 'Sözleşmeleri onaylayın'
-    if (tur === 'satici' && firmaTur !== 'bireysel') {
-      if (!firmaAd.trim()) h.firmaAd = 'Firma adı zorunlu'
-      if (vergiNo.replace(/\D/g,'').length < 10) h.vergiNo = 'Geçerli vergi no girin'
-    }
     setHatalar(h)
     return Object.keys(h).length === 0
   }
 
   function ileri() {
     setHatalar({})
-    if (step === 1) { if (!tur) { setHatalar({tur:'Seçim yapın'}); return } setStep(2); return }
-    if (step === 2) { if (!validate2()) return; setStep(3); return }
-    if (step === 3) {
-      if (!validate3()) return
-      setKodGonderildi(true)
-      setStep(4)
+    if (step === 1) { if (!validate1()) return; setStep(2); return }
+    if (step === 2) {
+      if (!validate2()) return
+      setStep(3)
     }
   }
 
-  function dogrula() {
-    if (girilenKod === dogrulamaKodu) {
-      // Kullanıcı oluştur ve giriş yaptır
+  async function dogrula() {
+    if (girilenKod !== dogrulamaKodu) {
+      setKodHata('Kod hatalı. Tekrar deneyin.')
+      return
+    }
+    setYukleniyor(true)
+    setKayitHata('')
+
+    // Supabase Auth ile kayıt dene
+    const { error } = await kayitOl({
+      email, sifre, ad, soyad,
+      telefon: telefon.replace(/\D/g,''),
+      sehir, ilce,
+    })
+
+    if (error) {
+      // Supabase yoksa demo girişi yap
       const yeniUser = {
         ad, soyad, email,
         telefon: telefon.replace(/\D/g,''),
-        sehir, ilce, cinsiyet, dogumYili,
+        sehir, ilce,
         iletisimTercihi,
-        tur,
-        firma: firmaTur !== 'bireysel' ? firmaAd : null,
-        firmaTur,
-        vergiNo: firmaTur !== 'bireysel' ? vergiNo : null,
         paket: 'Ücretsiz',
         kalanHak: 3,
       }
-      girisYap(yeniUser)
-      // Direk ana sayfaya git
-      router.push('/')
-    } else {
-      setKodHata('Kod hatalı. Tekrar deneyin.')
+      demoGiris(yeniUser)
     }
+    router.push('/')
   }
 
   const Logo = () => (
@@ -133,7 +135,7 @@ export default function Kayit() {
   )
 
   // ADIM 4 — E-posta doğrulama
-  if (step === 4) return (
+  if (step === 3) return (
     <>
       <Head><title>E-posta Doğrulama — AlmakIstiyor.com</title></Head>
       <div className={styles.wrap}>
@@ -172,7 +174,7 @@ export default function Kayit() {
             <Logo />
             {/* Progress bar */}
             <div className={styles.progRow}>
-              {['Hesap Türü','Kişisel Bilgiler', tur==='satici'?'Firma & Onay':'Tercih & Onay'].map((s,i) => (
+              {['Kişisel Bilgiler','Tercih & Onay','E-posta Doğrulama'].map((s,i) => (
                 <div key={i} className={styles.progItem}>
                   <div className={`${styles.progDot} ${step > i+1?styles.progDone:''} ${step===i+1?styles.progActive:''}`}>
                     {step > i+1 ? '✓' : i+1}
@@ -185,35 +187,11 @@ export default function Kayit() {
 
           <div className={styles.boxBody}>
 
-            {/* ADIM 1 — TÜR SEÇİMİ */}
+            {/* ADIM 1 — KİŞİSEL BİLGİLER (eski adım 2) */}
             {step === 1 && (
-              <div className={styles.turAdim}>
-                <h2 className={styles.stepTitle}>Nasıl kullanacaksınız?</h2>
-                <div className={styles.turGrid}>
-                  <button className={`${styles.turBtn} ${tur==='alici'?styles.turSel:''}`} onClick={() => setTur('alici')}>
-                    <span className={styles.turIcon}>🛒</span>
-                    <span className={styles.turAd}>Alıcı</span>
-                    <span className={styles.turAcik}>Ne aradığınızı yazın, satıcılar sizi bulsun</span>
-                    <span className={styles.turUcret}>✓ Tamamen ücretsiz</span>
-                  </button>
-                  <button className={`${styles.turBtn} ${tur==='satici'?styles.turSel:''}`} onClick={() => setTur('satici')}>
-                    <span className={styles.turIcon}>🏢</span>
-                    <span className={styles.turAd}>Satıcı / Profesyonel</span>
-                    <span className={styles.turAcik}>Emlakçı veya galericiyseniz alıcı taleplerine erişin</span>
-                    <span className={styles.turUcret2}>3 ücretsiz hak ile başla</span>
-                  </button>
-                </div>
-                {hatalar.tur && <p className={styles.hata}>{hatalar.tur}</p>}
-                <button className="btn-primary" style={{width:'100%',justifyContent:'center',padding:12,marginTop:16}}
-                  onClick={ileri} disabled={!tur}>Devam et →</button>
-                <p className={styles.girisLink}>Zaten hesabınız var mı? <a href="/giris">Giriş yapın</a></p>
-              </div>
-            )}
-
-            {/* ADIM 2 — KİŞİSEL BİLGİLER */}
-            {step === 2 && (
               <div>
-                <h2 className={styles.stepTitle}>Kişisel bilgileriniz</h2>
+                <h2 className={styles.stepTitle}>Hesap oluşturun</h2>
+                <p className={styles.stepSub2}>Bilgileriniz güvenle saklanır, üçüncü taraflarla paylaşılmaz</p>
                 <div className={styles.kompaktGrid}>
                   {/* Satır 1: Ad, Soyad */}
                   <div className={styles.fg}>
@@ -299,7 +277,6 @@ export default function Kayit() {
                   </div>
                 </div>
                 <div className={styles.navBtns}>
-                  <button className="btn-ghost" onClick={() => setStep(1)}>← Geri</button>
                   <button className="btn-primary" style={{flex:1,justifyContent:'center'}} onClick={ileri}>Devam et →</button>
                 </div>
               </div>

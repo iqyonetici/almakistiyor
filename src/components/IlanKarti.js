@@ -99,6 +99,7 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
 
   return (
     <div className={styles.card}>
+      <a href={`/ilan/${ilan?.id}`} className={styles.cardLink} aria-label="İlan detayını gör" />
       <div className={styles.top}>
         <div className={styles.left}>
           <div className={styles.avatar} style={{background:av.bg, color:av.color}}>

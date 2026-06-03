@@ -18,8 +18,8 @@ const demoSaticilar = [
   { id: 4, firma: 'Metropol Emlak', email: 'metropol@email.com', paket: 'Kurumsal', goruntuleme: 89, odeme: '₺3.499', tarih: '5 gün önce', durum: 'aktif' },
 ]
 
-const ADMIN_EMAIL = 'admin@almakistiyor.com'
-const ADMIN_SIFRE = 'admin123'
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@almakistiyor.com'
+const ADMIN_SIFRE = process.env.NEXT_PUBLIC_ADMIN_PASS || 'admin123'
 
 export default function Admin() {
   const [giris, setGiris] = useState(false)

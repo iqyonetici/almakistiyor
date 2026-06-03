@@ -1,0 +1,65 @@
+.wrap { background: var(--bg); min-height: 100vh; padding: 24px 24px 48px; }
+.inner { max-width: 1100px; margin: 0 auto; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3); margin-bottom: 24px; flex-wrap: wrap; }
+.breadcrumb a { color: var(--teal); }
+.breadcrumb a:hover { text-decoration: underline; }
+
+.grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: flex-start; }
+
+/* DETAY KARTI */
+.detayKart { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 28px; box-shadow: var(--shadow-sm); }
+.detayUst { display: flex; gap: 8px; margin-bottom: 14px; }
+.katBadge { background: var(--teal-light); color: var(--teal-dark); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.3px; }
+.islemBadge { background: var(--accent-light); color: #7A4F01; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+.baslik { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 12px; line-height: 1.3; }
+.fiyat { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: #1A5C35; background: #EBF8F0; border: 1px solid #A3D9B8; padding: 10px 16px; border-radius: 10px; display: inline-block; margin-bottom: 16px; }
+.taglar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
+.tag { padding: 5px 12px; border-radius: 7px; font-size: 13px; background: var(--bg); border: 1px solid var(--border); color: var(--text-2); }
+
+.aciklama { margin-bottom: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+.aciklama h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.aciklama p { font-size: 14px; color: var(--text-2); line-height: 1.8; }
+
+.detayler { margin-bottom: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+.detayler h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.detayGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.detayItem { display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg); border-radius: 8px; font-size: 13px; }
+.detayItem span:first-child { color: var(--text-3); }
+.detayItem span:last-child { color: var(--text); font-weight: 500; }
+
+.ilanTarih { font-size: 12px; color: var(--text-3); padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* SIDEBAR */
+.sidebar { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 80px; }
+
+.aliciKart { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 22px; box-shadow: var(--shadow-sm); }
+.aliciBaslik { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.aliciInfo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.aliciAvatar { width: 42px; height: 42px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; flex-shrink: 0; }
+.aliciAd { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.aliciGizli { font-size: 12px; color: var(--text-3); }
+.mesajBtn { width: 100%; padding: 13px; border-radius: 10px; background: var(--teal); color: white; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Sora', sans-serif; transition: all 0.15s; margin-bottom: 10px; }
+.mesajBtn:hover { background: var(--teal-dark); }
+.mesajKutu { margin-bottom: 10px; }
+.mesajBasarili { background: #EBF8F0; border: 1px solid #A3D9B8; color: #1A5C35; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+.mesajBasarili a { color: var(--teal); font-weight: 500; }
+.gizliNot { font-size: 12px; color: var(--text-3); text-align: center; line-height: 1.5; }
+
+.benzerKart { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.benzerKart h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.benzerKart a { font-size: 13px; color: var(--teal); }
+
+.paylasKart { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.paylasKart h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.paylasButonlar { display: flex; gap: 8px; }
+.paylasBtn { flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: none; font-size: 12px; color: var(--text-2); cursor: pointer; font-family: inherit; text-align: center; transition: all 0.12s; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+.paylasBtn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+}
+@media (max-width: 600px) {
+  .detayGrid { grid-template-columns: 1fr; }
+  .baslik { font-size: 18px; }
+}

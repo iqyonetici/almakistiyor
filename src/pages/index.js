@@ -7,6 +7,7 @@ import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import { sehirler } from '../data/sehirler'
 import { ilanListele, ilanOlustur } from '../lib/db'
+import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
 
 // Demo ilanlar
@@ -31,6 +32,15 @@ export default function Home() {
   const [dbHata, setDbHata] = useState(false)
 
   useEffect(() => {
+    // Gerçek istatistikleri yükle
+    async function loadStats() {
+      if (supabase) {
+        const { count: ilanCount } = await supabase.from('ilanlar').select('*',{count:'exact',head:true}).eq('durum','aktif')
+        const { count: kullaniciCount } = await supabase.from('kullanicilar').select('*',{count:'exact',head:true})
+        setStats({ ilanSayisi: ilanCount||0, kullaniciSayisi: kullaniciCount||0 })
+      }
+    }
+    loadStats()
     async function yukle() {
       const { data, error } = await ilanListele({ kategori: activeCategory || undefined, sehir: filterSehir || undefined })
       if (data && data.length > 0) {
@@ -65,6 +75,8 @@ export default function Home() {
   const [mesajHaklari, setMesajHaklari] = useState({}) // {ilanId: {gonderilenBuKisiye: N}}
   const [kalanGenel, setKalanGenel] = useState(3) // ücretsiz mesaj hakkı
   const [paketModal, setPaketModal] = useState(false)
+  const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
+  const [filterIlce, setFilterIlce] = useState('')
 
   const filtered = ilanlar
     .filter(i => !activeCategory || i.kategori === activeCategory)
@@ -135,8 +147,8 @@ export default function Home() {
             </p>
             <div className={styles.heroStats}>
               {[
-                { num: '14.320', label: 'Aktif talep ilanı' },
-                { num: '3.800+', label: 'Kayıtlı satıcı' },
+                { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '—', label: 'Aktif talep ilanı' },
+                { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '—', label: 'Kayıtlı kullanıcı' },
                 { num: '%94', label: 'Eşleşme oranı' },
               ].map(s => (
                 <div key={s.label} className={styles.stat}>

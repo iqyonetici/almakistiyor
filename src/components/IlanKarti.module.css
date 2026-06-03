@@ -49,3 +49,10 @@
 .btnMesaj:hover { background: var(--teal-dark); }
 
 @media (max-width: 600px) { .metaRight { display: none; } .title { font-size: 14px; } }
+
+/* Detay sayfası linki */
+.card { position: relative; }
+.cardLink { position: absolute; inset: 0; z-index: 0; border-radius: var(--r); }
+.butonlar { position: relative; z-index: 1; }
+.views { position: relative; z-index: 1; }
+.tags { position: relative; z-index: 1; }

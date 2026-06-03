@@ -4,25 +4,22 @@ import { useRouter } from 'next/router'
 import { useAuth } from '../context/AuthContext'
 import styles from './giris.module.css'
 
-// Demo kullanıcılar
-const DEMO_USERS = [
-  // Alıcı hesapları (ücretsiz)
-  { email: 'alici1@demo.com', sifre: 'Alici123!', ad: 'Mehmet', soyad: 'Arslan', telefon: '0532 111 22 33', sehir: 'İstanbul', tur: 'alici' },
-  { email: 'alici2@demo.com', sifre: 'Alici123!', ad: 'Zeynep', soyad: 'Koçak', telefon: '0541 333 44 55', sehir: 'Ankara', tur: 'alici' },
-  // Pro satıcı hesabı
-  { email: 'satici@demo.com', sifre: 'Satici123!', ad: 'Emre', soyad: 'Yıldız', telefon: '0212 555 66 77', sehir: 'İstanbul', firma: 'Yıldız Emlak & Danışmanlık', paket: 'Pro', kalanHak: 999, tur: 'satici' },
-  // Starter satıcı hesabı
-  { email: 'galeri@demo.com', sifre: 'Galeri123!', ad: 'Burak', soyad: 'Demir', telefon: '0216 888 99 00', sehir: 'İstanbul', firma: 'Demir Oto Galerisi', paket: 'Starter', kalanHak: 7, tur: 'satici' },
-]
-
 function randomCaptcha() {
   const a = Math.floor(Math.random() * 9) + 1
   const b = Math.floor(Math.random() * 9) + 1
   return { a, b, answer: a + b }
 }
 
+// Demo kullanıcılar — Supabase Auth kurulmadan önce
+const DEMO_USERS = [
+  { email: 'alici1@demo.com', sifre: 'Alici123!', ad: 'Mehmet', soyad: 'Arslan', telefon: '5321112233', sehir: 'İstanbul', tur: 'alici' },
+  { email: 'alici2@demo.com', sifre: 'Alici123!', ad: 'Zeynep', soyad: 'Koçak', telefon: '5413334455', sehir: 'Ankara', tur: 'alici' },
+  { email: 'satici@demo.com', sifre: 'Satici123!', ad: 'Emre', soyad: 'Yıldız', telefon: '5255566677', sehir: 'İstanbul', firma: 'Yıldız Emlak', paket: 'Pro', tur: 'satici' },
+  { email: 'galeri@demo.com', sifre: 'Galeri123!', ad: 'Burak', soyad: 'Demir', telefon: '5168889900', sehir: 'İstanbul', firma: 'Demir Oto Galerisi', paket: 'Starter', tur: 'satici' },
+]
+
 export default function Giris() {
-  const { girisYap } = useAuth()
+  const { girisYap, demoGiris } = useAuth()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [sifre, setSifre] = useState('')
@@ -31,32 +28,33 @@ export default function Giris() {
   const [hata, setHata] = useState('')
   const [yukleniyor, setYukleniyor] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setHata('')
-
     if (parseInt(captchaInput) !== captcha.answer) {
-      setHata('Robot doğrulaması hatalı. ' + captcha.a + ' + ' + captcha.b + ' = ' + captcha.answer)
+      setHata(`Robot doğrulaması hatalı. ${captcha.a} + ${captcha.b} = ${captcha.answer}`)
+      return
+    }
+    setYukleniyor(true)
+    const emailTemiz = email.trim().toLowerCase()
+
+    // Önce Supabase Auth dene
+    const { error } = await girisYap(emailTemiz, sifre.trim())
+    if (!error) {
+      router.push('/')
       return
     }
 
-    const emailTemiz = email.trim().toLowerCase()
-    const sifreTemiz = sifre.trim()
+    // Supabase yoksa demo kullanıcıları dene
+    const demo = DEMO_USERS.find(u => u.email === emailTemiz && u.sifre === sifre.trim())
+    if (demo) {
+      demoGiris(demo)
+      router.push('/')
+      return
+    }
 
-    setYukleniyor(true)
-    setTimeout(() => {
-      const user = DEMO_USERS.find(u =>
-        u.email.toLowerCase() === emailTemiz && u.sifre === sifreTemiz
-      )
-      if (user) {
-        girisYap(user)
-        // Satıcı hesabı ise satıcı paneline, alıcı ise kullanıcı paneline
-        router.push('/')
-      } else {
-        setHata('E-posta veya şifre hatalı. Demo: ali@test.com / test123')
-        setYukleniyor(false)
-      }
-    }, 500)
+    setHata('E-posta veya şifre hatalı.')
+    setYukleniyor(false)
   }
 
   return (
@@ -73,18 +71,13 @@ export default function Giris() {
               <text x="277" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#F5A623">.</text>
             </svg>
           </a>
-
           <h2 className={styles.title}>Hoş geldiniz</h2>
           <p className={styles.sub}>Hesabınıza giriş yapın</p>
 
           <div className={styles.demoBox}>
-            <strong>🔧 Demo hesaplar:</strong><br/><br/>
-            <strong>👤 Alıcı hesabı:</strong><br/>
-            alici1@demo.com / Alici123!<br/><br/>
-            <strong>🏢 Pro Satıcı (Yıldız Emlak):</strong><br/>
-            satici@demo.com / Satici123!<br/><br/>
-            <strong>🚗 Starter Satıcı (Demir Oto):</strong><br/>
-            galeri@demo.com / Galeri123!
+            <strong>🔧 Demo hesaplar:</strong><br/>
+            alici1@demo.com / Alici123!<br/>
+            satici@demo.com / Satici123!
           </div>
 
           <form onSubmit={handleSubmit} className={styles.form}>
@@ -97,9 +90,8 @@ export default function Giris() {
               <label className="form-label">Şifre</label>
               <input className="form-input" type="password" placeholder="••••••••"
                 value={sifre} onChange={e => setSifre(e.target.value)} required />
-              <a href="/sifre-sifirla" className={styles.sifreSifirla}>Şifremi unuttum</a>
+              <a href="#" className={styles.sifreSifirla}>Şifremi unuttum</a>
             </div>
-
             <div className={styles.captchaBox}>
               <span className={styles.captchaLabel}>🤖 Robot değilim:</span>
               <span className={styles.captchaSoru}>{captcha.a} + {captcha.b} =</span>
@@ -107,21 +99,16 @@ export default function Giris() {
                 placeholder="?" value={captchaInput}
                 onChange={e => setCaptchaInput(e.target.value)} />
             </div>
-
             {hata && <div className={styles.hataBox}>{hata}</div>}
-
             <button type="submit" className="btn-primary"
               style={{width:'100%',justifyContent:'center',padding:13}}
               disabled={yukleniyor}>
               {yukleniyor ? 'Giriş yapılıyor...' : 'Giriş Yap →'}
             </button>
           </form>
-
-          <p className={styles.altLink}>
-            Hesabınız yok mu? <a href="/kayit">Ücretsiz kayıt olun</a>
-          </p>
+          <p className={styles.altLink}>Hesabınız yok mu? <a href="/kayit">Ücretsiz kayıt olun</a></p>
           <p className={styles.altLink} style={{marginTop:6}}>
-            Profesyonel erişim mi istiyorsunuz? <a href="/pro">Paketlere bakın →</a>
+            Profesyonel erişim? <a href="/pro">Paketlere bakın →</a>
           </p>
         </div>
       </div>
