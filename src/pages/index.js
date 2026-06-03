@@ -26,11 +26,19 @@ export default function Home() {
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [filterSehir, setFilterSehir] = useState('')
+  const [filterIlce, setFilterIlce] = useState('')
   const [filterIslem, setFilterIslem] = useState('')
   const [filterFiyatMin, setFilterFiyatMin] = useState('')
   const [filterFiyatMax, setFilterFiyatMax] = useState('')
+  const [filterTarih, setFilterTarih] = useState('')
   const [ilanlar, setIlanlar] = useState(demoIlanlar)
   const [dbHata, setDbHata] = useState(false)
+  const [sort, setSort] = useState('yeni')
+  const [mesajHaklari, setMesajHaklari] = useState({})
+  const [kalanGenel, setKalanGenel] = useState(3)
+  const [paketModal, setPaketModal] = useState(false)
+  const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
+  const [akordAcik, setAkordAcik] = useState(null)
 
   useEffect(() => {
     // Gerçek istatistikleri yükle
@@ -99,14 +107,6 @@ export default function Home() {
     }
     yukle()
   }, [activeCategory, filterSehir, filterIlce])
-  const [sort, setSort] = useState('yeni')
-  const [mesajHaklari, setMesajHaklari] = useState({}) // {ilanId: {gonderilenBuKisiye: N}}
-  const [kalanGenel, setKalanGenel] = useState(3) // ücretsiz mesaj hakkı
-  const [paketModal, setPaketModal] = useState(false)
-  const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
-  const [filterIlce, setFilterIlce] = useState('')
-  const [filterTarih, setFilterTarih] = useState('')
-  const [akordAcik, setAkordAcik] = useState(null)
 
   const filtered = ilanlar
     .filter(i => !activeCategory || i.kategori === activeCategory || i.altKategori === activeCategory)
