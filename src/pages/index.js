@@ -189,7 +189,7 @@ export default function Home() {
             <p className={styles.heroSub}>
               Ücretsiz talep verin, spam yok. Telefon numaranız yalnızca izin verdiğiniz satıcıya gösterilir.
             </p>
-            <div className={styles.heroStats}>
+            <div className={styles.heroActions}>
               {[
                 { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '—', label: 'Aktif talep ilanı' },
                 { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '—', label: 'Kayıtlı kullanıcı' },
