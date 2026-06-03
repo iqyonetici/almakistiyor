@@ -6,6 +6,8 @@ import IlanKarti from '../components/IlanKarti'
 import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import { sehirler } from '../data/sehirler'
+import { KATEGORILER } from '../data/kategoriler'
+import { kategoriler, kategoriBul, getAltKategoriRenk } from '../data/kategoriler'
 import { ilanListele, ilanOlustur } from '../lib/db'
 import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
@@ -49,7 +51,14 @@ export default function Home() {
           kategori: d.kategori || 'ikinci-el',
           ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
           sehir: d.sehir || '', ilce: d.ilce || '',
-          baslik: (d.sehir || '') + (d.ilce ? ' ' + d.ilce : '') + ' — ' + (d.kategori || '') + ' arıyorum',
+          baslik: (() => {
+            const sehirStr = d.sehir ? (d.ilce ? d.sehir + ' ' + d.ilce : d.sehir) : ''
+            const tip = d.emlak_tip || ''
+            const marka = d.markalar || ''
+            if (d.kategori === 'emlak' && tip) return sehirStr + "'da " + tip + ' arıyorum'
+            if (d.kategori === 'vasita' && marka) return marka + ' ' + (d.yil_min && d.yil_max ? d.yil_min + '-' + d.yil_max + ' model ' : '') + 'arıyorum'
+            return (sehirStr ? sehirStr + " — " : '') + (d.kategori || '') + ' arıyorum'
+          })(),
           fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
           tags: [
             d.oda ? {label: d.oda, variant:'tag-gray'} : null,

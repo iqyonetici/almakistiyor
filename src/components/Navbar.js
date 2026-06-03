@@ -1,40 +1,43 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { KATEGORILER } from '../data/kategoriler'
 import styles from './Navbar.module.css'
 
-const categories = [
-  { label: 'Tümü', slug: '' },
-  { label: '🏠 Emlak', slug: 'emlak' },
-  { label: '🚗 Vasıta', slug: 'vasita' },
-  { label: '📦 İkinci El', slug: 'ikinci-el' },
-  { label: '🛋️ Mobilya', slug: 'mobilya' },
-  { label: '📱 Elektronik', slug: 'elektronik' },
-  { label: '🏭 Sanayi', slug: 'sanayi' },
-]
-
 function initials(ad, soyad) {
-  return ((ad?.[0] || '') + (soyad?.[0] || '')).toUpperCase()
+  return ((ad?.[0]||'')+(soyad?.[0]||'')).toUpperCase()
 }
 
-export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVer }) {
+export default function Navbar({ activeCategory='', onCategoryChange, onIlanVer }) {
   const { user, cikisYap, yuklendi } = useAuth()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [dropOpen, setDropOpen] = useState(false)
+  const [megaOpen, setMegaOpen] = useState(null) // hangi ana kategori açık
   const dropRef = useRef(null)
+  const megaRef = useRef(null)
 
   useEffect(() => {
-    function handleClick(e) {
+    function handler(e) {
       if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false)
+      if (megaRef.current && !megaRef.current.contains(e.target)) setMegaOpen(null)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  function handleKategori(slug) {
+    onCategoryChange && onCategoryChange(slug)
+    setMegaOpen(null)
+    setTimeout(() => {
+      const el = document.getElementById('ilan-listesi')
+      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
+    }, 100)
+  }
 
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
-        <a href="/" className={styles.logoWrap}>
-          <svg width="148" height="36" viewBox="0 0 300 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* LOGO */}
+        <a href="/" className={styles.logo}>
+          <svg width="140" height="32" viewBox="0 0 300 72" fill="none">
             <path d="M20 8 L36 4 L52 8 L52 30 C52 42 36 50 36 50 C36 50 20 42 20 30 Z" fill="#0D7A6B"/>
             <path d="M27 27 L33 33 L46 20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
             <text x="62" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#0D7A6B" letterSpacing="-0.8">almak</text>
@@ -43,111 +46,101 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
           </svg>
         </a>
 
-        <div className={styles.cats}>
-          {categories.map(c => (
-            <button key={c.slug}
-              className={`${styles.cat} ${activeCategory === c.slug ? styles.catActive : ''}`}
-              onClick={() => {
-                onCategoryChange && onCategoryChange(c.slug)
-                // İlan listesine smooth scroll
-                setTimeout(() => {
-                  const el = document.getElementById('ilan-listesi')
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }, 100)
-              }}>
-              {c.label}
-            </button>
+        {/* MEGA MENU KATEGORİLER */}
+        <div className={styles.cats} ref={megaRef}>
+          {/* TÜMÜ */}
+          <button
+            className={`${styles.cat} ${activeCategory===''?styles.catActive:''}`}
+            onClick={() => handleKategori('')}>
+            Tümü
+          </button>
+
+          {KATEGORILER.map(k => (
+            <div key={k.slug} className={styles.catWrap}>
+              <button
+                className={`${styles.cat} ${activeCategory===k.slug||activeCategory?.startsWith(k.slug+'-')?styles.catActive:''}`}
+                onClick={() => {
+                  if (k.altKategoriler?.length) {
+                    setMegaOpen(megaOpen===k.slug ? null : k.slug)
+                  } else {
+                    handleKategori(k.slug)
+                  }
+                }}>
+                {k.icon} {k.label}
+                {k.altKategoriler?.length > 0 && <span className={styles.chevron}>▾</span>}
+              </button>
+
+              {/* DROPDOWN ALT KATEGORİLER */}
+              {megaOpen === k.slug && k.altKategoriler && (
+                <div className={styles.dropdown}>
+                  <div className={styles.dropHeader}>
+                    <button className={styles.dropAnaBtn} onClick={() => handleKategori(k.slug)}>
+                      {k.icon} Tüm {k.label}
+                    </button>
+                  </div>
+                  <div className={styles.dropGrid}>
+                    {k.altKategoriler.map(alt => (
+                      <button key={alt.slug} className={styles.dropItem}
+                        onClick={() => handleKategori(alt.slug)}
+                        style={{
+                          background: activeCategory===alt.slug ? alt.renk?.bg||'var(--teal-light)' : 'white',
+                          borderColor: activeCategory===alt.slug ? alt.renk?.border||'var(--teal)' : 'transparent',
+                        }}>
+                        <span className={styles.dropIcon}>{alt.icon}</span>
+                        <span className={styles.dropLabel}>{alt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
+        {/* SAĞ TARAF */}
         <div className={styles.right}>
-          {/* + Almak İstiyorum her zaman görünür */}
           <button className={styles.btnTalep} onClick={onIlanVer}>
             + Almak İstiyorum
           </button>
 
-          {user ? (
-            /* GİRİŞ YAPILMIŞ — Avatar + İsim + Dropdown */
+          {yuklendi && user ? (
             <div className={styles.avatarWrap} ref={dropRef}>
               <button className={styles.avatarBtn} onClick={() => setDropOpen(!dropOpen)}>
-                <div className={styles.avatar}>{initials(user.ad, user.soyad)}</div>
-                <span className={styles.avatarAd}>Merhaba, {user.ad}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{color:'var(--text-3)'}}>
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
+                <div className={styles.avatarCircle}>
+                  {initials(user.ad, user.soyad)}
+                </div>
+                <span className={styles.avatarName}>
+                  Merhaba, {user.ad || user.email?.split('@')[0]}
+                </span>
+                <span className={styles.chevron}>▾</span>
               </button>
               {dropOpen && (
-                <div className={styles.dropdown}>
-                  <div className={styles.dropUser}>
-                    <div className={styles.dropAvatar}>{initials(user.ad, user.soyad)}</div>
-                    <div>
-                      <div className={styles.dropAd}>{user.ad} {user.soyad}</div>
-                      <div className={styles.dropEmail}>{user.email}</div>
-                    </div>
+                <div className={styles.userDrop}>
+                  <div className={styles.userDropHeader}>
+                    <div className={styles.userDropName}>{user.ad} {user.soyad}</div>
+                    <div className={styles.userDropEmail}>{user.email}</div>
                   </div>
-                  <div className={styles.dropDivider} />
-                  <a href="/panel" className={styles.dropItem}>
-                    <span>📋</span> Taleplerimi Gör
-                  </a>
-                  <a href="/panel?tab=mesajlar" className={styles.dropItem}>
-                    <span>💬</span> Mesajlarım
-                  </a>
-                  <a href="/panel?tab=profil" className={styles.dropItem}>
-                    <span>👤</span> Profilim
-                  </a>
-                  <div className={styles.dropDivider} />
-                  <a href="/pro" className={styles.dropItemPro}>
-                    <span>🏢</span> Profesyonel Erişim
-                  </a>
-                  <div className={styles.dropDivider} />
-                  <button className={styles.dropCikis} onClick={() => { cikisYap(); setDropOpen(false) }}>
-                    Çıkış Yap
+                  <a href="/panel" className={styles.userDropItem}>📋 İlanlarım</a>
+                  <a href="/panel?tab=mesajlar" className={styles.userDropItem}>💬 Mesajlarım</a>
+                  <a href="/panel?tab=profil" className={styles.userDropItem}>👤 Profilim</a>
+                  {user.tur === 'satici' && <a href="/satici" className={styles.userDropItem}>🏢 Satıcı Paneli</a>}
+                  <a href="/pro" className={styles.userDropItem}>⭐ Pro Üyelik</a>
+                  <div className={styles.userDropDivider} />
+                  <button className={`${styles.userDropItem} ${styles.userDropCikis}`}
+                    onClick={() => { cikisYap(); window.location.href='/' }}>
+                    ← Çıkış Yap
                   </button>
                 </div>
               )}
             </div>
-          ) : (
-            /* GİRİŞ YAPILMAMIŞ */
-            <>
-              <a href="/giris" className={styles.btnGiris}>Giriş Yap</a>
-              <a href="/kayit" className={styles.btnKayit}>Kayıt Ol</a>
-            </>
-          )}
+          ) : yuklendi ? (
+            <div className={styles.authBtns}>
+              <a href="/giris" className={styles.btnGiris}>Giriş</a>
+              <a href="/kayit" className={styles.btnKayit}>Üye Ol</a>
+            </div>
+          ) : null}
         </div>
-
-        <button className={styles.burger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menü">
-          <span/><span/><span/>
-        </button>
       </div>
-
-      {menuOpen && (
-        <div className={styles.mobileMenu}>
-          {categories.map(c => (
-            <button key={c.slug} className={styles.mobileCat}
-              onClick={() => { onCategoryChange && onCategoryChange(c.slug); setMenuOpen(false) }}>
-              {c.label}
-            </button>
-          ))}
-          <div className={styles.mobileBtns}>
-            <button className={styles.btnTalep} style={{width:'100%',justifyContent:'center'}}
-              onClick={() => { onIlanVer && onIlanVer(); setMenuOpen(false) }}>
-              + Almak İstiyorum
-            </button>
-            {user ? (
-              <>
-                <a href="/panel" className="btn-outline" style={{width:'100%',justifyContent:'center'}}>Panelim</a>
-                <button onClick={() => { cikisYap(); setMenuOpen(false) }}
-                  className="btn-ghost" style={{width:'100%',justifyContent:'center'}}>Çıkış Yap</button>
-              </>
-            ) : (
-              <>
-                <a href="/giris" className="btn-ghost" style={{width:'100%',justifyContent:'center'}}>Giriş Yap</a>
-                <a href="/kayit" className="btn-outline" style={{width:'100%',justifyContent:'center'}}>Kayıt Ol</a>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   )
 }

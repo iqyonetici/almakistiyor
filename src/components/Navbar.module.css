@@ -1,46 +1,112 @@
-.nav { background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-.inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 0 24px; height: 62px; }
-.logoWrap { flex-shrink: 0; display: flex; align-items: center; }
-.cats { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.inner {
+  max-width: 1400px; margin: 0 auto;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; height: 58px;
+}
+.logo { display: flex; align-items: center; flex-shrink: 0; margin-right: 4px; }
+
+/* KATEGORİ BAR */
+.cats { display: flex; align-items: center; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .cats::-webkit-scrollbar { display: none; }
-.cat { padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--text-2); white-space: nowrap; border: none; background: none; transition: all 0.15s; cursor: pointer; }
-.cat:hover { background: var(--teal-light); color: var(--teal); }
+.catWrap { position: relative; flex-shrink: 0; }
+.cat {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  color: var(--text-2); background: none; border: none; cursor: pointer;
+  white-space: nowrap; font-family: inherit; transition: all 0.12s;
+}
+.cat:hover { background: var(--bg); color: var(--text); }
 .catActive { background: var(--teal) !important; color: white !important; }
-.right { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+.chevron { font-size: 10px; opacity: 0.6; }
 
-/* BUTONLAR */
-.btnTalep { padding: 8px 16px; border-radius: 8px; background: var(--teal); color: white; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Sora', sans-serif; transition: all 0.15s; white-space: nowrap; }
+/* DROPDOWN */
+.dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  background: white; border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  min-width: 280px; z-index: 200; overflow: hidden;
+}
+.dropHeader { padding: 10px 12px 6px; border-bottom: 1px solid var(--border); }
+.dropAnaBtn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  color: var(--teal-dark); background: var(--teal-light); border: none;
+  cursor: pointer; font-family: inherit; width: 100%; transition: all 0.12s;
+}
+.dropAnaBtn:hover { background: var(--teal); color: white; }
+.dropGrid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px; padding: 8px;
+}
+.dropItem {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 10px; border-radius: 8px; font-size: 12px;
+  color: var(--text-2); background: white; border: 1.5px solid transparent;
+  cursor: pointer; font-family: inherit; text-align: left; transition: all 0.1s;
+}
+.dropItem:hover { background: var(--bg) !important; color: var(--text); }
+.dropIcon { font-size: 15px; flex-shrink: 0; }
+.dropLabel { font-size: 12px; font-weight: 500; }
+
+/* SAĞ */
+.right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.btnTalep {
+  padding: 8px 16px; border-radius: 9px; background: var(--teal);
+  color: white; border: none; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'Sora', sans-serif; white-space: nowrap;
+  transition: background 0.15s;
+}
 .btnTalep:hover { background: var(--teal-dark); }
-.btnGiris { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border); color: var(--text-2); background: none; font-size: 13px; font-weight: 500; transition: all 0.15s; white-space: nowrap; }
+.authBtns { display: flex; gap: 6px; }
+.btnGiris { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-2); border: 1px solid var(--border); text-decoration: none; transition: all 0.12s; }
 .btnGiris:hover { border-color: var(--teal); color: var(--teal); }
-.btnKayit { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--teal); color: var(--teal); background: none; font-size: 13px; font-weight: 500; transition: all 0.15s; white-space: nowrap; }
-.btnKayit:hover { background: var(--teal-light); }
+.btnKayit { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: white; background: var(--teal); border: 1px solid var(--teal); text-decoration: none; transition: all 0.12s; }
+.btnKayit:hover { background: var(--teal-dark); }
 
-/* AVATAR & DROPDOWN */
+/* KULLANICI DROPDOWN */
 .avatarWrap { position: relative; }
-.avatarBtn { display: flex; align-items: center; gap: 8px; background: var(--teal-light); border: 1.5px solid var(--teal-mid); border-radius: 24px; padding: 4px 12px 4px 4px; cursor: pointer; transition: all 0.15s; }
-.avatarBtn:hover { background: var(--teal-mid); }
-.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); color: white; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.avatarAd { font-size: 13px; font-weight: 500; color: var(--teal-dark); white-space: nowrap; }
-.dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 230px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; z-index: 200; }
-.dropUser { display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 4px; }
-.dropAvatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-.dropAd { font-size: 14px; font-weight: 500; color: var(--text); }
-.dropEmail { font-size: 11px; color: var(--text-3); }
-.dropDivider { height: 1px; background: var(--border); margin: 4px 0; }
-.dropItem { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--text-2); transition: background 0.12s; }
-.dropItem:hover { background: var(--bg); color: var(--text); }
-.dropItemPro { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--teal); font-weight: 500; transition: background 0.12s; }
-.dropItemPro:hover { background: var(--teal-light); }
-.dropCikis { width: 100%; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--red); background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.12s; }
-.dropCikis:hover { background: #FEF2F2; }
+.avatarBtn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px 5px 5px; border-radius: 24px; border: 1.5px solid var(--border);
+  background: none; cursor: pointer; font-family: inherit; transition: all 0.12s;
+}
+.avatarBtn:hover { border-color: var(--teal); background: var(--teal-light); }
+.avatarCircle {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--teal);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-family: 'Sora', sans-serif; font-weight: 700; font-size: 12px;
+}
+.avatarName { font-size: 13px; font-weight: 500; color: var(--text); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.userDrop {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: white; border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  min-width: 200px; z-index: 200; overflow: hidden;
+}
+.userDropHeader { padding: 12px 16px; background: var(--teal-light); border-bottom: 1px solid var(--border); }
+.userDropName { font-size: 14px; font-weight: 600; color: var(--teal-dark); }
+.userDropEmail { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.userDropItem {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; font-size: 13px; color: var(--text-2);
+  text-decoration: none; background: none; border: none; width: 100%; text-align: left;
+  cursor: pointer; font-family: inherit; transition: background 0.1s;
+}
+.userDropItem:hover { background: var(--bg); color: var(--text); }
+.userDropDivider { height: 1px; background: var(--border); margin: 4px 0; }
+.userDropCikis { color: var(--red) !important; }
 
-/* BURGER */
-.burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; }
-.burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
-.mobileMenu { background: white; border-top: 1px solid var(--border); padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 4px; }
-.mobileCat { padding: 10px 14px; border-radius: 8px; text-align: left; font-size: 14px; color: var(--text-2); background: none; border: none; transition: background 0.12s; cursor: pointer; }
-.mobileCat:hover { background: var(--teal-light); color: var(--teal); }
-.mobileBtns { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-
-@media (max-width: 900px) { .cats { display: none; } .right { display: none; } .burger { display: flex; } }
+@media (max-width: 900px) {
+  .cats { gap: 0; }
+  .cat { padding: 5px 7px; font-size: 12px; }
+  .avatarName { display: none; }
+}
+@media (max-width: 600px) {
+  .btnTalep { padding: 7px 10px; font-size: 12px; }
+}

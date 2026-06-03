@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { sehirler, getIlceler } from '../data/sehirler'
+import { kategoriler as KAT_TREE } from '../data/kategoriler'
 import styles from './IlanForm.module.css'
 
 // ==================== SABİT VERİLER ====================
@@ -78,7 +79,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
   const [step, setStep] = useState(1)
   const [done, setDone] = useState(false)
   const [data, setData] = useState({
-    kategori:'', islemTuru:'satin-al', sehir:'', ilce:'',
+    kategori:'', altKategori:'', islemTuru:'satin-al', sehir:'', ilce:'',
     fiyatMin:'', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
     markalar:[], yilMin:'', yilMax:'', kmMax:'', yakit:[], vites:[],
@@ -107,7 +108,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
 
   function reset() {
     setStep(1); setDone(false)
-    setData({kategori:'',islemTuru:'satin-al',sehir:'',ilce:'',fiyatMin:'',fiyatMax:'',
+    setData({kategori:'',altKategori:'',islemTuru:'satin-al',sehir:'',ilce:'',fiyatMin:'',fiyatMax:'',
       emlakTip:'',m2Min:'',m2Max:'',oda:[],tercihler:[],
       markalar:[],yilMin:'',yilMax:'',kmMax:'',yakit:[],vites:[],
       aciklama:'',iletisimTercihi:'mesaj',ad:'',soyad:'',telefon:''})
@@ -190,15 +191,27 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
             <>
               {/* ADIM 1: KATEGORİ */}
               {step===1 && (
-                <div className={styles.optGrid}>
-                  {kategoriler.map(k => (
-                    <button key={k.slug}
-                      className={`${styles.optBtn} ${data.kategori===k.slug?styles.optSel:''}`}
-                      onClick={() => set('kategori',k.slug)}>
-                      <span className={styles.optIcon}>{k.icon}</span>
-                      <span className={styles.optLabel}>{k.label}</span>
-                      <span className={styles.optSub}>{k.sub}</span>
-                    </button>
+                <div>
+                  {KAT_TREE.map(ana => (
+                    <div key={ana.slug} style={{marginBottom:16}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'var(--text-3)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,paddingLeft:2}}>
+                        {ana.icon} {ana.label}
+                      </div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                        <button
+                          className={`${styles.chip} ${data.kategori===ana.slug&&!data.altKategori?styles.chipSel:''}`}
+                          onClick={() => { set('kategori',ana.slug); set('altKategori','') }}>
+                          Tümü
+                        </button>
+                        {ana.altKategoriler?.map(alt => (
+                          <button key={alt.slug}
+                            className={`${styles.chip} ${data.altKategori===alt.slug?styles.chipSel:''}`}
+                            onClick={() => { set('kategori',ana.slug); set('altKategori',alt.slug) }}>
+                            {alt.icon} {alt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
