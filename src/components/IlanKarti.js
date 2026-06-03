@@ -7,7 +7,7 @@ const catColors = {
   'ikinci-el':  { bg: '#F0FBF6', color: '#1A5C35', label: 'İkinci El' },
   mobilya:      { bg: '#F5F0FB', color: '#4A1A8A', label: 'Mobilya' },
   elektronik:   { bg: '#EBF4FF', color: '#1A4A8A', label: 'Elektronik' },
-  'is-makinasi':{ bg: '#FFF5EB', color: '#7A3C00', label: 'İş Makinası' },
+  'sanayi':{ bg: '#FFF5EB', color: '#7A3C00', label: 'Sanayi' },
 }
 const avatarColors = [
   { bg:'#E6F5F2', color:'#0D7A6B' },

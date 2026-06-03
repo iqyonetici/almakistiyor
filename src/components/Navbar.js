@@ -9,7 +9,7 @@ const categories = [
   { label: '📦 İkinci El', slug: 'ikinci-el' },
   { label: '🛋️ Mobilya', slug: 'mobilya' },
   { label: '📱 Elektronik', slug: 'elektronik' },
-  { label: '🔧 İş Makinası', slug: 'is-makinasi' },
+  { label: '🏭 Sanayi', slug: 'sanayi' },
 ]
 
 function initials(ad, soyad) {
@@ -47,7 +47,14 @@ export default function Navbar({ activeCategory = '', onCategoryChange, onIlanVe
           {categories.map(c => (
             <button key={c.slug}
               className={`${styles.cat} ${activeCategory === c.slug ? styles.catActive : ''}`}
-              onClick={() => onCategoryChange && onCategoryChange(c.slug)}>
+              onClick={() => {
+                onCategoryChange && onCategoryChange(c.slug)
+                // İlan listesine smooth scroll
+                setTimeout(() => {
+                  const el = document.getElementById('ilan-listesi')
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }, 100)
+              }}>
               {c.label}
             </button>
           ))}

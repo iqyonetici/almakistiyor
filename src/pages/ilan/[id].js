@@ -62,7 +62,7 @@ export default function IlanDetay() {
     </>
   )
 
-  const katLabels = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik','is-makinasi':'İş Makinası'}
+  const katLabels = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik','sanayi':'Sanayi'}
   const kat = katLabels[ilan.kategori] || ilan.kategori || 'İlan'
   const sehirIlce = [ilan.sehir, ilan.ilce].filter(Boolean).join(' / ')
   const baslik = `${sehirIlce ? sehirIlce + ' — ' : ''}${kat} arıyorum`

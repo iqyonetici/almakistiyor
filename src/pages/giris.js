@@ -74,12 +74,6 @@ export default function Giris() {
           <h2 className={styles.title}>Hoş geldiniz</h2>
           <p className={styles.sub}>Hesabınıza giriş yapın</p>
 
-          <div className={styles.demoBox}>
-            <strong>🔧 Demo hesaplar:</strong><br/>
-            alici1@demo.com / Alici123!<br/>
-            satici@demo.com / Satici123!
-          </div>
-
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.fg}>
               <label className="form-label">E-posta</label>

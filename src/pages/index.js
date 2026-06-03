@@ -302,7 +302,7 @@ export default function Home() {
         </aside>
 
         {/* LİSTİNGS */}
-        <main className={styles.listings}>
+        <main className={styles.listings} id="ilan-listesi">
           <div className={styles.listHeader}>
             <div className={styles.listCount}>
               <strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı

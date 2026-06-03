@@ -11,7 +11,7 @@ const kategoriler = [
   {slug:'ikinci-el',icon:'📦', label:'İkinci El',  sub:'Genel eşya, ürün…'},
   {slug:'mobilya',  icon:'🛋️', label:'Mobilya',    sub:'Koltuk, masa, yatak…'},
   {slug:'elektronik',icon:'📱',label:'Elektronik', sub:'Telefon, bilgisayar…'},
-  {slug:'is-makinasi',icon:'🔧',label:'İş Makinası',sub:'Traktör, forklift…'},
+  {slug:'sanayi',icon:'🔧',label:'Sanayi',sub:'Makine, ekipman, sanayi ürünleri…'},
 ]
 const emlakTipler   = ['Daire','Villa','Müstakil Ev','Arsa','İşyeri','Depo','Tarla']
 const odaSayilari   = ['1+0','1+1','2+1','3+1','4+1','4+1 ve üzeri','Fark etmez']
@@ -19,7 +19,7 @@ const emlakOzellikleri=['Asansör','Otopark','Balkon','Bahçe','Güvenlik','Eşy
 const vasitaMarkalar=['Audi','BMW','Citroen','Fiat','Ford','Honda','Hyundai','Kia','Mercedes','Nissan','Opel','Peugeot','Renault','Seat','Skoda','Toyota','Volkswagen','Volvo','Diğer']
 const yakitTipleri  = ['Benzin','Dizel','LPG','Hibrit','Elektrikli','Fark etmez']
 const vitesTipleri  = ['Otomatik','Manuel','Yarı Otomatik','Fark etmez']
-const katLabels     = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik','is-makinasi':'İş Makinası'}
+const katLabels     = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik','sanayi':'Sanayi'}
 
 // Sadece sayı kabul et
 function sadeceRakam(val) { return val.replace(/[^0-9]/g,'') }
