@@ -121,3 +121,24 @@
   font-size: 12px; color: #991B1B; line-height: 1.6;
 }
 .zorunluUyari span { display: block; }
+
+/* İLETİŞİM TERCİHİ KARTLARI */
+.iletisimKartlar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.iletisimKart {
+  padding: 16px; border-radius: 12px; border: 2px solid var(--border);
+  background: white; cursor: pointer; text-align: left;
+  transition: all 0.15s; display: flex; flex-direction: column; gap: 6px;
+  font-family: inherit;
+}
+.iletisimKart:hover { border-color: var(--teal-mid); background: var(--teal-light); }
+.iletisimSel { border-color: var(--teal) !important; background: var(--teal-light) !important; }
+.iletisimUst { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.iletisimIcon { font-size: 24px; }
+.iletisimOneri { font-size: 10px; font-weight: 700; color: var(--teal-dark); background: var(--teal); color: white; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.3px; }
+.iletisimOneriSel { background: var(--teal-dark); }
+.iletisimBaslik { font-size: 14px; font-weight: 600; color: var(--text); }
+.iletisimAcik { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.iletisimTag { font-size: 11px; font-weight: 500; background: var(--teal-light); color: var(--teal-dark); padding: 3px 9px; border-radius: 8px; display: inline-block; margin-top: 2px; }
+.iletisimNot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+.stepSub2 { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }

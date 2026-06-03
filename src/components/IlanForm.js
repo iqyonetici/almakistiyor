@@ -2,62 +2,67 @@ import { useState, useRef, useEffect } from 'react'
 import { sehirler, getIlceler } from '../data/sehirler'
 import styles from './IlanForm.module.css'
 
-const STEPS_GIRIS  = ['Kategori','Konum','Fiyat & Özellikler','Açıklama','Onay']
-const STEPS_MISAFIR= ['Kategori','Konum','Fiyat & Özellikler','Açıklama','İletişim','Onay']
+// ==================== SABİT VERİLER ====================
+const STEPS_GIRIS   = ['Kategori','Konum','Fiyat & Özellikler','Açıklama','İletişim','Onay']
+const STEPS_MISAFIR = ['Kategori','Konum','Fiyat & Özellikler','Açıklama','İletişim','Kişisel Bilgi','Onay']
 
 const kategoriler = [
-  {slug:'emlak',    icon:'🏠', label:'Emlak',      sub:'Daire, villa, arsa…'},
-  {slug:'vasita',   icon:'🚗', label:'Vasıta',     sub:'Otomobil, SUV, motosiklet…'},
-  {slug:'ikinci-el',icon:'📦', label:'İkinci El',  sub:'Genel eşya, ürün…'},
-  {slug:'mobilya',  icon:'🛋️', label:'Mobilya',    sub:'Koltuk, masa, yatak…'},
-  {slug:'elektronik',icon:'📱',label:'Elektronik', sub:'Telefon, bilgisayar…'},
-  {slug:'sanayi',icon:'🔧',label:'Sanayi',sub:'Makine, ekipman, sanayi ürünleri…'},
+  {slug:'emlak',    icon:'🏠', label:'Emlak',   sub:'Daire, villa, arsa…'},
+  {slug:'vasita',   icon:'🚗', label:'Vasıta',  sub:'Otomobil, SUV, motosiklet…'},
+  {slug:'ikinci-el',icon:'📦', label:'İkinci El',sub:'Genel eşya, ürün…'},
+  {slug:'mobilya',  icon:'🛋️', label:'Mobilya', sub:'Koltuk, masa, yatak…'},
+  {slug:'elektronik',icon:'📱',label:'Elektronik',sub:'Telefon, bilgisayar…'},
+  {slug:'sanayi',   icon:'🏭', label:'Sanayi',  sub:'Makine, ekipman…'},
 ]
 const emlakTipler   = ['Daire','Villa','Müstakil Ev','Arsa','İşyeri','Depo','Tarla']
 const odaSayilari   = ['1+0','1+1','2+1','3+1','4+1','4+1 ve üzeri','Fark etmez']
-const emlakOzellikleri=['Asansör','Otopark','Balkon','Bahçe','Güvenlik','Eşyalı','Site içi','Deniz manzarası']
-const vasitaMarkalar=['Audi','BMW','Citroen','Fiat','Ford','Honda','Hyundai','Kia','Mercedes','Nissan','Opel','Peugeot','Renault','Seat','Skoda','Toyota','Volkswagen','Volvo','Diğer']
+const emlakOzellikleri = ['Asansör','Otopark','Balkon','Bahçe','Güvenlik','Eşyalı','Site içi','Deniz manzarası']
+const vasitaMarkalar= ['Audi','BMW','Citroen','Fiat','Ford','Honda','Hyundai','Kia','Mercedes','Nissan','Opel','Peugeot','Renault','Seat','Skoda','Toyota','Volkswagen','Volvo','Diğer']
 const yakitTipleri  = ['Benzin','Dizel','LPG','Hibrit','Elektrikli','Fark etmez']
 const vitesTipleri  = ['Otomatik','Manuel','Yarı Otomatik','Fark etmez']
-const katLabels     = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik','sanayi':'Sanayi'}
 
-// Sadece sayı kabul et
-function sadeceRakam(val) { return val.replace(/[^0-9]/g,'') }
-// Sayıyı formatlı göster: 1500000 → 1.500.000
-function formatSayi(val) {
-  const n = val.replace(/[^0-9]/g,'')
-  return n ? Number(n).toLocaleString('tr-TR') : ''
+// ==================== EMLAK FİYAT SEÇENEKLER ====================
+const EMLAK_KIRA_FIYATLAR = [5000,8000,10000,12000,15000,18000,20000,22000,25000,28000,30000,35000,40000,45000,50000,60000,75000,100000]
+const EMLAK_SATIS_FIYATLAR = [500000,750000,1000000,1250000,1500000,1750000,2000000,2500000,3000000,3500000,4000000,5000000,6000000,7500000,10000000,15000000,20000000,25000000]
+const VASITA_FIYATLAR = [100000,150000,200000,250000,300000,350000,400000,450000,500000,600000,700000,800000,900000,1000000,1250000,1500000,1750000,2000000,2500000,3000000]
+const GENEL_FIYATLAR = [1000,2000,5000,10000,15000,20000,30000,50000,75000,100000,150000,200000,300000,500000]
+
+// m² seçenekleri: 25'er artış
+const M2_SECENEKLER = Array.from({length:28}, (_,i) => (i+1)*25) // 25,50,75,...,700
+
+// Araç km seçenekleri: 5000'er artış
+const KM_SECENEKLER = [0,5000,10000,20000,30000,40000,50000,60000,70000,80000,90000,100000,120000,150000,200000,250000]
+
+// Araç yıl seçenekleri
+const YIL_SECENEKLER = Array.from({length:14}, (_,i) => 2010+i) // 2010-2023
+
+function formatFiyat(val) {
+  if (!val) return ''
+  return Number(val).toLocaleString('tr-TR')
 }
-// Formatlı değerden ham sayıya dön
-function sadeRakam(val) { return val.replace(/[^0-9]/g,'') }
+
+const katLabels = {emlak:'Emlak',vasita:'Vasıta','ikinci-el':'İkinci El',mobilya:'Mobilya',elektronik:'Elektronik',sanayi:'Sanayi'}
 
 function validate(step, data, giris) {
   switch(step) {
     case 1: return !!data.kategori
     case 2: return !!data.sehir
     case 3: {
-      // Fiyat zorunlu
       if (!data.fiyatMin || !data.fiyatMax) return false
-      if (Number(data.fiyatMin) <= 0 || Number(data.fiyatMax) <= 0) return false
       if (Number(data.fiyatMin) > Number(data.fiyatMax)) return false
-      // Emlak için ek zorunlular
       if (data.kategori === 'emlak') {
         if (!data.emlakTip) return false
         if (!data.m2Min || !data.m2Max) return false
-        if (Number(data.m2Min) <= 0 || Number(data.m2Max) <= 0) return false
-        if (Number(data.m2Min) > Number(data.m2Max)) return false
         if (data.oda.length === 0) return false
       }
-      // Vasıta için ek zorunlular
       if (data.kategori === 'vasita') {
         if (!data.yilMin || !data.yilMax) return false
-        if (Number(data.yilMin) < 1950 || Number(data.yilMax) > 2025) return false
-        if (Number(data.yilMin) > Number(data.yilMax)) return false
       }
       return true
     }
     case 4: return data.aciklama.trim().length >= 10
-    case 5:
+    case 5: return !!data.iletisimTercihi // her zaman seçili
+    case 6:
       if (giris) return true
       return !!(data.ad && data.telefon && data.telefon.replace(/\D/g,'').length >= 10)
     default: return true
@@ -76,17 +81,14 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
     kategori:'', islemTuru:'satin-al', sehir:'', ilce:'',
     fiyatMin:'', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
-    markalar:[], yilMin:'', yilMax:'', kmMin:'', kmMax:'', yakit:[], vites:[],
-    aciklama:'', ad:'', soyad:'', telefon:'',
+    markalar:[], yilMin:'', yilMax:'', kmMax:'', yakit:[], vites:[],
+    aciklama:'', iletisimTercihi:'mesaj', ad:'', soyad:'', telefon:'',
   })
 
   const set = (k,v) => setData(d => ({...d,[k]:v}))
   const toggle = (k,v) => setData(d => ({...d,[k]: d[k].includes(v)?d[k].filter(x=>x!==v):[...d[k],v]}))
 
-  // Adım değişince scroll'u en üste al
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = 0
-  }, [step])
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0 }, [step])
 
   function ileri() {
     if (!validate(step, data, giris)) return
@@ -96,7 +98,9 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
   function geri() { if (step > 1) setStep(s => s-1) }
 
   function handleSubmit() {
-    const final = giris ? {...data, ad:user.ad, soyad:user.soyad, telefon:user.telefon} : data
+    const final = giris
+      ? {...data, ad:user.ad, soyad:user.soyad, telefon:user.telefon, iletisimTercihi:data.iletisimTercihi}
+      : data
     onSubmit && onSubmit(final)
     setDone(true)
   }
@@ -105,41 +109,46 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
     setStep(1); setDone(false)
     setData({kategori:'',islemTuru:'satin-al',sehir:'',ilce:'',fiyatMin:'',fiyatMax:'',
       emlakTip:'',m2Min:'',m2Max:'',oda:[],tercihler:[],
-      markalar:[],yilMin:'',yilMax:'',kmMin:'',kmMax:'',yakit:[],vites:[],
-      aciklama:'',ad:'',soyad:'',telefon:''})
+      markalar:[],yilMin:'',yilMax:'',kmMax:'',yakit:[],vites:[],
+      aciklama:'',iletisimTercihi:'mesaj',ad:'',soyad:'',telefon:''})
+  }
+
+  function getFiyatlar() {
+    if (data.kategori === 'emlak') return data.islemTuru === 'kirala' ? EMLAK_KIRA_FIYATLAR : EMLAK_SATIS_FIYATLAR
+    if (data.kategori === 'vasita') return VASITA_FIYATLAR
+    return GENEL_FIYATLAR
   }
 
   function ozetSatirlar() {
-    const s=[]
+    const s = []
     s.push({l:'Kategori', v:katLabels[data.kategori]||data.kategori})
     s.push({l:'İşlem', v:data.islemTuru==='satin-al'?'Satın almak':'Kiralamak'})
     if (data.sehir) s.push({l:'Konum', v:data.sehir+(data.ilce?' / '+data.ilce:'')})
-    if (data.fiyatMin||data.fiyatMax) s.push({l:'Bütçe',
-      v:(data.fiyatMin?'₺'+formatSayi(data.fiyatMin):'—')+' – '+(data.fiyatMax?'₺'+formatSayi(data.fiyatMax):'—')})
+    if (data.fiyatMin||data.fiyatMax) s.push({l:'Bütçe', v:'₺'+formatFiyat(data.fiyatMin)+' – ₺'+formatFiyat(data.fiyatMax)})
     if (data.kategori==='emlak') {
       if (data.emlakTip) s.push({l:'Tür',v:data.emlakTip})
-      if (data.m2Min||data.m2Max) s.push({l:'m²',v:(data.m2Min||'?')+' – '+(data.m2Max||'?')+' m²'})
+      if (data.m2Min||data.m2Max) s.push({l:'m²',v:data.m2Min+' – '+data.m2Max+' m²'})
       if (data.oda.length) s.push({l:'Oda',v:data.oda.join(', ')})
       if (data.tercihler.length) s.push({l:'Özellikler',v:data.tercihler.join(', ')})
     }
     if (data.kategori==='vasita') {
       if (data.markalar.length) s.push({l:'Marka',v:data.markalar.join(', ')})
-      if (data.yilMin||data.yilMax) s.push({l:'Yıl',v:(data.yilMin||'?')+' – '+(data.yilMax||'?')})
-      if (data.kmMin||data.kmMax) s.push({l:'KM',v:(data.kmMin?formatSayi(data.kmMin):'')+' – '+(data.kmMax?formatSayi(data.kmMax)+' km':'')})
+      if (data.yilMin||data.yilMax) s.push({l:'Yıl',v:data.yilMin+' – '+data.yilMax})
+      if (data.kmMax) s.push({l:'Max KM',v:Number(data.kmMax).toLocaleString('tr-TR')+' km'})
       if (data.yakit.length) s.push({l:'Yakıt',v:data.yakit.join(', ')})
       if (data.vites.length) s.push({l:'Vites',v:data.vites.join(', ')})
     }
-    if (data.aciklama) s.push({l:'Açıklama',v:data.aciklama})
+    if (data.aciklama) s.push({l:'Açıklama',v:data.aciklama.slice(0,80)+(data.aciklama.length>80?'…':'')})
+    s.push({l:'İletişim', v:data.iletisimTercihi==='mesaj'?'💬 Sadece mesaj':'📞 Mesaj + Telefon'})
     return s
   }
 
   if (!open) return null
-
   const gecerli = validate(step, data, giris)
-  const onayAdimi = (giris && step===5) || (!giris && step===6)
+  const onayAdimi = step === TOPLAM
+  const fiyatlar = getFiyatlar()
 
   return (
-    // OVERLAY — tıklanınca kapanmasın, sadece X ile kapanır
     <div className={styles.overlay}>
       <div className={styles.box}>
 
@@ -147,9 +156,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
         <div className={styles.boxTop}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
             <div>
-              <h2 className={styles.title}>
-                {done ? 'İlanınız yayında! 🎉' : STEPS[step-1]}
-              </h2>
+              <h2 className={styles.title}>{done ? 'İlanınız yayında! 🎉' : STEPS[step-1]}</h2>
               {!done && <p className={styles.sub}>Adım {step} / {TOPLAM}</p>}
             </div>
             <button className={styles.close} onClick={() => { reset(); onClose() }}>✕</button>
@@ -163,7 +170,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
           )}
         </div>
 
-        {/* SCROLL'LANABİLİR BODY */}
+        {/* SCROLL BODY */}
         <div className={styles.boxBody} ref={bodyRef}>
 
           {done ? (
@@ -174,29 +181,25 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
               <div className={styles.successInfo}>
                 <p>🔒 Telefon numaranız gizlidir</p>
                 <p>👤 Yalnızca adınız ve soyad baş harfiniz görünür</p>
+                {data.iletisimTercihi==='telefon' && <p>📞 Telefon numaranız satıcılara görünür</p>}
               </div>
               <button className="btn-primary" style={{width:'100%',justifyContent:'center'}}
-                onClick={() => { reset(); onClose() }}>
-                Tamam ✓
-              </button>
+                onClick={() => { reset(); onClose() }}>Tamam ✓</button>
             </div>
           ) : (
-
             <>
               {/* ADIM 1: KATEGORİ */}
               {step===1 && (
-                <div>
-                  <div className={styles.optGrid}>
-                    {kategoriler.map(k => (
-                      <button key={k.slug}
-                        className={`${styles.optBtn} ${data.kategori===k.slug?styles.optSel:''}`}
-                        onClick={() => set('kategori',k.slug)}>
-                        <span className={styles.optIcon}>{k.icon}</span>
-                        <span className={styles.optLabel}>{k.label}</span>
-                        <span className={styles.optSub}>{k.sub}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div className={styles.optGrid}>
+                  {kategoriler.map(k => (
+                    <button key={k.slug}
+                      className={`${styles.optBtn} ${data.kategori===k.slug?styles.optSel:''}`}
+                      onClick={() => set('kategori',k.slug)}>
+                      <span className={styles.optIcon}>{k.icon}</span>
+                      <span className={styles.optLabel}>{k.label}</span>
+                      <span className={styles.optSub}>{k.sub}</span>
+                    </button>
+                  ))}
                 </div>
               )}
 
@@ -206,7 +209,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                   <div className={styles.fieldGroup}>
                     <label className="form-label">İşlem türü</label>
                     <div className={styles.optGrid2}>
-                      {[{v:'satin-al',i:'🔑',l:'Satın almak'},{v:'kirala',i:'📋',l:'Kiralamak'}].map(o => (
+                      {[{v:'satin-al',i:'💰',l:'Satın almak'},{v:'kirala',i:'🔑',l:'Kiralamak'}].map(o => (
                         <button key={o.v} className={`${styles.optBtn} ${data.islemTuru===o.v?styles.optSel:''}`}
                           onClick={() => set('islemTuru',o.v)}>
                           <span className={styles.optIcon}>{o.i}</span>
@@ -238,31 +241,37 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
               {/* ADIM 3: FİYAT & ÖZELLİKLER */}
               {step===3 && (
                 <div>
+                  {/* BÜTÇE — dropdown seçimi */}
                   <div className={styles.fieldGroup}>
-                    <label className="form-label">Bütçe aralığı (₺) — isteğe bağlı</label>
+                    <label className="form-label">Bütçe aralığı (₺) *</label>
                     <div className={styles.rangeRow}>
-                      <div className={styles.rangeInput}>
-                        <span className={styles.rangePrefix}>₺</span>
-                        <input type="text" inputMode="numeric" placeholder="En az (örn: 500.000)"
-                          value={formatSayi(data.fiyatMin)}
-                          onChange={e => set('fiyatMin', sadeRakam(e.target.value))} />
-                      </div>
+                      <select className="form-select" style={{flex:1}}
+                        value={data.fiyatMin}
+                        onChange={e => set('fiyatMin', e.target.value)}>
+                        <option value="">En az</option>
+                        {fiyatlar.map(f => (
+                          <option key={f} value={f}>₺{f.toLocaleString('tr-TR')}</option>
+                        ))}
+                      </select>
                       <span className={styles.rangeSep}>—</span>
-                      <div className={styles.rangeInput}>
-                        <span className={styles.rangePrefix}>₺</span>
-                        <input type="text" inputMode="numeric" placeholder="En fazla (örn: 1.500.000)"
-                          value={formatSayi(data.fiyatMax)}
-                          onChange={e => set('fiyatMax', sadeRakam(e.target.value))} />
-                      </div>
+                      <select className="form-select" style={{flex:1}}
+                        value={data.fiyatMax}
+                        onChange={e => set('fiyatMax', e.target.value)}>
+                        <option value="">En fazla</option>
+                        {fiyatlar.filter(f => !data.fiyatMin || f > Number(data.fiyatMin)).map(f => (
+                          <option key={f} value={f}>₺{f.toLocaleString('tr-TR')}</option>
+                        ))}
+                      </select>
                     </div>
-                    {data.fiyatMin && data.fiyatMax && Number(data.fiyatMin) > Number(data.fiyatMax) && (
-                      <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>⚠️ Minimum değer maksimumdan büyük olamaz</p>
+                    {data.fiyatMin && data.fiyatMax && Number(data.fiyatMin) >= Number(data.fiyatMax) && (
+                      <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>⚠️ Min değer maksimumdan küçük olmalı</p>
                     )}
                   </div>
 
+                  {/* EMLAK ÖZELLİKLERİ */}
                   {data.kategori==='emlak' && <>
                     <div className={styles.fieldGroup}>
-                      <label className="form-label">Emlak tipi</label>
+                      <label className="form-label">Emlak tipi *</label>
                       <div className={styles.chipGroup}>
                         {emlakTipler.map(t => (
                           <button key={t} className={`${styles.chip} ${data.emlakTip===t?styles.chipSel:''}`}
@@ -270,29 +279,28 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                         ))}
                       </div>
                     </div>
+
                     <div className={styles.fieldGroup}>
-                      <label className="form-label">Metrekare aralığı (m²)</label>
+                      <label className="form-label">Metrekare aralığı (m²) * <span style={{fontWeight:400,fontSize:11,color:'var(--text-3)'}}>25 m² aralıklarla</span></label>
                       <div className={styles.rangeRow}>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="En az m² (örn: 80)"
-                            value={sadeceRakam(data.m2Min)}
-                            onChange={e => set('m2Min', sadeceRakam(e.target.value))} />
-                          <span className={styles.rangeSuffix}>m²</span>
-                        </div>
+                        <select className="form-select" style={{flex:1}} value={data.m2Min}
+                          onChange={e => set('m2Min', e.target.value)}>
+                          <option value="">En az m²</option>
+                          {M2_SECENEKLER.map(m => <option key={m} value={m}>{m} m²</option>)}
+                        </select>
                         <span className={styles.rangeSep}>—</span>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="En fazla m² (örn: 150)"
-                            value={sadeceRakam(data.m2Max)}
-                            onChange={e => set('m2Max', sadeceRakam(e.target.value))} />
-                          <span className={styles.rangeSuffix}>m²</span>
-                        </div>
+                        <select className="form-select" style={{flex:1}} value={data.m2Max}
+                          onChange={e => set('m2Max', e.target.value)}>
+                          <option value="">En fazla m²</option>
+                          {M2_SECENEKLER.filter(m => !data.m2Min || m > Number(data.m2Min)).map(m => (
+                            <option key={m} value={m}>{m} m²</option>
+                          ))}
+                        </select>
                       </div>
-                      {data.m2Min && data.m2Max && Number(data.m2Min) > Number(data.m2Max) && (
-                        <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>⚠️ Min değer maksimumdan büyük olamaz</p>
-                      )}
                     </div>
+
                     <div className={styles.fieldGroup}>
-                      <label className="form-label">Oda sayısı</label>
+                      <label className="form-label">Oda sayısı *</label>
                       <div className={styles.chipGroup}>
                         {odaSayilari.map(o => (
                           <button key={o} className={`${styles.chip} ${data.oda.includes(o)?styles.chipSel:''}`}
@@ -300,8 +308,9 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                         ))}
                       </div>
                     </div>
+
                     <div className={styles.fieldGroup}>
-                      <label className="form-label">Özellikler (birden fazla seçebilirsiniz)</label>
+                      <label className="form-label">Özellikler</label>
                       <div className={styles.chipGroup}>
                         {emlakOzellikleri.map(t => (
                           <button key={t} className={`${styles.chip} ${data.tercihler.includes(t)?styles.chipSel:''}`}
@@ -311,6 +320,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                     </div>
                   </>}
 
+                  {/* VASITA ÖZELLİKLERİ */}
                   {data.kategori==='vasita' && <>
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Marka tercihleri</label>
@@ -321,45 +331,37 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                         ))}
                       </div>
                     </div>
+
                     <div className={styles.fieldGroup}>
-                      <label className="form-label">Model yılı aralığı</label>
+                      <label className="form-label">Model yılı aralığı *</label>
                       <div className={styles.rangeRow}>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="En eski (örn: 2018)"
-                            maxLength={4}
-                            value={sadeceRakam(data.yilMin)}
-                            onChange={e => set('yilMin', sadeceRakam(e.target.value))} />
-                        </div>
+                        <select className="form-select" style={{flex:1}} value={data.yilMin}
+                          onChange={e => set('yilMin', e.target.value)}>
+                          <option value="">En eski yıl</option>
+                          {YIL_SECENEKLER.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
                         <span className={styles.rangeSep}>—</span>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="En yeni (örn: 2024)"
-                            maxLength={4}
-                            value={sadeceRakam(data.yilMax)}
-                            onChange={e => set('yilMax', sadeceRakam(e.target.value))} />
-                        </div>
-                      </div>
-                      {data.yilMin && data.yilMax && Number(data.yilMin) > Number(data.yilMax) && (
-                        <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>⚠️ Başlangıç yılı bitiş yılından büyük olamaz</p>
-                      )}
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <label className="form-label">KM aralığı</label>
-                      <div className={styles.rangeRow}>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="Min km (örn: 0)"
-                            value={formatSayi(data.kmMin)}
-                            onChange={e => set('kmMin', sadeRakam(e.target.value))} />
-                          <span className={styles.rangeSuffix}>km</span>
-                        </div>
-                        <span className={styles.rangeSep}>—</span>
-                        <div className={styles.rangeInput}>
-                          <input type="text" inputMode="numeric" placeholder="Max km (örn: 100.000)"
-                            value={formatSayi(data.kmMax)}
-                            onChange={e => set('kmMax', sadeRakam(e.target.value))} />
-                          <span className={styles.rangeSuffix}>km</span>
-                        </div>
+                        <select className="form-select" style={{flex:1}} value={data.yilMax}
+                          onChange={e => set('yilMax', e.target.value)}>
+                          <option value="">En yeni yıl</option>
+                          {YIL_SECENEKLER.filter(y => !data.yilMin || y >= Number(data.yilMin)).map(y => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
+
+                    <div className={styles.fieldGroup}>
+                      <label className="form-label">Maksimum KM <span style={{fontWeight:400,fontSize:11,color:'var(--text-3)'}}>5.000 km aralıklarla</span></label>
+                      <select className="form-select" value={data.kmMax}
+                        onChange={e => set('kmMax', e.target.value)}>
+                        <option value="">Fark etmez</option>
+                        {KM_SECENEKLER.filter(k=>k>0).map(k => (
+                          <option key={k} value={k}>{k.toLocaleString('tr-TR')} km</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Yakıt tipi</label>
                       <div className={styles.chipGroup}>
@@ -369,6 +371,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                         ))}
                       </div>
                     </div>
+
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Vites tipi</label>
                       <div className={styles.chipGroup}>
@@ -380,28 +383,14 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                     </div>
                   </>}
 
-                  {!['emlak','vasita'].includes(data.kategori) && (
-                    <p className={styles.hint}>Fiyat aralığı yeterli — diğer kategoriler için ek alan gerekmez.</p>
-                  )}
-
-                  {/* Zorunlu alan uyarısı */}
-                  {data.kategori === 'emlak' && (
+                  {/* ZORUNLU UYARI */}
+                  {!gecerli && (
                     <div className={styles.zorunluUyari}>
-                      {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı zorunlu</span>}
-                      {!data.emlakTip && <span>• Emlak tipi seçin</span>}
-                      {(!data.m2Min || !data.m2Max) && <span>• Metrekare aralığı zorunlu</span>}
-                      {data.oda.length === 0 && <span>• Oda sayısı seçin</span>}
-                    </div>
-                  )}
-                  {data.kategori === 'vasita' && (!data.fiyatMin || !data.fiyatMax || !data.yilMin || !data.yilMax) && (
-                    <div className={styles.zorunluUyari}>
-                      {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı zorunlu</span>}
-                      {(!data.yilMin || !data.yilMax) && <span>• Model yılı aralığı zorunlu</span>}
-                    </div>
-                  )}
-                  {!['emlak','vasita'].includes(data.kategori) && (!data.fiyatMin || !data.fiyatMax) && (
-                    <div className={styles.zorunluUyari}>
-                      <span>• Bütçe aralığı zorunlu</span>
+                      {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı seçin</span>}
+                      {data.kategori==='emlak' && !data.emlakTip && <span>• Emlak tipi seçin</span>}
+                      {data.kategori==='emlak' && (!data.m2Min||!data.m2Max) && <span>• Metrekare aralığı seçin</span>}
+                      {data.kategori==='emlak' && data.oda.length===0 && <span>• Oda sayısı seçin</span>}
+                      {data.kategori==='vasita' && (!data.yilMin||!data.yilMax) && <span>• Model yılı seçin</span>}
                     </div>
                   )}
                 </div>
@@ -409,66 +398,89 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
 
               {/* ADIM 4: AÇIKLAMA */}
               {step===4 && (
+                <div className={styles.fieldGroup}>
+                  <label className="form-label">
+                    Açıklama
+                    <span style={{fontWeight:400,color:data.aciklama.trim().length>=10?'var(--green)':'var(--red)',marginLeft:8,fontSize:11}}>
+                      {data.aciklama.trim().length}/10 min{data.aciklama.trim().length>=10?' ✓':''}
+                    </span>
+                  </label>
+                  <textarea className="form-input" rows={5}
+                    placeholder="Örn: Ocak ayına kadar taşınmam gerekiyor. Balkon ve asansör şart. Hafta sonu görüşmeye uygunum."
+                    style={{resize:'vertical',lineHeight:1.6,borderColor:data.aciklama.length>0&&data.aciklama.trim().length<10?'var(--red)':undefined}}
+                    value={data.aciklama} onChange={e => set('aciklama',e.target.value)} />
+                  {data.aciklama.length>0 && data.aciklama.trim().length<10 && (
+                    <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>⚠️ En az 10 karakter ({10-data.aciklama.trim().length} daha)</p>
+                  )}
+                  <p className={styles.hint}>Detay verdikçe daha doğru eşleşme sağlanır.</p>
+                </div>
+              )}
+
+              {/* ADIM 5: İLETİŞİM TERCİHİ — her zaman bu adım */}
+              {step===5 && (
                 <div>
-                  <div className={styles.fieldGroup}>
-                    <label className="form-label">
-                      Açıklama
-                      <span style={{fontWeight:400, color: data.aciklama.trim().length >= 10 ? 'var(--green)' : 'var(--red)', marginLeft:8, fontSize:11}}>
-                        {data.aciklama.trim().length}/10 karakter minimum
-                        {data.aciklama.trim().length >= 10 ? ' ✓' : ''}
-                      </span>
-                    </label>
-                    <textarea className="form-input" rows={5}
-                      placeholder="Örn: Ocak ayına kadar taşınmam gerekiyor. Balkon ve asansör şart. Hafta sonu görüşmeye uygunum."
-                      style={{resize:'vertical',lineHeight:1.6,
-                        borderColor: data.aciklama.length > 0 && data.aciklama.trim().length < 10 ? 'var(--red)' : undefined}}
-                      value={data.aciklama} onChange={e => set('aciklama',e.target.value)} />
-                    {data.aciklama.length > 0 && data.aciklama.trim().length < 10 && (
-                      <p style={{color:'var(--red)',fontSize:11,marginTop:4}}>
-                        ⚠️ En az 10 karakter yazın ({10 - data.aciklama.trim().length} karakter daha)
-                      </p>
-                    )}
-                    <p className={styles.hint}>Detay verdikçe daha doğru eşleşme sağlanır.</p>
+                  <p style={{fontSize:14,color:'var(--text-2)',marginBottom:16,lineHeight:1.7}}>
+                    Satıcılar size nasıl ulaşsın? <strong>Mesaj her zaman açık</strong> kalır. Telefon numaranızı yalnızca siz karar verirseniz gösterin.
+                  </p>
+
+                  <div className={styles.iletisimKartlar}>
+                    {/* SADECE MESAJ */}
+                    <button
+                      className={`${styles.iletisimKart} ${data.iletisimTercihi==='mesaj'?styles.iletisimSel:''}`}
+                      onClick={() => set('iletisimTercihi','mesaj')}>
+                      <div className={styles.iletisimUst}>
+                        <span className={styles.iletisimIcon}>💬</span>
+                        <span className={`${styles.iletisimOneri} ${data.iletisimTercihi==='mesaj'?styles.iletisimOneriSel:''}`}>ÖNERİLEN</span>
+                      </div>
+                      <div className={styles.iletisimBaslik}>Sadece Mesaj</div>
+                      <div className={styles.iletisimAcik}>Satıcılar platform üzerinden mesaj gönderir. Telefon numaranız <strong>gizli</strong> kalır.</div>
+                      <div className={styles.iletisimTag}>🔒 Telefonunuz kimseye gösterilmez</div>
+                    </button>
+
+                    {/* MESAJ + TELEFON */}
+                    <button
+                      className={`${styles.iletisimKart} ${data.iletisimTercihi==='telefon'?styles.iletisimSel:''}`}
+                      onClick={() => set('iletisimTercihi','telefon')}>
+                      <div className={styles.iletisimUst}>
+                        <span className={styles.iletisimIcon}>📞</span>
+                      </div>
+                      <div className={styles.iletisimBaslik}>Mesaj + Telefon</div>
+                      <div className={styles.iletisimAcik}>Mesajın yanı sıra ücretli üyeler telefon numaranızı da görebilir.</div>
+                      <div className={styles.iletisimTag} style={{background:'#FEF3DC',color:'#7A4F01'}}>📱 Numaranız görünür olur</div>
+                    </button>
+                  </div>
+
+                  <div className={styles.iletisimNot}>
+                    <strong>💬 Mesaj sistemi:</strong> Her iki seçenekte de satıcılar size mesaj gönderebilir ve siz yanıtlayabilirsiniz.
                   </div>
                 </div>
               )}
 
-              {/* ADIM 5 MİSAFİR: İLETİŞİM */}
-              {step===5 && !giris && (
+              {/* ADIM 6 MİSAFİR: KİŞİSEL BİLGİ */}
+              {step===6 && !giris && (
                 <div>
                   <div className={styles.privacyBox}>
                     <div className={styles.privacyIcon}>🔒</div>
                     <div>
                       <strong>Bilgileriniz korunuyor</strong>
-                      <p>Telefon gizlidir. Yalnızca adınız ve soyad baş harfiniz görünür.</p>
+                      <p>Yalnızca adınız ve soyad baş harfiniz görünür.</p>
                     </div>
                   </div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-                    <div>
-                      <label className="form-label">Adınız *</label>
-                      <input className="form-input" type="text" placeholder="Mehmet"
-                        value={data.ad} onChange={e => set('ad',e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="form-label">Soyadınız</label>
-                      <input className="form-input" type="text" placeholder="Yılmaz"
-                        value={data.soyad} onChange={e => set('soyad',e.target.value)} />
-                    </div>
+                    <div><label className="form-label">Adınız *</label>
+                      <input className="form-input" placeholder="Mehmet" value={data.ad} onChange={e => set('ad',e.target.value)} /></div>
+                    <div><label className="form-label">Soyadınız</label>
+                      <input className="form-input" placeholder="Yılmaz" value={data.soyad} onChange={e => set('soyad',e.target.value)} /></div>
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className="form-label">Telefon *</label>
                     <div style={{display:'flex'}}>
                       <span style={{display:'flex',alignItems:'center',padding:'0 10px',background:'var(--bg)',border:'1.5px solid var(--border)',borderRight:'none',borderRadius:'9px 0 0 9px',fontSize:13,color:'var(--text-2)',fontWeight:500}}>+90</span>
-                      <input className="form-input" type="tel"
-                        style={{borderRadius:'0 9px 9px 0',borderLeft:'none'}}
+                      <input className="form-input" type="tel" style={{borderRadius:'0 9px 9px 0',borderLeft:'none'}}
                         placeholder="532 000 00 00" value={data.telefon}
                         onChange={e => set('telefon',e.target.value.replace(/[^0-9 ]/g,'').replace(/^0/,''))} />
                     </div>
-                    <p className={styles.hint}>Başında 0 olmadan girin.</p>
                   </div>
-                  <p style={{fontSize:12,color:'var(--text-3)',marginTop:4}}>
-                    <a href="/giris" style={{color:'var(--teal)',fontWeight:500}}>Giriş yapın</a> veya <a href="/kayit" style={{color:'var(--teal)',fontWeight:500}}>kayıt olun</a> — bilgileriniz otomatik gelir.
-                  </p>
                 </div>
               )}
 
@@ -477,9 +489,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                 <div>
                   {giris && (
                     <div className={styles.kullaniciBilgi}>
-                      <div className={styles.kullaniciAvatar}>
-                        {(user.ad?.[0]||'')+(user.soyad?.[0]||'')}
-                      </div>
+                      <div className={styles.kullaniciAvatar}>{(user.ad?.[0]||'')+(user.soyad?.[0]||'')}</div>
                       <div>
                         <div className={styles.kullaniciAd}>{user.ad} {user.soyad}</div>
                         <div className={styles.kullaniciAlt}>
@@ -487,7 +497,9 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                           {user.telefon && <span>📞 +90 {user.telefon}</span>}
                         </div>
                       </div>
-                      <div className={styles.gizliTag}>🔒 İletişim gizli</div>
+                      <div className={styles.gizliTag}>
+                        {data.iletisimTercihi==='mesaj' ? '💬 Sadece mesaj' : '📞 Mesaj + Tel'}
+                      </div>
                     </div>
                   )}
                   <div className={styles.ozetBaslik}>İlan özeti</div>
@@ -499,34 +511,27 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                       </div>
                     ))}
                   </div>
-                  <div className={styles.ozetNot}>
-                    ✓ İstediğiniz zaman silebilir veya pasife alabilirsiniz
-                  </div>
+                  <div className={styles.ozetNot}>✓ İstediğiniz zaman silebilir veya pasife alabilirsiniz</div>
                 </div>
               )}
             </>
           )}
         </div>
 
-        {/* SABİT FOOTER — butonlar HER ZAMAN görünür */}
+        {/* SABİT FOOTER */}
         {!done && (
           <div className={styles.boxFooter}>
             {step > 1 ? (
               <button className="btn-ghost" onClick={geri}>← Geri</button>
-            ) : (
-              <div />
-            )}
+            ) : <div />}
             {onayAdimi ? (
               <button className="btn-primary" style={{flex:1,justifyContent:'center'}} onClick={handleSubmit}>
                 ✓ İlanı Yayınla
               </button>
             ) : (
-              <button
-                className="btn-primary"
-                style={{flex:1,justifyContent:'center', opacity: gecerli?1:0.45, cursor: gecerli?'pointer':'not-allowed'}}
-                onClick={gecerli ? ileri : undefined}
-                disabled={!gecerli}
-              >
+              <button className="btn-primary"
+                style={{flex:1,justifyContent:'center',opacity:gecerli?1:0.45,cursor:gecerli?'pointer':'not-allowed'}}
+                disabled={!gecerli} onClick={gecerli?ileri:undefined}>
                 Devam et →
               </button>
             )}

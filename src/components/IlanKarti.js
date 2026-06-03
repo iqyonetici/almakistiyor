@@ -182,16 +182,18 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
           👁 {ilan.goruntuleme || 0} satıcı baktı
         </div>
         <div className={styles.butonlar}>
-          {/* Telefon butonu */}
-          {telefonAcik ? (
-            <span className={styles.telefonAcik}>
-              📞 {ilanTelefon || 'Bilgi yok'}
-            </span>
-          ) : (
-            <button className={styles.btnTelefon} onClick={handleTelefon}>
-              📞 {maskedPhone(ilanTelefon)}
-              <span className={styles.kilidAc}>Göster</span>
-            </button>
+          {/* Telefon butonu — sadece iletisim tercihi mesaj değilse göster */}
+          {ilan?.iletisimTercihi !== 'mesaj' && (
+            telefonAcik ? (
+              <span className={styles.telefonAcik}>
+                📞 {ilanTelefon || 'Bilgi yok'}
+              </span>
+            ) : (
+              <button className={styles.btnTelefon} onClick={handleTelefon}>
+                📞 {maskedPhone(ilanTelefon)}
+                <span className={styles.kilidAc}>Göster</span>
+              </button>
+            )
           )}
 
           {/* Mesaj butonu */}
