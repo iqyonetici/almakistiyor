@@ -202,24 +202,16 @@ export default function Home() {
               ))}
             </div>
           </div>
+<div className={styles.heroActions}>
+  <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>
+    + Almak İstiyorum
+  </button>
+  <a href="#ilan-listesi" className={styles.heroBtnSecondary}
+    onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({behavior:'smooth'}) }}>
+    İlanları Gör →
+  </a>
+</div>
 
-          <div className={styles.heroRight}>
-            <div className={styles.heroCard}>
-              <h3>Hızlı talep ver</h3>
-              <p>2 dakikada ilanınız yayında — tamamen ücretsiz</p>
-              <div className={styles.catGrid3}>
-                {[
-                  { slug:'emlak', icon:'🏠', label:'Emlak' },
-                  { slug:'vasita', icon:'🚗', label:'Vasıta' },
-                  { slug:'ikinci-el', icon:'📦', label:'İkinci El' },
-                ].map(c => (
-                  <button key={c.slug} className={styles.catBtn}
-                    onClick={() => setFormOpen(true)}>
-                    <span style={{fontSize:22}}>{c.icon}</span>
-                    <span style={{fontSize:12,fontWeight:500,color:'var(--text-2)'}}>{c.label}</span>
-                  </button>
-                ))}
-              </div>
               <div className={styles.privNote}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38A169" strokeWidth="2.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
