@@ -281,3 +281,19 @@
   .topActions .btnGiris,
   .topActions .btnKayit { display: none; }
 }
+
+/* Aktif mobil butonlar */
+.mobilKatBtnAktif {
+  color: #1a5c3a;
+  background: #f0f7f3;
+  font-weight: 600;
+}
+.mobilAltKatLinkAktif {
+  color: #1a5c3a;
+  font-weight: 600;
+}
+.dropdownItemActive {
+  background: #f0f7f3;
+  color: #1a5c3a;
+  font-weight: 600;
+}
