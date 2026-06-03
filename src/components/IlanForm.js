@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { sehirler, getIlceler } from '../data/sehirler'
 import { KATEGORILER } from '../data/kategoriler'
-import { VASITA_TREE, getModeller, getVersiyonlar, MARKALAR } from '../data/vasita'
+import { VASITA_TREE, getModeller, getVersiyonlar, getMarkalar, getSuvMarkalar, getMotoMarkalar } from '../data/vasita'
 import styles from './IlanForm.module.css'
 
 // ==================== SABİT VERİLER ====================
@@ -262,7 +262,11 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
                         )
 
                         // Seviye 2: Marka seçimi
-                        const altTipler = {otomobil: VASITA_TREE.otomobil, suv_arazi: VASITA_TREE.suv_arazi, motosiklet: VASITA_TREE.motosiklet}
+                        const altTipler = {
+                          otomobil: VASITA_TREE.otomobil,
+                          suv_arazi: VASITA_TREE.suv_arazi,
+                          motosiklet: VASITA_TREE.motosiklet
+                        }
                         const markaListesi = altTipler[data.vasitaAltTip] || []
                         if (markaListesi.length && !data.vasitaMarka) return (
                           <div>

@@ -169,7 +169,9 @@ export const VASITA_TREE = {
   ],
 }
 
-// Düz marka listesi (hızlı erişim için)
-export const MARKALAR = VASITA_TREE.otomobil.map(m => m.marka)
-export const getModeller = (marka) => VASITA_TREE.otomobil.find(m=>m.marka===marka)?.modeller || []
-export const getVersiyonlar = (marka, model) => getModeller(marka).find(m=>m.model===model)?.versiyonlar || []
+// Function olarak tanımla - hoisting sorununu önler
+export function getMarkalar() { return VASITA_TREE.otomobil.map(m => m.marka) }
+export function getModeller(marka) { return VASITA_TREE.otomobil.find(m=>m.marka===marka)?.modeller || [] }
+export function getVersiyonlar(marka, model) { return getModeller(marka).find(m=>m.model===model)?.versiyonlar || [] }
+export function getSuvMarkalar() { return VASITA_TREE.suv_arazi.map(m => m.marka) }
+export function getMotoMarkalar() { return VASITA_TREE.motosiklet.map(m => m.marka) }
