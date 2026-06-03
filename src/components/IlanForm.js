@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { sehirler, getIlceler } from '../data/sehirler'
-import { kategoriler as KAT_TREE } from '../data/kategoriler'
+import { KATEGORILER } from '../data/kategoriler'
 import styles from './IlanForm.module.css'
 
 // ==================== SABİT VERİLER ====================
@@ -192,7 +192,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
               {/* ADIM 1: KATEGORİ */}
               {step===1 && (
                 <div>
-                  {KAT_TREE.map(ana => (
+                  {KATEGORILER.map(ana => (
                     <div key={ana.slug} style={{marginBottom:16}}>
                       <div style={{fontSize:11,fontWeight:700,color:'var(--text-3)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,paddingLeft:2}}>
                         {ana.icon} {ana.label}

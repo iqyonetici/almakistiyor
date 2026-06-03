@@ -7,7 +7,6 @@ import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import { sehirler } from '../data/sehirler'
 import { KATEGORILER } from '../data/kategoriler'
-import { kategoriler, kategoriBul, getAltKategoriRenk } from '../data/kategoriler'
 import { ilanListele, ilanOlustur } from '../lib/db'
 import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
@@ -86,10 +85,24 @@ export default function Home() {
   const [paketModal, setPaketModal] = useState(false)
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
   const [filterIlce, setFilterIlce] = useState('')
+  const [filterTarih, setFilterTarih] = useState('')
 
   const filtered = ilanlar
     .filter(i => !activeCategory || i.kategori === activeCategory)
     .filter(i => !filterSehir || i.sehir === filterSehir)
+    .filter(i => {
+      if (!filterTarih) return true
+      const tarih = new Date(i.created_at || Date.now())
+      const simdi = new Date()
+      if (filterTarih === 'bugun') {
+        return tarih.toDateString() === simdi.toDateString()
+      }
+      if (filterTarih === 'hafta') {
+        const haftaOnce = new Date(simdi.getTime() - 7*24*60*60*1000)
+        return tarih >= haftaOnce
+      }
+      return true
+    })
     .sort((a, b) => {
       if (sort === 'cok-goruntulenen') return (b.goruntuleme||0) - (a.goruntuleme||0)
       const ta = String(a.created_at || a.id || '')
@@ -280,11 +293,14 @@ export default function Home() {
             <div className={styles.filterGroup}>
               <label className="form-label">Kategori</label>
               <div className={styles.chips}>
-                {[{v:'',l:'Tümü'},{v:'emlak',l:'Emlak'},{v:'vasita',l:'Vasıta'},{v:'ikinci-el',l:'İkinci El'}].map(c => (
-                  <button key={c.v}
-                    className={`${styles.chip} ${activeCategory === c.v ? styles.chipActive : ''}`}
-                    onClick={() => setActiveCategory(c.v)}>
-                    {c.l}
+                <button
+                  className={`${styles.chip} ${activeCategory===''?styles.chipActive:''}`}
+                  onClick={() => setActiveCategory('')}>Tümü</button>
+                {KATEGORILER.map(k => (
+                  <button key={k.slug}
+                    className={`${styles.chip} ${activeCategory===k.slug?styles.chipActive:''}`}
+                    onClick={() => setActiveCategory(k.slug)}>
+                    {k.icon} {k.label}
                   </button>
                 ))}
               </div>
@@ -293,8 +309,12 @@ export default function Home() {
             <div className={styles.filterGroup}>
               <label className="form-label">İlan tarihi</label>
               <div className={styles.chips}>
-                {['Tümü','Bugün','Bu hafta'].map(d => (
-                  <button key={d} className={styles.chip}>{d}</button>
+                {[{v:'',l:'Tümü'},{v:'bugun',l:'Bugün'},{v:'hafta',l:'Bu hafta'}].map(d => (
+                  <button key={d.v}
+                    className={`${styles.chip} ${filterTarih===d.v?styles.chipActive:''}`}
+                    onClick={() => setFilterTarih(d.v)}>
+                    {d.l}
+                  </button>
                 ))}
               </div>
             </div>
