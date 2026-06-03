@@ -1,56 +1,51 @@
 /* =====================
-   HERO
+   HERO — kompakt
    ===================== */
 .hero {
   background: var(--teal-dark);
-  padding: 64px 24px 56px;
-  overflow: hidden;
+  padding: 28px 24px 24px;
   position: relative;
+  overflow: hidden;
 }
 .hero::before {
   content: '';
   position: absolute;
   top: 0; right: 0;
-  width: 600px; height: 100%;
-  background: radial-gradient(ellipse at 80% 40%, rgba(13,122,107,0.35) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 0; right: 0;
-  height: 40px;
-  background: linear-gradient(to bottom, transparent, var(--bg, #f8fafb));
+  width: 400px; height: 100%;
+  background: radial-gradient(ellipse at 80% 50%, rgba(13,122,107,0.4) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .heroInner {
-  max-width: 780px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.heroLeft {
-  width: 100%;
+.heroContent {
+  flex: 1;
+  min-width: 280px;
 }
 
 .heroBadge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   background: rgba(245,166,35,0.15);
   border: 1px solid rgba(245,166,35,0.3);
   color: var(--accent);
-  padding: 6px 16px;
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 .dot {
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   background: var(--accent);
   border-radius: 50%;
   animation: pulse 2s infinite;
@@ -60,41 +55,48 @@
 
 .heroH1 {
   font-family: 'Sora', sans-serif;
-  font-size: 48px;
+  font-size: 30px;
   font-weight: 700;
   color: white;
-  line-height: 1.12;
-  margin-bottom: 20px;
-  letter-spacing: -0.8px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
 }
-.heroH1 em { font-style: normal; color: var(--accent); }
+
+.kelimeWrapper {
+  display: inline-block;
+  min-width: 130px;
+}
+
+.kelime {
+  display: inline-block;
+  color: var(--accent);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
 .heroSub {
-  color: rgba(255,255,255,0.7);
-  font-size: 17px;
-  margin-bottom: 40px;
-  max-width: 560px;
-  line-height: 1.7;
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.6;
 }
 
 .heroActions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 48px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .heroBtnPrimary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 28px;
+  padding: 10px 22px;
   background: var(--accent, #f5a623);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   font-family: 'Sora', sans-serif;
   cursor: pointer;
@@ -106,15 +108,13 @@
 .heroBtnSecondary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 24px;
+  padding: 10px 18px;
   background: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.9);
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
-  font-family: inherit;
   cursor: pointer;
   transition: background 0.15s;
   text-decoration: none;
@@ -124,29 +124,29 @@
 
 .heroStats {
   display: flex;
-  gap: 48px;
-  padding-top: 32px;
-  border-top: 1px solid rgba(255,255,255,0.12);
+  gap: 28px;
+  flex-shrink: 0;
 }
 .stat {}
 .statNum {
   font-family: 'Sora', sans-serif;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: white;
 }
 .statLabel {
-  font-size: 13px;
+  font-size: 11px;
   color: rgba(255,255,255,0.5);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-/* heroRight ve heroCard artık kullanılmıyor */
+/* heroRight artık yok */
 .heroRight { display: none; }
 .heroCard {}
 .catGrid3 {}
 .catBtn {}
 .privNote {}
+.heroLeft {}
 
 /* =====================
    TRUST BAR
@@ -154,7 +154,7 @@
 .trustBar {
   background: #f0f9f5;
   border-bottom: 1px solid #c8e6d4;
-  padding: 12px 24px;
+  padding: 9px 24px;
 }
 .trustInner {
   max-width: 1200px;
@@ -162,14 +162,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 32px;
+  gap: 28px;
   flex-wrap: wrap;
 }
 .trustItem {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12.5px;
   color: #1a5c3a;
   font-weight: 500;
 }
@@ -180,9 +180,9 @@
 .main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 28px 24px 60px;
+  padding: 20px 24px 60px;
   display: flex;
-  gap: 24px;
+  gap: 20px;
   align-items: flex-start;
 }
 
@@ -190,36 +190,32 @@
    SIDEBAR
    ===================== */
 .sidebar {
-  width: 240px;
+  width: 230px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   position: sticky;
-  top: 120px;
+  top: 70px;
 }
 .ctaCard {
   background: var(--teal);
   border-radius: var(--r);
-  padding: 20px;
+  padding: 16px;
 }
 .ctaCard h4 {
   font-family: 'Sora', sans-serif;
-  font-size: 15px; font-weight: 600;
-  color: white; margin-bottom: 4px;
-}
-.ctaCard p {
-  font-size: 12px; color: rgba(255,255,255,0.75);
-  margin-bottom: 14px; line-height: 1.5;
+  font-size: 13px; font-weight: 600;
+  color: white; margin-bottom: 10px;
+  line-height: 1.4;
 }
 .ctaWhite {
-  display: inline-block; padding: 8px 16px;
-  border-radius: 7px; background: white;
-  color: var(--teal); border: none;
-  font-size: 13px; font-weight: 600;
-  font-family: 'Sora', sans-serif;
-  transition: all 0.15s; width: 100%; text-align: center;
-  cursor: pointer;
+  display: block; width: 100%;
+  padding: 8px 14px; border-radius: 7px;
+  background: white; color: var(--teal);
+  border: none; font-size: 13px; font-weight: 600;
+  font-family: 'Sora', sans-serif; cursor: pointer;
+  text-align: center; transition: all 0.15s;
 }
 .ctaWhite:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
@@ -227,19 +223,19 @@
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 18px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
 }
 .filterTitle {
   font-family: 'Sora', sans-serif;
-  font-size: 12px; font-weight: 600;
-  color: var(--text); margin-bottom: 16px;
+  font-size: 11px; font-weight: 600;
+  color: var(--text); margin-bottom: 14px;
   text-transform: uppercase; letter-spacing: 0.5px;
 }
-.filterGroup { margin-bottom: 16px; }
+.filterGroup { margin-bottom: 14px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .chip {
-  padding: 5px 11px; border-radius: 20px;
+  padding: 4px 10px; border-radius: 20px;
   font-size: 12px; border: 1px solid var(--border);
   color: var(--text-2); background: none;
   transition: all 0.12s; cursor: pointer;
@@ -249,17 +245,16 @@
 
 .sellerCard {
   background: white; border: 1px solid var(--border);
-  border-radius: var(--r); padding: 16px;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--r); padding: 14px;
 }
 .freeBadge {
-  display: inline-block; padding: 3px 10px;
+  display: inline-block; padding: 2px 9px;
   border-radius: 10px; background: var(--accent-light);
   color: #7A4F01; font-size: 11px; font-weight: 600;
-  border: 1px solid #F5CC80; margin-bottom: 8px;
+  border: 1px solid #F5CC80; margin-bottom: 7px;
 }
-.sellerCard h5 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
-.sellerCard p { font-size: 12px; color: var(--text-3); line-height: 1.5; margin-bottom: 12px; }
+.sellerCard h5 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.sellerCard p { font-size: 12px; color: var(--text-3); line-height: 1.5; margin-bottom: 10px; }
 
 /* =====================
    LISTINGS
@@ -267,33 +262,33 @@
 .listings { flex: 1; min-width: 0; }
 .listHeader {
   display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 16px;
+  justify-content: space-between; margin-bottom: 14px;
 }
 .listCount { font-size: 13px; color: var(--text-3); }
 .listCount strong { color: var(--text); font-weight: 600; }
 .sortSelect {
-  padding: 8px 14px; border-radius: 8px;
+  padding: 7px 12px; border-radius: 7px;
   border: 1px solid var(--border); background: white;
   font-size: 13px; color: var(--text);
   font-family: inherit; cursor: pointer;
 }
-.listGrid { display: flex; flex-direction: column; gap: 12px; }
+.listGrid { display: flex; flex-direction: column; gap: 10px; }
 .empty {
-  text-align: center; padding: 48px 24px;
+  text-align: center; padding: 40px 24px;
   background: white; border: 1px solid var(--border);
   border-radius: var(--r);
 }
-.empty p { color: var(--text-3); margin-bottom: 16px; font-size: 15px; }
+.empty p { color: var(--text-3); margin-bottom: 14px; font-size: 14px; }
 
 /* =====================
    PAGINATION
    ===================== */
 .pagination {
   display: flex; align-items: center;
-  justify-content: center; gap: 4px; margin-top: 24px;
+  justify-content: center; gap: 4px; margin-top: 20px;
 }
 .pageBtn {
-  width: 36px; height: 36px; border-radius: 8px;
+  width: 34px; height: 34px; border-radius: 7px;
   border: 1px solid var(--border); background: white;
   font-size: 13px; color: var(--text-2);
   display: flex; align-items: center; justify-content: center;
@@ -303,35 +298,32 @@
 .pageBtnActive { background: var(--teal) !important; color: white !important; border-color: var(--teal) !important; }
 
 /* =====================
-   ACCORDION FİLTRE
+   ACCORDION
    ===================== */
 .akkordBtn {
   display: flex; align-items: center; justify-content: space-between;
-  width: 100%; padding: 8px 10px; border-radius: 8px;
+  width: 100%; padding: 7px 9px; border-radius: 7px;
   border: 1px solid transparent; background: none;
-  font-size: 13px; color: var(--text-2); cursor: pointer;
+  font-size: 12.5px; color: var(--text-2); cursor: pointer;
   font-family: inherit; text-align: left; transition: all 0.1s;
   margin-bottom: 2px;
 }
 .akkordBtn:hover { background: var(--bg); color: var(--text); }
 .akkordAktif { background: var(--teal-light) !important; color: var(--teal-dark) !important; font-weight: 600; border-color: var(--teal-mid) !important; }
-.akkordAlt { padding: 2px 0 4px 12px; border-left: 2px solid var(--teal-mid); margin-left: 8px; margin-bottom: 4px; }
-.akkordAltItem { display: block; width: 100%; padding: 6px 10px; border-radius: 6px; border: none; background: none; font-size: 12px; color: var(--text-3); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.1s; }
+.akkordAlt { padding: 2px 0 4px 10px; border-left: 2px solid var(--teal-mid); margin-left: 8px; margin-bottom: 4px; }
+.akkordAltItem { display: block; width: 100%; padding: 5px 9px; border-radius: 6px; border: none; background: none; font-size: 12px; color: var(--text-3); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.1s; }
 .akkordAltItem:hover { background: var(--teal-light); color: var(--teal-dark); }
-.akkordAltAktif { background: var(--teal) !important; color: white !important; font-weight: 500; border-radius: 6px; }
+.akkordAltAktif { background: var(--teal) !important; color: white !important; font-weight: 500; }
 
 /* =====================
    RESPONSIVE
    ===================== */
-@media (max-width: 1024px) {
-  .heroH1 { font-size: 38px; }
+@media (max-width: 900px) {
+  .heroStats { display: none; }
 }
 @media (max-width: 768px) {
   .sidebar { display: none; }
-  .main { padding: 16px; }
-  .heroH1 { font-size: 28px; }
-  .heroStats { gap: 24px; }
-  .statNum { font-size: 22px; }
-  .heroActions { flex-direction: column; align-items: stretch; }
-  .heroBtnPrimary, .heroBtnSecondary { justify-content: center; }
+  .main { padding: 12px 16px; }
+  .heroH1 { font-size: 22px; }
+  .hero { padding: 20px 16px 18px; }
 }

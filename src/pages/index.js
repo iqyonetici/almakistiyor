@@ -12,13 +12,15 @@ import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
 
 const demoIlanlar = [
-  { id: 1, kategori: 'emlak', ad: 'Mehmet Arslan', sehir: 'İstanbul', ilce: 'Kadıköy', baslik: "Kadıköy veya Üsküdar'da 3+1 kiralık daire arıyorum", fiyatMin: 25000, fiyatMax: 35000, tags: [{label:'120 – 160 m²',variant:'tag-gray'},{label:'3+1',variant:'tag-gray'},{label:'Eşyalı tercih',variant:'tag-amber'},{label:'Asansör',variant:'tag-gray'}], aciklama: 'Asansörlü, otoparkı tercih ederim. Balkon şart. Ocak ayına kadar taşınmam gerekiyor.', tarih: '3 saat önce', goruntuleme: 47 },
-  { id: 2, kategori: 'vasita', ad: 'Zeynep Koçak', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: '2018–2022 model BMW veya Mercedes arıyorum', fiyatMin: 800000, fiyatMax: 1200000, tags: [{label:'0 – 80.000 km',variant:'tag-gray'},{label:'Otomatik vites',variant:'tag-gray'},{label:'Benzin / Hybrid',variant:'tag-gray'}], aciklama: 'BMW 3 Serisi, 5 Serisi veya Mercedes C Serisi olabilir. Kazasız, boyasız tercih ederim.', tarih: '8 saat önce', goruntuleme: 128 },
-  { id: 3, kategori: 'alisveris', ad: 'Ayşe Yılmaz', sehir: 'İstanbul', ilce: 'Şişli', baslik: 'L boyutunda köşe koltuk takımı arıyorum', fiyatMin: 15000, fiyatMax: 30000, tags: [{label:'Az kullanılmış',variant:'tag-gray'},{label:'Gri / Antrasit',variant:'tag-amber'}], aciklama: 'Taşıma imkânım var, elinizden teslim alabilirim.', tarih: '1 gün önce', goruntuleme: 31 },
-  { id: 4, kategori: 'emlak', ad: 'Can Öztürk', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: "Beşiktaş veya Şişli'de satılık daire bakıyorum", fiyatMin: 8000000, fiyatMax: 15000000, tags: [{label:'150 – 250 m²',variant:'tag-gray'},{label:'3+1 / 4+1',variant:'tag-gray'},{label:'Deniz manzarası',variant:'tag-amber'}], aciklama: 'Yüksek katlı, güvenlikli site olmasını istiyorum. Peşin ödeme yapabilirim.', tarih: '2 gün önce', goruntuleme: 214 },
-  { id: 5, kategori: 'vasita', ad: 'Burak Demir', sehir: 'Ankara', ilce: 'Çankaya', baslik: "Ankara'da Volkswagen Golf veya Passat arıyorum", fiyatMin: 500000, fiyatMax: 750000, tags: [{label:'2019–2023',variant:'tag-gray'},{label:'Dizel / Benzin',variant:'tag-gray'},{label:'Manuel / Otomatik',variant:'tag-gray'}], aciklama: 'DSG vitesli tercih ederim. Bakımlı olması önemli.', tarih: '2 gün önce', goruntuleme: 89 },
-  { id: 6, kategori: 'emlak', ad: 'Selin Aktaş', sehir: 'İzmir', ilce: 'Karşıyaka', baslik: "İzmir Karşıyaka'da 2+1 satılık daire arıyorum", fiyatMin: 3000000, fiyatMax: 5000000, tags: [{label:'80 – 120 m²',variant:'tag-gray'},{label:'2+1',variant:'tag-gray'},{label:'Site içi',variant:'tag-amber'}], aciklama: 'Denize yakın, ulaşımı kolay bir konum istiyorum.', tarih: '3 gün önce', goruntuleme: 67 },
+  { id: 1, kategori: 'emlak', ad: 'Mehmet Arslan', sehir: 'İstanbul', ilce: 'Kadıköy', baslik: "Kadıköy'de 3+1 kiralık daire arıyorum", fiyatMin: 25000, fiyatMax: 35000, tags: [{label:'3+1',variant:'tag-gray'},{label:'120–160 m²',variant:'tag-gray'},{label:'Eşyalı',variant:'tag-amber'}], aciklama: 'Asansörlü, otoparkı tercih ederim. Balkon şart.', tarih: '3 saat önce', goruntuleme: 47 },
+  { id: 2, kategori: 'vasita', ad: 'Zeynep Koçak', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: '2018–2022 model BMW veya Mercedes arıyorum', fiyatMin: 800000, fiyatMax: 1200000, tags: [{label:'0–80.000 km',variant:'tag-gray'},{label:'Otomatik',variant:'tag-gray'},{label:'Benzin/Hybrid',variant:'tag-gray'}], aciklama: 'Kazasız, boyasız tercih ederim.', tarih: '8 saat önce', goruntuleme: 128 },
+  { id: 3, kategori: 'alisveris', ad: 'Ayşe Yılmaz', sehir: 'İstanbul', ilce: 'Şişli', baslik: 'L boyutunda köşe koltuk takımı arıyorum', fiyatMin: 15000, fiyatMax: 30000, tags: [{label:'Az kullanılmış',variant:'tag-gray'},{label:'Gri/Antrasit',variant:'tag-amber'}], aciklama: 'Taşıma imkânım var, elinizden teslim alabilirim.', tarih: '1 gün önce', goruntuleme: 31 },
+  { id: 4, kategori: 'emlak', ad: 'Can Öztürk', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: "Beşiktaş'ta satılık daire bakıyorum", fiyatMin: 8000000, fiyatMax: 15000000, tags: [{label:'3+1/4+1',variant:'tag-gray'},{label:'150–250 m²',variant:'tag-gray'},{label:'Deniz manzarası',variant:'tag-amber'}], aciklama: 'Peşin ödeme yapabilirim.', tarih: '2 gün önce', goruntuleme: 214 },
+  { id: 5, kategori: 'vasita', ad: 'Burak Demir', sehir: 'Ankara', ilce: 'Çankaya', baslik: "Ankara'da VW Golf veya Passat arıyorum", fiyatMin: 500000, fiyatMax: 750000, tags: [{label:'2019–2023',variant:'tag-gray'},{label:'Dizel/Benzin',variant:'tag-gray'}], aciklama: 'DSG vitesli tercih ederim.', tarih: '2 gün önce', goruntuleme: 89 },
+  { id: 6, kategori: 'emlak', ad: 'Selin Aktaş', sehir: 'İzmir', ilce: 'Karşıyaka', baslik: "Karşıyaka'da 2+1 satılık daire arıyorum", fiyatMin: 3000000, fiyatMax: 5000000, tags: [{label:'2+1',variant:'tag-gray'},{label:'80–120 m²',variant:'tag-gray'}], aciklama: 'Denize yakın, ulaşımı kolay bir konum istiyorum.', tarih: '3 gün önce', goruntuleme: 67 },
 ]
+
+const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'koltuk takımı', 'villa']
 
 export default function Home() {
   const { user } = useAuth()
@@ -34,6 +36,20 @@ export default function Home() {
   const [paketModal, setPaketModal] = useState(false)
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
   const [akordAcik, setAkordAcik] = useState(null)
+  const [kelimeIndex, setKelimeIndex] = useState(0)
+  const [kelimeFade, setKelimeFade] = useState(true)
+
+  // Kelime animasyonu
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setKelimeFade(false)
+      setTimeout(() => {
+        setKelimeIndex(i => (i + 1) % KELIMELER.length)
+        setKelimeFade(true)
+      }, 300)
+    }, 2200)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     async function loadStats() {
@@ -59,8 +75,7 @@ export default function Home() {
           kategori: d.kategori || 'alisveris',
           altKategori: d.alt_kategori || '',
           ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
-          sehir: d.sehir || '',
-          ilce: d.ilce || '',
+          sehir: d.sehir || '', ilce: d.ilce || '',
           baslik: (() => {
             const sehirStr = [d.sehir, d.ilce].filter(Boolean).join(' ')
             const tip = d.emlak_tip || ''
@@ -69,17 +84,15 @@ export default function Home() {
             if (d.kategori === 'emlak') {
               if (tip) return `${sehirStr ? sehirStr + "'da " : ''}${tip} arıyorum`
               if (d.alt_kategori === 'emlak-arsa') return `${sehirStr ? sehirStr + ' ' : ''}Arsa arıyorum`
-              if (d.alt_kategori === 'emlak-isyeri') return `${sehirStr ? sehirStr + "'da " : ''}İş yeri arıyorum`
               return `${sehirStr ? sehirStr + "'da " : ''}Emlak arıyorum`
             }
             if (d.kategori === 'vasita') {
               if (marka) return `${marka} ${yilStr}arıyorum`
-              return `Araç ${yilStr}arıyorum`
+              return `Araç arıyorum`
             }
-            return (sehirStr ? sehirStr + ' — ' : '') + (d.aciklama?.slice(0, 50) || (d.kategori || '') + ' arıyorum')
+            return (sehirStr ? sehirStr + ' — ' : '') + (d.aciklama?.slice(0, 50) || d.kategori + ' arıyorum')
           })(),
-          fiyatMin: d.fiyat_min,
-          fiyatMax: d.fiyat_max,
+          fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
           tags: [
             d.oda ? { label: d.oda, variant: 'tag-gray' } : null,
             d.m2_min && d.m2_max ? { label: d.m2_min + '–' + d.m2_max + ' m²', variant: 'tag-gray' } : null,
@@ -122,27 +135,13 @@ export default function Home() {
     })
 
   async function handleSubmit(data) {
-    const { data: saved, error } = await ilanOlustur(data, user)
-    if (error) console.error('İlan kaydedilemedi:', error)
+    await ilanOlustur(data, user)
     const yeni = {
-      id: Date.now(),
-      kategori: data.kategori,
-      ad: data.ad,
-      sehir: data.sehir,
-      ilce: data.ilce,
-      baslik: `${data.sehir}${data.ilce ? ' ' + data.ilce : ''}'de ${data.islemTuru === 'kirala' ? 'kiralık' : 'satılık'} ${data.kategori === 'emlak' ? (data.emlakTip || 'mülk') : data.kategori === 'vasita' ? 'araç' : 'ürün'} arıyorum`,
+      id: Date.now(), kategori: data.kategori, ad: data.ad, sehir: data.sehir, ilce: data.ilce,
+      baslik: `${data.sehir}${data.ilce ? ' ' + data.ilce : ''}'de ${data.islemTuru === 'kirala' ? 'kiralık' : 'satılık'} arıyorum`,
       fiyatMin: data.fiyatMin ? parseInt(data.fiyatMin.replace(/\D/g, '')) : null,
       fiyatMax: data.fiyatMax ? parseInt(data.fiyatMax.replace(/\D/g, '')) : null,
-      tags: [
-        data.oda?.length ? { label: data.oda.join(', '), variant: 'tag-gray' } : null,
-        data.m2Min && data.m2Max ? { label: `${data.m2Min} – ${data.m2Max} m²`, variant: 'tag-gray' } : null,
-        data.markalar?.length ? { label: data.markalar.slice(0, 3).join(', '), variant: 'tag-gray' } : null,
-        data.yilMin && data.yilMax ? { label: `${data.yilMin} – ${data.yilMax}`, variant: 'tag-gray' } : null,
-        data.kmMax ? { label: `Max ${parseInt(data.kmMax).toLocaleString('tr-TR')} km`, variant: 'tag-gray' } : null,
-      ].filter(Boolean),
-      aciklama: data.aciklama,
-      tarih: 'Az önce',
-      goruntuleme: 0,
+      tags: [], aciklama: data.aciklama, tarih: 'Az önce', goruntuleme: 0,
     }
     setIlanlar(prev => [yeni, ...prev])
   }
@@ -153,94 +152,65 @@ export default function Home() {
         <title>AlmakIstiyor.com — Ne Arıyorsunuz? Söyleyin, Satıcılar Bulsun</title>
       </Head>
 
-      <Navbar
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-        onIlanVer={() => setFormOpen(true)}
-      />
+      <Navbar activeCategory={activeCategory} onCategoryChange={setActiveCategory} onIlanVer={() => setFormOpen(true)} />
 
-      {/* HERO */}
+      {/* HERO — kompakt */}
       <section className={styles.hero}>
-        <div className={`container ${styles.heroInner}`}>
-          <div className={styles.heroLeft}>
+        <div className={styles.heroInner}>
+          <div className={styles.heroContent}>
             <div className={styles.heroBadge}>
-              <span className={styles.dot} /> Canlı — bu hafta 1.847 yeni talep
+              <span className={styles.dot} /> Canlı — {stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853'} aktif talep ilanı
             </div>
             <h1 className={styles.heroH1}>
-              Ne arıyorsunuz?<br />
-              <em>Söyleyin, satıcılar<br />sizi bulsun.</em>
+              <span className={styles.kelimeWrapper}>
+                <span
+                  className={styles.kelime}
+                  style={{ opacity: kelimeFade ? 1 : 0, transform: kelimeFade ? 'translateY(0)' : 'translateY(-8px)' }}
+                >
+                  {KELIMELER[kelimeIndex]}
+                </span>
+              </span>
+              {' '}mı arıyorsunuz?
             </h1>
             <p className={styles.heroSub}>
-              Ücretsiz talep verin, spam yok. Telefon numaranız yalnızca izin verdiğiniz satıcıya gösterilir.
+              Söyleyin — satıcılar sizi bulsun. Ücretsiz, spamsiz.
             </p>
             <div className={styles.heroActions}>
               <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>
                 + Almak İstiyorum
               </button>
-              <a
-                href="#ilan-listesi"
-                className={styles.heroBtnSecondary}
-                onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}
-              >
+              <a href="#ilan-listesi" className={styles.heroBtnSecondary}
+                onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}>
                 İlanları Gör →
               </a>
             </div>
-            <div className={styles.heroStats}>
-              {[
-                { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '—', label: 'Aktif talep ilanı' },
-                { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '—', label: 'Kayıtlı kullanıcı' },
-                { num: '%94', label: 'Eşleşme oranı' },
-              ].map(s => (
-                <div key={s.label} className={styles.stat}>
-                  <div className={styles.statNum}>{s.num}</div>
-                  <div className={styles.statLabel}>{s.label}</div>
-                </div>
-              ))}
-            </div>
+          </div>
+          <div className={styles.heroStats}>
+            {[
+              { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853', label: 'Aktif ilan' },
+              { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '1.424', label: 'Kullanıcı' },
+              { num: '%94', label: 'Eşleşme' },
+            ].map(s => (
+              <div key={s.label} className={styles.stat}>
+                <div className={styles.statNum}>{s.num}</div>
+                <div className={styles.statLabel}>{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* TRUST BAR */}
-      <div className={styles.trustBar}>
-        <div className={`container ${styles.trustInner}`}>
-          {[
-            { icon: '🔒', text: 'Telefon numaranız gizli kalır' },
-            { icon: '⚡', text: '2 dakikada ilan ver' },
-            { icon: '✓', text: 'Alıcıya tamamen ücretsiz' },
-            { icon: '🛡️', text: 'Spam yok, sizi koruyoruz' },
-          ].map(t => (
-            <div key={t.text} className={styles.trustItem}>
-              <span>{t.icon}</span> {t.text}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* KULLANICI KARŞILAMA */}
       {user && (
-        <div style={{ background: 'var(--teal-light)', borderBottom: '1px solid var(--teal-mid)', padding: '10px 24px' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--teal)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sora,sans-serif', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
-                {(user.ad?.[0] || '') + (user.soyad?.[0] || '')}
-              </div>
-              <span style={{ fontSize: 14, color: 'var(--teal-dark)', fontWeight: 500 }}>
-                Merhaba, {user.ad}! {user.tur === 'satici' ? (user.firma || 'Profesyonel hesap') : 'Alıcı hesabı'}
-              </span>
-            </div>
+        <div style={{ background: 'var(--teal-light)', borderBottom: '1px solid var(--teal-mid)', padding: '8px 24px' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <span style={{ fontSize: 13, color: 'var(--teal-dark)', fontWeight: 500 }}>
+              Merhaba, {user.ad}!
+            </span>
             <div style={{ display: 'flex', gap: 8 }}>
-              <a href="/panel" style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, background: 'var(--teal)', color: 'white', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                📋 İlanlarım
-              </a>
-              <a href="/panel?tab=mesajlar" style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1.5px solid var(--teal)', color: 'var(--teal)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                💬 Mesajlarım
-              </a>
-              {user.tur === 'satici' && (
-                <a href="/satici" style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1.5px solid var(--teal)', color: 'var(--teal)', fontWeight: 500 }}>
-                  Satıcı Paneli →
-                </a>
-              )}
+              <a href="/panel" style={{ fontSize: 13, padding: '5px 12px', borderRadius: 7, background: 'var(--teal)', color: 'white', fontWeight: 500 }}>📋 İlanlarım</a>
+              <a href="/panel?tab=mesajlar" style={{ fontSize: 13, padding: '5px 12px', borderRadius: 7, border: '1.5px solid var(--teal)', color: 'var(--teal)', fontWeight: 500 }}>💬 Mesajlarım</a>
+              {user.tur === 'satici' && <a href="/satici" style={{ fontSize: 13, padding: '5px 12px', borderRadius: 7, border: '1.5px solid var(--teal)', color: 'var(--teal)', fontWeight: 500 }}>Satıcı Paneli →</a>}
             </div>
           </div>
         </div>
@@ -248,15 +218,10 @@ export default function Home() {
 
       {/* MAIN */}
       <div className={`container ${styles.main}`}>
-
-        {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.ctaCard}>
-            <h4>Siz de talep verin!</h4>
-            <p>Ne aradığınızı yazın, satıcılar sizi bulsun</p>
-            <button className={styles.ctaWhite} onClick={() => setFormOpen(true)}>
-              Hemen başla →
-            </button>
+            <h4>Talep ver, satıcılar seni bulsun</h4>
+            <button className={styles.ctaWhite} onClick={() => setFormOpen(true)}>Hemen başla →</button>
           </div>
 
           <div className={styles.filterCard}>
@@ -264,8 +229,7 @@ export default function Home() {
 
             <div className={styles.filterGroup}>
               <label className="form-label">📍 Şehir</label>
-              <select className="form-select" value={filterSehir}
-                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
+              <select className="form-select" value={filterSehir} onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
                 <option value="">Tüm şehirler</option>
                 {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
               </select>
@@ -274,31 +238,24 @@ export default function Home() {
             {filterSehir && (
               <div className={styles.filterGroup}>
                 <label className="form-label">📎 İlçe</label>
-                <select className="form-select" value={filterIlce}
-                  onChange={e => setFilterIlce(e.target.value)}>
+                <select className="form-select" value={filterIlce} onChange={e => setFilterIlce(e.target.value)}>
                   <option value="">Tüm ilçeler</option>
-                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => (
-                    <option key={i} value={i}>{i}</option>
-                  ))}
+                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
             )}
 
             <div className={styles.filterGroup}>
               <label className="form-label">🗂️ Kategori</label>
-              <button
-                className={`${styles.akkordBtn} ${activeCategory === '' ? styles.akkordAktif : ''}`}
-                onClick={() => { setActiveCategory(''); setAkordAcik(null) }}>
-                ✓ Tümü
-              </button>
+              <button className={`${styles.akkordBtn} ${activeCategory === '' ? styles.akkordAktif : ''}`}
+                onClick={() => { setActiveCategory(''); setAkordAcik(null) }}>✓ Tümü</button>
               {KATEGORILER.map(k => (
                 <div key={k.slug}>
-                  <button
-                    className={`${styles.akkordBtn} ${activeCategory === k.slug ? styles.akkordAktif : ''}`}
+                  <button className={`${styles.akkordBtn} ${activeCategory === k.slug ? styles.akkordAktif : ''}`}
                     onClick={() => {
                       setAkordAcik(akordAcik === k.slug ? null : k.slug)
                       setActiveCategory(k.slug)
-                      setTimeout(() => { document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 100)
+                      setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
                     }}>
                     <span>{k.icon} {k.label}</span>
                     <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{akordAcik === k.slug ? '▲' : '▼'}</span>
@@ -310,7 +267,7 @@ export default function Home() {
                           className={`${styles.akkordAltItem} ${activeCategory === alt.slug ? styles.akkordAltAktif : ''}`}
                           onClick={() => {
                             setActiveCategory(alt.slug)
-                            setTimeout(() => { document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 100)
+                            setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
                           }}>
                           {alt.icon} {alt.label}
                         </button>
@@ -322,14 +279,11 @@ export default function Home() {
             </div>
 
             <div className={styles.filterGroup}>
-              <label className="form-label">📅 İlan tarihi</label>
+              <label className="form-label">📅 Tarih</label>
               <div className={styles.chips}>
                 {[{ v: '', l: 'Tümü' }, { v: 'bugun', l: 'Bugün' }, { v: 'hafta', l: 'Bu hafta' }].map(d => (
-                  <button key={d.v}
-                    className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
-                    onClick={() => setFilterTarih(d.v)}>
-                    {d.l}
-                  </button>
+                  <button key={d.v} className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
+                    onClick={() => setFilterTarih(d.v)}>{d.l}</button>
                 ))}
               </div>
             </div>
@@ -338,19 +292,14 @@ export default function Home() {
           <div className={styles.sellerCard}>
             <div className={styles.freeBadge}>3 ücretsiz hak</div>
             <h5>Emlakçı veya Galericiler</h5>
-            <p>Talep ilanlarına erişin. İlk 3 görüntüleme ücretsiz.</p>
-            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>
-              Satıcı girişi →
-            </a>
+            <p>Talep ilanlarına erişin.</p>
+            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>Satıcı girişi →</a>
           </div>
         </aside>
 
-        {/* LİSTİNGS */}
         <main className={styles.listings} id="ilan-listesi">
           <div className={styles.listHeader}>
-            <div className={styles.listCount}>
-              <strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı
-            </div>
+            <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
             <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>
               <option value="yeni">En yeni önce</option>
               <option value="cok-goruntulenen">En çok görüntülenen</option>
@@ -361,33 +310,16 @@ export default function Home() {
             {filtered.length === 0 ? (
               <div className={styles.empty}>
                 <p>Bu kriterlere uygun ilan bulunamadı.</p>
-                <button className="btn-primary" onClick={() => setFormOpen(true)}>
-                  İlk ilanı siz verin →
-                </button>
+                <button className="btn-primary" onClick={() => setFormOpen(true)}>İlk ilanı siz verin →</button>
               </div>
             ) : (
               filtered.map(ilan => (
-                <IlanKarti
-                  key={ilan.id}
-                  ilan={ilan}
-                  user={user}
+                <IlanKarti key={ilan.id} ilan={ilan} user={user}
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
-                    const { data: konusma } = await kBVG({
-                      ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori,
-                      aliciEmail: il.email || '', aliciAd: il.ad || '',
-                      saticiEmail: user?.email || 'anonim',
-                      saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
-                      saticiIfirma: user?.firma || null,
-                    })
-                    if (konusma) {
-                      await kMG({
-                        konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim',
-                        gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
-                        metin: mesaj, gonderenAliciMi: false,
-                      })
-                    }
+                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
+                    if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
                     setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
                     setKalanGenel(p => Math.max(0, p - 1))
                   }}
@@ -399,7 +331,7 @@ export default function Home() {
 
           {filtered.length > 0 && (
             <div className={styles.pagination}>
-              {['←', '1', '2', '3', '...', '48', '→'].map((p, i) => (
+              {['←', '1', '2', '3', '...', '→'].map((p, i) => (
                 <button key={i} className={`${styles.pageBtn} ${p === '1' ? styles.pageBtnActive : ''}`}>{p}</button>
               ))}
             </div>
@@ -412,18 +344,11 @@ export default function Home() {
       {paketModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => e.target === e.currentTarget && setPaketModal(false)}>
-          <div style={{ background: 'white', borderRadius: 16, padding: 32, width: 400, maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 32, width: 400, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
-            <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Telefon numarası için paket gerekli</h3>
-            <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20, lineHeight: 1.7 }}>
-              Alıcının telefon numarasını görmek için <strong>Starter veya üzeri</strong> paket satın almanız gerekiyor.
-            </p>
-            <a href="/pro" style={{ display: 'block', padding: '12px 24px', borderRadius: 9, background: 'var(--teal)', color: 'white', fontFamily: 'Sora,sans-serif', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>
-              Paketlere Bak →
-            </a>
-            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Şimdilik geç
-            </button>
+            <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Telefon numarası için paket gerekli</h3>
+            <a href="/pro" style={{ display: 'block', padding: '12px 24px', borderRadius: 9, background: 'var(--teal)', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Paketlere Bak →</a>
+            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer' }}>Şimdilik geç</button>
           </div>
         </div>
       )}
