@@ -132,72 +132,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* KATEGORİ BARI */}
-      <nav className={styles.categoryBar}>
-        <div className={styles.categoryBarInner}>
-          {kategoriler.map((kat) => {
-            const isAktif =
-              aktifSlug === kat.slug || (!aktifSlug && kat.slug === "tumu");
-            const hasDropdown = kat.altkategoriler && kat.altkategoriler.length > 0;
-
-            return (
-              <div
-                key={kat.slug}
-                className={styles.catItem}
-                onMouseEnter={() => hasDropdown && handleMouseEnter(kat.slug)}
-                onMouseLeave={handleMouseLeave}
-              >
-                <Link
-                  href={kat.slug === "tumu" ? "/" : `/kategori/${kat.slug}`}
-                  className={`${styles.catLink} ${isAktif ? styles.catLinkActive : ""}`}
-                >
-                  <span className={styles.catIcon}>{kat.icon}</span>
-                  <span className={styles.catLabel}>{kat.label}</span>
-                  {hasDropdown && (
-                    <svg
-                      className={`${styles.catArrow} ${acikMenu === kat.slug ? styles.catArrowOpen : ""}`}
-                      width="10" height="6" viewBox="0 0 10 6"
-                    >
-                      <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                </Link>
-
-                {/* DROPDOWN */}
-                {hasDropdown && acikMenu === kat.slug && (
-                  <div
-                    className={styles.dropdown}
-                    onMouseEnter={() => handleMouseEnter(kat.slug)}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <div className={styles.dropdownHeader}>{kat.icon} {kat.label}</div>
-                    <ul className={styles.dropdownList}>
-                      {kat.altkategoriler.map((alt) => (
-                        <li key={alt.slug}>
-                          <a
-                            href={`/kategori/${kat.slug}#${alt.slug}`}
-                            className={styles.dropdownItem}
-                            onClick={(e) => handleAltKatClick(e, kat.slug, alt.slug)}
-                          >
-                            {alt.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link
-                      href={`/kategori/${kat.slug}`}
-                      className={styles.dropdownTumu}
-                      onClick={() => setAcikMenu(null)}
-                    >
-                      Tümünü Gör →
-                    </Link>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </nav>
+      
 
       {/* MOBİL MENÜ */}
       {mobilAcik && (
