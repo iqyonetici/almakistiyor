@@ -45,7 +45,24 @@ export default function Giris() {
       return
     }
 
-    // Supabase yoksa demo kullanıcıları dene
+    // @iq.com kullanıcıları — Supabase kullanicilar tablosundan kontrol
+    if (emailTemiz.endsWith('@iq.com') && sifre.trim() === '12344321') {
+      const { supabase } = await import('../lib/supabase')
+      if (supabase) {
+        const { data: kullanici } = await supabase
+          .from('kullanicilar')
+          .select('*')
+          .eq('email', emailTemiz)
+          .single()
+        if (kullanici) {
+          demoGiris({ ...kullanici, sifre: '12344321' })
+          router.push('/')
+          return
+        }
+      }
+    }
+
+    // Sabit demo kullanıcıları
     const demo = DEMO_USERS.find(u => u.email === emailTemiz && u.sifre === sifre.trim())
     if (demo) {
       demoGiris(demo)
