@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { sehirler, getIlceler } from '../data/sehirler'
 import { KATEGORILER } from '../data/kategoriler'
+import { VASITA_TREE, getModeller, getVersiyonlar, MARKALAR } from '../data/vasita'
 import styles from './IlanForm.module.css'
 
 // ==================== SABİT VERİLER ====================
@@ -78,10 +79,15 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
   const bodyRef = useRef(null)
   const [step, setStep] = useState(1)
   const [done, setDone] = useState(false)
+  // Kategori wizard state — hangi seviyede olduğumuzu takip eder
+  const [katWizard, setKatWizard] = useState({ ana: null, alt: null }) // {ana: 'vasita', alt: 'otomobil'}
   const [data, setData] = useState({
     kategori:'', altKategori:'', islemTuru:'satin-al', sehir:'', ilce:'',
     fiyatMin:'', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
+    // Vasıta ayrıntılı
+    vasitaAltTip:'', // otomobil, suv_arazi, motosiklet
+    vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'',
     markalar:[], yilMin:'', yilMax:'', kmMax:'', yakit:[], vites:[],
     aciklama:'', iletisimTercihi:'mesaj', ad:'', soyad:'', telefon:'',
   })
@@ -107,9 +113,10 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
   }
 
   function reset() {
-    setStep(1); setDone(false)
+    setStep(1); setDone(false); setKatWizard({ ana: null, alt: null })
     setData({kategori:'',altKategori:'',islemTuru:'satin-al',sehir:'',ilce:'',fiyatMin:'',fiyatMax:'',
       emlakTip:'',m2Min:'',m2Max:'',oda:[],tercihler:[],
+      vasitaAltTip:'',vasitaMarka:'',vasitaModel:'',vasitaVersiyon:'',
       markalar:[],yilMin:'',yilMax:'',kmMax:'',yakit:[],vites:[],
       aciklama:'',iletisimTercihi:'mesaj',ad:'',soyad:'',telefon:''})
   }
@@ -189,30 +196,158 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
             </div>
           ) : (
             <>
-              {/* ADIM 1: KATEGORİ */}
+              {/* ADIM 1: KATEGORİ — İki panelli wizard */}
               {step===1 && (
-                <div>
-                  {KATEGORILER.map(ana => (
-                    <div key={ana.slug} style={{marginBottom:16}}>
-                      <div style={{fontSize:11,fontWeight:700,color:'var(--text-3)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,paddingLeft:2}}>
-                        {ana.icon} {ana.label}
+                <div className={styles.katWizard}>
+                  {/* SOL PANEL: Ana kategoriler */}
+                  <div className={styles.katAna}>
+                    {KATEGORILER.map(k => (
+                      <button key={k.slug}
+                        className={`${styles.katAnaItem} ${katWizard.ana===k.slug||data.kategori===k.slug?styles.katAnaAktif:''}`}
+                        onClick={() => {
+                          setKatWizard({ ana: k.slug, alt: null })
+                          set('kategori', k.slug)
+                          set('altKategori', '')
+                          set('vasitaAltTip', '')
+                          set('vasitaMarka', '')
+                          set('vasitaModel', '')
+                        }}>
+                        <span className={styles.katAnaIcon}>{k.icon}</span>
+                        <span className={styles.katAnaLabel}>{k.label}</span>
+                        <span className={styles.katAnaOk}>›</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* SAĞ PANEL: Alt kategoriler */}
+                  <div className={styles.katAlt}>
+                    {!katWizard.ana && (
+                      <div className={styles.katAltBos}>
+                        <span>👈</span>
+                        <p>Sol taraftan kategori seçin</p>
                       </div>
-                      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                        <button
-                          className={`${styles.chip} ${data.kategori===ana.slug&&!data.altKategori?styles.chipSel:''}`}
-                          onClick={() => { set('kategori',ana.slug); set('altKategori','') }}>
-                          Tümü
-                        </button>
-                        {ana.altKategoriler?.map(alt => (
-                          <button key={alt.slug}
-                            className={`${styles.chip} ${data.altKategori===alt.slug?styles.chipSel:''}`}
-                            onClick={() => { set('kategori',ana.slug); set('altKategori',alt.slug) }}>
-                            {alt.icon} {alt.label}
+                    )}
+
+                    {katWizard.ana && (() => {
+                      const anaKat = KATEGORILER.find(k => k.slug === katWizard.ana)
+                      if (!anaKat) return null
+
+                      // Vasıta için özel 3 seviyeli seçim
+                      if (katWizard.ana === 'vasita') {
+                        // Seviye 1: Araç tipi
+                        if (!data.vasitaAltTip) return (
+                          <div>
+                            <div className={styles.katAltBaslik}>{anaKat.icon} Araç Tipi Seçin</div>
+                            {[
+                              {slug:'otomobil', icon:'🚗', label:'Otomobil'},
+                              {slug:'suv_arazi', icon:'🚙', label:'Arazi & SUV'},
+                              {slug:'motosiklet', icon:'🏍️', label:'Motosiklet'},
+                              ...anaKat.altKategoriler.filter(a => !['otomobil','arazi-suv','motosiklet'].includes(a.slug)).map(a => ({...a, isOther:true}))
+                            ].map(tip => (
+                              <button key={tip.slug}
+                                className={`${styles.katAltItem} ${data.vasitaAltTip===tip.slug?styles.katAltAktif:''}`}
+                                onClick={() => {
+                                  if (tip.isOther) {
+                                    set('vasitaAltTip', tip.slug)
+                                    set('altKategori', tip.slug)
+                                  } else {
+                                    set('vasitaAltTip', tip.slug)
+                                    set('altKategori', tip.slug)
+                                  }
+                                }}>
+                                {tip.icon} {tip.label}
+                              </button>
+                            ))}
+                          </div>
+                        )
+
+                        // Seviye 2: Marka seçimi
+                        const altTipler = {otomobil: VASITA_TREE.otomobil, suv_arazi: VASITA_TREE.suv_arazi, motosiklet: VASITA_TREE.motosiklet}
+                        const markaListesi = altTipler[data.vasitaAltTip] || []
+                        if (markaListesi.length && !data.vasitaMarka) return (
+                          <div>
+                            <button className={styles.katGeri} onClick={() => { set('vasitaAltTip',''); set('altKategori','') }}>← Araç tipine dön</button>
+                            <div className={styles.katAltBaslik}>🏷️ Marka Seçin</div>
+                            <div className={styles.markaGrid}>
+                              {markaListesi.map(m => (
+                                <button key={m.marka}
+                                  className={`${styles.markaBtn} ${data.vasitaMarka===m.marka?styles.markaBtnAktif:''}`}
+                                  onClick={() => { set('vasitaMarka', m.marka); set('vasitaModel',''); set('vasitaVersiyon','') }}>
+                                  {m.marka}
+                                </button>
+                              ))}
+                              <button className={`${styles.markaBtn}`}
+                                onClick={() => { set('vasitaMarka','Diğer'); set('vasitaModel',''); }}>
+                                Diğer
+                              </button>
+                            </div>
+                          </div>
+                        )
+
+                        // Seviye 3: Model seçimi
+                        const modelListesi = getModeller(data.vasitaMarka)
+                        if (data.vasitaMarka && modelListesi.length && !data.vasitaModel) return (
+                          <div>
+                            <button className={styles.katGeri} onClick={() => set('vasitaMarka','')}>← {data.vasitaMarka} Markasına Dön</button>
+                            <div className={styles.katAltBaslik}>🚗 Model Seçin — {data.vasitaMarka}</div>
+                            {modelListesi.map(m => (
+                              <button key={m.model}
+                                className={`${styles.katAltItem} ${data.vasitaModel===m.model?styles.katAltAktif:''}`}
+                                onClick={() => { set('vasitaModel', m.model); set('vasitaVersiyon','') }}>
+                                {data.vasitaMarka} {m.model}
+                                <span style={{fontSize:11,color:'var(--text-3)',marginLeft:4}}>({m.versiyonlar.length} versiyon)</span>
+                              </button>
+                            ))}
+                          </div>
+                        )
+
+                        // Seviye 4: Versiyon seçimi
+                        const versiyonListesi = getVersiyonlar(data.vasitaMarka, data.vasitaModel)
+                        if (data.vasitaModel) return (
+                          <div>
+                            <button className={styles.katGeri} onClick={() => set('vasitaModel','')}>← {data.vasitaModel} Modeline Dön</button>
+                            <div className={styles.katAltBaslik}>⚙️ Motor/Versiyon — {data.vasitaModel}</div>
+                            <button
+                              className={`${styles.katAltItem} ${!data.vasitaVersiyon?styles.katAltAktif:''}`}
+                              onClick={() => set('vasitaVersiyon', '')}>
+                              Fark etmez (tüm versiyonlar)
+                            </button>
+                            {versiyonListesi.map(v => (
+                              <button key={v}
+                                className={`${styles.katAltItem} ${data.vasitaVersiyon===v?styles.katAltAktif:''}`}
+                                onClick={() => set('vasitaVersiyon', v)}>
+                                {data.vasitaMarka} {data.vasitaModel} {v}
+                              </button>
+                            ))}
+                            <div className={styles.katSecildi}>
+                              ✓ Seçilen: {data.vasitaMarka} {data.vasitaModel} {data.vasitaVersiyon||'(Tüm versiyonlar)'}
+                            </div>
+                          </div>
+                        )
+
+                        return null
+                      }
+
+                      // Diğer kategoriler: normal alt kategori listesi
+                      return (
+                        <div>
+                          <div className={styles.katAltBaslik}>{anaKat.icon} {anaKat.label} — Alt Kategori</div>
+                          <button
+                            className={`${styles.katAltItem} ${!data.altKategori?styles.katAltAktif:''}`}
+                            onClick={() => set('altKategori', '')}>
+                            Tümü ({anaKat.label})
                           </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                          {anaKat.altKategoriler?.map(alt => (
+                            <button key={alt.slug}
+                              className={`${styles.katAltItem} ${data.altKategori===alt.slug?styles.katAltAktif:''}`}
+                              onClick={() => set('altKategori', alt.slug)}>
+                              {alt.icon} {alt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    })()}
+                  </div>
                 </div>
               )}
 

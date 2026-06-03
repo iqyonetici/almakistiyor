@@ -68,3 +68,19 @@
 
 @media (max-width: 1024px) { .heroRight { display: none; } }
 @media (max-width: 768px) { .sidebar { display: none; } .main { padding: 16px; } .heroH1 { font-size: 28px; } .heroStats { gap: 20px; } .statNum { font-size: 20px; } }
+
+/* ACCORDION FİLTRE */
+.akkordBtn {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid transparent; background: none;
+  font-size: 13px; color: var(--text-2); cursor: pointer;
+  font-family: inherit; text-align: left; transition: all 0.1s;
+  margin-bottom: 2px;
+}
+.akkordBtn:hover { background: var(--bg); color: var(--text); }
+.akkordAktif { background: var(--teal-light) !important; color: var(--teal-dark) !important; font-weight: 600; border-color: var(--teal-mid) !important; }
+.akkordAlt { padding: 2px 0 4px 12px; border-left: 2px solid var(--teal-mid); margin-left: 8px; margin-bottom: 4px; }
+.akkordAltItem { display: block; width: 100%; padding: 6px 10px; border-radius: 6px; border: none; background: none; font-size: 12px; color: var(--text-3); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.1s; }
+.akkordAltItem:hover { background: var(--teal-light); color: var(--teal-dark); }
+.akkordAltAktif { background: var(--teal) !important; color: white !important; font-weight: 500; border-radius: 6px; }

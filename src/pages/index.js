@@ -86,10 +86,12 @@ export default function Home() {
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
   const [filterIlce, setFilterIlce] = useState('')
   const [filterTarih, setFilterTarih] = useState('')
+  const [akordAcik, setAkordAcik] = useState(null)
 
   const filtered = ilanlar
-    .filter(i => !activeCategory || i.kategori === activeCategory)
+    .filter(i => !activeCategory || i.kategori === activeCategory || i.altKategori === activeCategory)
     .filter(i => !filterSehir || i.sehir === filterSehir)
+    .filter(i => !filterIlce || i.ilce === filterIlce)
     .filter(i => {
       if (!filterTarih) return true
       const tarih = new Date(i.created_at || Date.now())
@@ -277,12 +279,13 @@ export default function Home() {
           </div>
 
           <div className={styles.filterCard}>
-            <div className={styles.filterTitle}>Filtrele</div>
+            <div className={styles.filterTitle}>🔍 Filtrele</div>
 
+            {/* ŞEHİR + İLÇE */}
             <div className={styles.filterGroup}>
-              <label className="form-label">Şehir</label>
+              <label className="form-label">📍 Şehir</label>
               <select className="form-select" value={filterSehir}
-                onChange={e => setFilterSehir(e.target.value)}>
+                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
                 <option value="">Tüm şehirler</option>
                 {sehirler.map(s => (
                   <option key={s.il} value={s.il}>{s.il}</option>
@@ -290,24 +293,60 @@ export default function Home() {
               </select>
             </div>
 
-            <div className={styles.filterGroup}>
-              <label className="form-label">Kategori</label>
-              <div className={styles.chips}>
-                <button
-                  className={`${styles.chip} ${activeCategory===''?styles.chipActive:''}`}
-                  onClick={() => setActiveCategory('')}>Tümü</button>
-                {KATEGORILER.map(k => (
-                  <button key={k.slug}
-                    className={`${styles.chip} ${activeCategory===k.slug?styles.chipActive:''}`}
-                    onClick={() => setActiveCategory(k.slug)}>
-                    {k.icon} {k.label}
-                  </button>
-                ))}
+            {filterSehir && (
+              <div className={styles.filterGroup}>
+                <label className="form-label">📌 İlçe</label>
+                <select className="form-select" value={filterIlce}
+                  onChange={e => setFilterIlce(e.target.value)}>
+                  <option value="">Tüm ilçeler</option>
+                  {(sehirler.find(s=>s.il===filterSehir)?.ilceler||[]).map(i => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
+                </select>
               </div>
+            )}
+
+            {/* KATEGORİ ACCORDION */}
+            <div className={styles.filterGroup}>
+              <label className="form-label">🏷️ Kategori</label>
+              <button
+                className={`${styles.akkordBtn} ${activeCategory===''?styles.akkordAktif:''}`}
+                onClick={() => { setActiveCategory(''); setAkordAcik(null) }}>
+                ✦ Tümü
+              </button>
+              {KATEGORILER.map(k => (
+                <div key={k.slug}>
+                  <button
+                    className={`${styles.akkordBtn} ${activeCategory===k.slug?styles.akkordAktif:''}`}
+                    onClick={() => {
+                      setAkordAcik(akordAcik===k.slug ? null : k.slug)
+                      setActiveCategory(k.slug)
+                      setTimeout(()=>{ const el=document.getElementById('ilan-listesi'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}) },100)
+                    }}>
+                    <span>{k.icon} {k.label}</span>
+                    <span style={{fontSize:10,color:'var(--text-3)'}}>{akordAcik===k.slug?'▲':'▼'}</span>
+                  </button>
+                  {akordAcik === k.slug && k.altKategoriler?.length > 0 && (
+                    <div className={styles.akkordAlt}>
+                      {k.altKategoriler.map(alt => (
+                        <button key={alt.slug}
+                          className={`${styles.akkordAltItem} ${activeCategory===alt.slug?styles.akkordAltAktif:''}`}
+                          onClick={() => {
+                            setActiveCategory(alt.slug)
+                            setTimeout(()=>{ const el=document.getElementById('ilan-listesi'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}) },100)
+                          }}>
+                          {alt.icon} {alt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
+            {/* TARİH */}
             <div className={styles.filterGroup}>
-              <label className="form-label">İlan tarihi</label>
+              <label className="form-label">📅 İlan tarihi</label>
               <div className={styles.chips}>
                 {[{v:'',l:'Tümü'},{v:'bugun',l:'Bugün'},{v:'hafta',l:'Bu hafta'}].map(d => (
                   <button key={d.v}

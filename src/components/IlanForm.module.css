@@ -142,3 +142,30 @@
 .iletisimNot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
 
 .stepSub2 { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }
+
+/* KATEGORİ WİZARD */
+.katWizard { display: grid; grid-template-columns: 180px 1fr; gap: 0; min-height: 300px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.katAna { background: var(--bg); border-right: 1px solid var(--border); padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.katAnaItem { display: flex; align-items: center; gap: 7px; padding: 9px 10px; border-radius: 8px; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--text-2); text-align: left; transition: all 0.1s; }
+.katAnaItem:hover { background: white; color: var(--text); }
+.katAnaAktif { background: white !important; color: var(--teal-dark) !important; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.katAnaIcon { font-size: 16px; flex-shrink: 0; }
+.katAnaLabel { flex: 1; font-size: 12px; }
+.katAnaOk { font-size: 14px; color: var(--text-3); }
+.katAlt { padding: 12px; overflow-y: auto; max-height: 340px; }
+.katAlt::-webkit-scrollbar { width: 3px; }
+.katAlt::-webkit-scrollbar-thumb { background: var(--teal-mid); border-radius: 2px; }
+.katAltBos { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 8px; color: var(--text-3); font-size: 13px; }
+.katAltBaslik { font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.katAltItem { display: block; width: 100%; padding: 9px 12px; border-radius: 8px; border: 1.5px solid transparent; background: none; font-size: 13px; color: var(--text-2); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.1s; margin-bottom: 3px; }
+.katAltItem:hover { background: var(--teal-light); color: var(--teal-dark); border-color: var(--teal-mid); }
+.katAltAktif { background: var(--teal-light) !important; color: var(--teal-dark) !important; border-color: var(--teal) !important; font-weight: 600; }
+.katGeri { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: none; font-size: 12px; color: var(--text-3); cursor: pointer; font-family: inherit; margin-bottom: 8px; transition: all 0.1s; }
+.katGeri:hover { border-color: var(--teal); color: var(--teal); }
+.katSecildi { background: var(--teal-light); border: 1px solid var(--teal-mid); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--teal-dark); font-weight: 500; margin-top: 8px; }
+
+/* MARKA GRID */
+.markaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+.markaBtn { padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: white; font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; font-family: inherit; text-align: center; transition: all 0.1s; }
+.markaBtn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+.markaBtnAktif { border-color: var(--teal) !important; color: var(--teal-dark) !important; background: var(--teal-light) !important; font-weight: 600; }
