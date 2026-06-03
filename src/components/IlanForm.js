@@ -8,14 +8,6 @@ import styles from './IlanForm.module.css'
 const STEPS_GIRIS   = ['Kategori','Konum','Fiyat & Özellikler','Açıklama','İletişim','Onay']
 const STEPS_MISAFIR = ['Kategori','Konum','Fiyat & Özellikler','Açıklama','İletişim','Kişisel Bilgi','Onay']
 
-const kategoriler = [
-  {slug:'emlak',    icon:'🏠', label:'Emlak',   sub:'Daire, villa, arsa…'},
-  {slug:'vasita',   icon:'🚗', label:'Vasıta',  sub:'Otomobil, SUV, motosiklet…'},
-  {slug:'ikinci-el',icon:'📦', label:'İkinci El',sub:'Genel eşya, ürün…'},
-  {slug:'mobilya',  icon:'🛋️', label:'Mobilya', sub:'Koltuk, masa, yatak…'},
-  {slug:'elektronik',icon:'📱',label:'Elektronik',sub:'Telefon, bilgisayar…'},
-  {slug:'sanayi',   icon:'🏭', label:'Sanayi',  sub:'Makine, ekipman…'},
-]
 const emlakTipler   = ['Daire','Villa','Müstakil Ev','Arsa','İşyeri','Depo','Tarla']
 const odaSayilari   = ['1+0','1+1','2+1','3+1','4+1','4+1 ve üzeri','Fark etmez']
 const emlakOzellikleri = ['Asansör','Otopark','Balkon','Bahçe','Güvenlik','Eşyalı','Site içi','Deniz manzarası']

@@ -163,22 +163,26 @@ export const KATEGORILER = [
   },
 ]
 
-// Hızlı erişim için slug → kategori/alt kategori map
-export const KATEGORI_MAP = {}
-export const ALT_KATEGORI_MAP = {}
-
-KATEGORILER.forEach(k => {
-  KATEGORI_MAP[k.slug] = k
-  k.altKategoriler?.forEach(alt => {
-    ALT_KATEGORI_MAP[alt.slug] = { ...alt, anaKategori: k.slug, anaLabel: k.label }
-  })
-})
-
 // Renk bul: slug'a göre (alt kategori varsa onu, yoksa ana kategoriyi)
 export function getKategoriRenk(slug) {
-  if (ALT_KATEGORI_MAP[slug]?.renk) return ALT_KATEGORI_MAP[slug].renk
-  if (KATEGORI_MAP[slug]?.renk) return KATEGORI_MAP[slug].renk
+  for (const k of KATEGORILER) {
+    if (k.slug === slug) return k.renk || { bg:'#F8FAFC', border:'#CBD5E1', badge:'#475569', badgeBg:'#E2E8F0' }
+    const alt = k.altKategoriler?.find(a => a.slug === slug)
+    if (alt) return alt.renk || k.renk || { bg:'#F8FAFC', border:'#CBD5E1', badge:'#475569', badgeBg:'#E2E8F0' }
+  }
   return { bg:'#F8FAFC', border:'#CBD5E1', badge:'#475569', badgeBg:'#E2E8F0' }
+}
+
+export function getAltKategori(slug) {
+  for (const k of KATEGORILER) {
+    const alt = k.altKategoriler?.find(a => a.slug === slug)
+    if (alt) return { ...alt, anaKategori: k.slug, anaLabel: k.label }
+  }
+  return null
+}
+
+export function getAnaKategori(slug) {
+  return KATEGORILER.find(k => k.slug === slug) || null
 }
 
 // Tüm kategorileri düz liste olarak
