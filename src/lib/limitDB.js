@@ -9,20 +9,22 @@ export async function kullaniciHaklari(email) {
     return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, telefonGoster: false, engelli: false }
   }
   // 1. Kullanıcının paket kodunu al
-  const { data: k } = await supabase
+  const { data: kList } = await supabase
     .from('kullanicilar')
     .select('paket, engelli')
     .eq('email', email)
-    .maybeSingle()
-
+    .order('created_at', { ascending: true })
+    .limit(1)
+  const k = kList && kList.length ? kList[0] : null
   const paketKod = k?.paket || 'ucretsiz'
 
   // 2. O paketin GÜNCEL haklarını paketler tablosundan al
-  const { data: p } = await supabase
+  const { data: pList } = await supabase
     .from('paketler')
     .select('gunluk_ilan, gunluk_mesaj, telefon_goster')
     .eq('kod', paketKod)
-    .maybeSingle()
+    .limit(1)
+  const p = pList && pList.length ? pList[0] : null
 
   return {
     paket: paketKod,
