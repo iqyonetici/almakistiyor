@@ -7,7 +7,7 @@ import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
 import SidebarKategoriler from '../components/SidebarKategoriler'
 import { sehirler } from '../data/sehirler'
-import { KATEGORILER } from '../data/kategoriler'
+import { kategorileriGetir } from '../lib/kategoriDB'
 import { ilanListele, ilanOlustur } from '../lib/db'
 import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
@@ -34,6 +34,7 @@ export default function Home() {
   const [kalanGenel, setKalanGenel] = useState(3)
   const [paketModal, setPaketModal] = useState(false)
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
+  const [kategoriAgaci, setKategoriAgaci] = useState([])
   const [kelimeIndex, setKelimeIndex] = useState(0)
   const [kelimeFade, setKelimeFade] = useState(true)
 
@@ -54,6 +55,7 @@ export default function Home() {
       }
     }
     loadStats()
+    kategorileriGetir().then(setKategoriAgaci)
 
     async function yukle() {
       const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
@@ -239,7 +241,7 @@ export default function Home() {
             )}
             <div className={styles.filterGroup}>
               <label className="form-label">🗂️ Kategori</label>
-              <SidebarKategoriler KATEGORILER={KATEGORILER} activeCategory={activeCategory} onKatChange={handleKatChange} />
+              <SidebarKategoriler KATEGORILER={kategoriAgaci} activeCategory={activeCategory} onKatChange={handleKatChange} />
             </div>
             <div className={styles.filterGroup}>
               <label className="form-label">📅 Tarih</label>

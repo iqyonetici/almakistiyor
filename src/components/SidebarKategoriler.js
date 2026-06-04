@@ -35,7 +35,10 @@ function SidebarKategoriler({ KATEGORILER, activeCategory, onKatChange }) {
 
   // 3. seviye: emlak_tip / marka filtresiyle
   const handleAlt3 = useCallback((alt3) => {
-    onKatChange(alt3.slug, alt3.filtre || null)
+    const filtre = alt3.filtre_tip
+      ? { tip: alt3.filtre_tip, deger: alt3.filtre_deger }
+      : (alt3.filtre || null)
+    onKatChange(alt3.slug, filtre)
   }, [onKatChange])
 
   return (
