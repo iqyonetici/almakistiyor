@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useAuth } from "../context/AuthContext";
+import { adminMi } from "../lib/kategoriDB";
 import styles from "./Navbar.module.css";
 
 // DB'deki gerçek kategorilerle uyumlu
@@ -45,8 +47,22 @@ export const kategoriler = [
 
 export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) {
   const router = useRouter();
+  const { user, cikisYap } = useAuth();
   const isAnasayfa = router.pathname === "/";
   const [mobilMenuAcik, setMobilMenuAcik] = useState(false);
+  const [profilAcik, setProfilAcik] = useState(false);
+  const [admin, setAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user?.email) adminMi(user.email).then(setAdmin);
+    else setAdmin(false);
+  }, [user]);
+
+  async function handleCikis() {
+    setProfilAcik(false);
+    await cikisYap();
+    router.push("/");
+  }
   const [mobilAltAcik, setMobilAltAcik] = useState(null);
 
   const handleKatClick = (e, slug) => {
@@ -87,8 +103,35 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) 
               <button className={styles.btnIlan} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
                 + Almak İstiyorum
               </button>
-              <Link href="/giris" className={styles.btnGiris}>Giriş</Link>
-              <Link href="/kayit" className={styles.btnKayit}>Üye Ol</Link>
+              {user ? (
+                <div className={styles.profilWrap}>
+                  <button className={styles.profilBtn} onClick={() => setProfilAcik(a => !a)}>
+                    <span className={styles.profilAvatar}>{(user.ad?.[0] || user.email?.[0] || "K").toUpperCase()}</span>
+                    <span className={styles.profilAd}>Merhaba, {user.ad || "Kullanıcı"}</span>
+                    <span className={styles.profilOk}>▾</span>
+                  </button>
+                  {profilAcik && (
+                    <>
+                      <div className={styles.profilArka} onClick={() => setProfilAcik(false)} />
+                      <div className={styles.profilMenu}>
+                        <div className={styles.profilBaslik}>
+                          <div className={styles.profilBaslikAd}>{user.ad} {user.soyad || ""}</div>
+                          <div className={styles.profilBaslikMail}>{user.email}</div>
+                        </div>
+                        <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
+                        <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım</Link>
+                        {admin && <Link href="/admin" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Admin Panel</Link>}
+                        <button className={styles.profilCikis} onClick={handleCikis}>🚪 Çıkış Yap</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link href="/giris" className={styles.btnGiris}>Giriş</Link>
+                  <Link href="/kayit" className={styles.btnKayit}>Üye Ol</Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -16,7 +16,7 @@
 .topBarInner {
   max-width: 1200px;
   margin: 0 auto;
-  height: 56px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,14 +31,14 @@
   flex-shrink: 0;
 }
 .logoIcon {
-  width: 28px; height: 28px;
-  background: white; color: #085549;
-  border-radius: 6px;
+  width: 32px; height: 32px;
+  background: white; color: #0D7A6B;
+  border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700;
+  font-size: 18px; font-weight: 700;
 }
 .logoText {
-  color: white; font-size: 17px; font-weight: 400;
+  color: white; font-size: 18px; font-weight: 400; letter-spacing: -0.2px;
 }
 .logoText strong { font-weight: 700; }
 
@@ -231,4 +231,47 @@
 @media (min-width: 769px) {
   .bottomNav { display: none !important; }
   .overlay { display: none !important; }
+}
+
+/* ===== PROFİL MENÜSÜ (giriş yapınca) ===== */
+.profilWrap { position: relative; }
+.profilBtn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px; padding: 6px 12px 6px 6px; cursor: pointer;
+  font-family: inherit; transition: background 0.15s;
+}
+.profilBtn:hover { background: rgba(255,255,255,0.2); }
+.profilAvatar {
+  width: 30px; height: 30px; border-radius: 8px; background: #F5A623;
+  color: white; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.profilAd { color: white; font-size: 13.5px; font-weight: 500; white-space: nowrap; }
+.profilOk { color: rgba(255,255,255,0.7); font-size: 11px; }
+
+.profilArka { position: fixed; inset: 0; z-index: 90; }
+.profilMenu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 100;
+  background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  min-width: 230px; overflow: hidden; border: 1px solid #eee;
+}
+.profilBaslik { padding: 14px 16px; background: #f7f8fa; border-bottom: 1px solid #eee; }
+.profilBaslikAd { font-weight: 600; font-size: 14px; color: #1a1d23; }
+.profilBaslikMail { font-size: 12px; color: #8a95a3; margin-top: 2px; word-break: break-all; }
+.profilLink {
+  display: block; padding: 11px 16px; font-size: 13.5px; color: #1a1d23;
+  text-decoration: none; transition: background 0.12s;
+}
+.profilLink:hover { background: #E6F5F2; color: #085549; }
+.profilCikis {
+  display: block; width: 100%; text-align: left; padding: 11px 16px;
+  font-size: 13.5px; color: #B91C1C; background: none; border: none;
+  border-top: 1px solid #eee; cursor: pointer; font-family: inherit;
+}
+.profilCikis:hover { background: #FEF2F2; }
+
+@media (max-width: 768px) {
+  .profilAd { display: none; }
+  .profilBtn { padding: 6px; }
 }
