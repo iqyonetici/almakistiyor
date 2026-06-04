@@ -13,12 +13,9 @@ import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
 
 const demoIlanlar = [
-  { id: 1, kategori: 'emlak', ad: 'Mehmet Arslan', sehir: 'İstanbul', ilce: 'Kadıköy', baslik: "Kadıköy'de 3+1 kiralık daire arıyorum", fiyatMin: 25000, fiyatMax: 35000, tags: [{label:'3+1',variant:'tag-gray'},{label:'120–160 m²',variant:'tag-gray'},{label:'Eşyalı',variant:'tag-amber'}], aciklama: 'Asansörlü, otoparkı tercih ederim. Balkon şart.', tarih: '3 saat önce', goruntuleme: 47 },
-  { id: 2, kategori: 'vasita', ad: 'Zeynep Koçak', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: '2018–2022 model BMW veya Mercedes arıyorum', fiyatMin: 800000, fiyatMax: 1200000, tags: [{label:'0–80.000 km',variant:'tag-gray'},{label:'Otomatik',variant:'tag-gray'}], aciklama: 'Kazasız, boyasız tercih ederim.', tarih: '8 saat önce', goruntuleme: 128 },
-  { id: 3, kategori: 'alisveris', ad: 'Ayşe Yılmaz', sehir: 'İstanbul', ilce: 'Şişli', baslik: 'L boyutunda köşe koltuk takımı arıyorum', fiyatMin: 15000, fiyatMax: 30000, tags: [{label:'Az kullanılmış',variant:'tag-gray'}], aciklama: 'Taşıma imkânım var.', tarih: '1 gün önce', goruntuleme: 31 },
-  { id: 4, kategori: 'emlak', ad: 'Can Öztürk', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: "Beşiktaş'ta satılık daire bakıyorum", fiyatMin: 8000000, fiyatMax: 15000000, tags: [{label:'3+1/4+1',variant:'tag-gray'},{label:'150–250 m²',variant:'tag-gray'}], aciklama: 'Peşin ödeme yapabilirim.', tarih: '2 gün önce', goruntuleme: 214 },
-  { id: 5, kategori: 'vasita', ad: 'Burak Demir', sehir: 'Ankara', ilce: 'Çankaya', baslik: "VW Golf veya Passat arıyorum", fiyatMin: 500000, fiyatMax: 750000, tags: [{label:'2019–2023',variant:'tag-gray'}], aciklama: 'DSG vitesli tercih ederim.', tarih: '2 gün önce', goruntuleme: 89 },
-  { id: 6, kategori: 'emlak', ad: 'Selin Aktaş', sehir: 'İzmir', ilce: 'Karşıyaka', baslik: "Karşıyaka'da 2+1 satılık daire arıyorum", fiyatMin: 3000000, fiyatMax: 5000000, tags: [{label:'2+1',variant:'tag-gray'}], aciklama: 'Denize yakın konum istiyorum.', tarih: '3 gün önce', goruntuleme: 67 },
+  { id: 1, kategori: 'emlak', ad: 'Mehmet Arslan', sehir: 'İstanbul', ilce: 'Kadıköy', baslik: "Kadıköy'de 3+1 kiralık daire arıyorum", fiyatMin: 25000, fiyatMax: 35000, tags: [{label:'3+1',variant:'tag-gray'},{label:'Eşyalı',variant:'tag-amber'}], aciklama: 'Asansörlü, otoparkı tercih ederim.', tarih: '3 saat önce', goruntuleme: 47 },
+  { id: 2, kategori: 'vasita', ad: 'Zeynep Koçak', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: 'BMW veya Mercedes arıyorum', fiyatMin: 800000, fiyatMax: 1200000, tags: [{label:'Otomatik',variant:'tag-gray'}], aciklama: 'Kazasız tercih ederim.', tarih: '8 saat önce', goruntuleme: 128 },
+  { id: 3, kategori: 'alisveris', ad: 'Ayşe Yılmaz', sehir: 'İstanbul', ilce: 'Şişli', baslik: 'Köşe koltuk takımı arıyorum', fiyatMin: 15000, fiyatMax: 30000, tags: [], aciklama: 'Taşıma imkânım var.', tarih: '1 gün önce', goruntuleme: 31 },
 ]
 
 const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'villa', 'koltuk']
@@ -27,6 +24,7 @@ export default function Home() {
   const { user } = useAuth()
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
+  const [aktifFiltre, setAktifFiltre] = useState(null)
   const [filterSehir, setFilterSehir] = useState('')
   const [filterIlce, setFilterIlce] = useState('')
   const [filterTarih, setFilterTarih] = useState('')
@@ -62,7 +60,9 @@ export default function Home() {
       const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
       const { data } = await ilanListele({
         kategori: isAltKat ? undefined : (activeCategory || undefined),
-        altKategori: isAltKat ? activeCategory : undefined,
+        altKategori: (isAltKat && !aktifFiltre) ? activeCategory : undefined,
+        emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
+        marka: aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined,
         sehir: filterSehir || undefined,
         ilce: filterIlce || undefined,
       })
@@ -91,13 +91,14 @@ export default function Home() {
           email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
           created_at: d.created_at, emlak_tip: d.emlak_tip,
         })))
+      } else {
+        setIlanlar([])
       }
     }
     yukle()
-  }, [activeCategory, filterSehir, filterIlce])
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce])
 
   const filtered = ilanlar
-    .filter(i => !activeCategory || i.kategori === activeCategory || i.altKategori === activeCategory)
     .filter(i => !filterSehir || i.sehir === filterSehir)
     .filter(i => !filterIlce || i.ilce === filterIlce)
     .filter(i => {
@@ -112,19 +113,18 @@ export default function Home() {
       return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
     })
 
-  const handleKatChange = (slug) => {
+  const handleKatChange = (slug, filtre = null) => {
     setActiveCategory(slug)
+    setAktifFiltre(filtre)
     setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   async function handleSubmit(data) {
     await ilanOlustur(data, user)
     setIlanlar(prev => [{
-      id: Date.now(), kategori: data.kategori, ad: data.ad,
-      sehir: data.sehir, ilce: data.ilce,
-      baslik: `${data.sehir}'de arıyorum`,
-      fiyatMin: null, fiyatMax: null, tags: [], aciklama: data.aciklama,
-      tarih: 'Az önce', goruntuleme: 0,
+      id: Date.now(), kategori: data.kategori, ad: data.ad, sehir: data.sehir, ilce: data.ilce,
+      baslik: `${data.sehir}'de arıyorum`, fiyatMin: null, fiyatMax: null, tags: [],
+      aciklama: data.aciklama, tarih: 'Az önce', goruntuleme: 0,
     }, ...prev])
   }
 
@@ -137,7 +137,6 @@ export default function Home() {
 
       <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={() => setFormOpen(true)} />
 
-      {/* HERO */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <div className={styles.heroContent}>
@@ -155,9 +154,7 @@ export default function Home() {
             </h1>
             <p className={styles.heroSub}>Söyleyin — satıcılar sizi bulsun. Ücretsiz, spamsiz.</p>
             <div className={styles.heroActions}>
-              <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>
-                + Almak İstiyorum
-              </button>
+              <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>+ Almak İstiyorum</button>
               <a href="#ilan-listesi" className={styles.heroBtnSecondary}
                 onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}>
                 İlanları Gör →
@@ -179,7 +176,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MOBİL KATEGORİ CHIPS */}
       <div className={styles.mobileFilterBar}>
         {navKategoriler.slice(0, 8).map(kat => (
           <button key={kat.slug}
@@ -190,7 +186,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* TRUST BAR */}
       <div className={styles.trustBar}>
         <div className={`container ${styles.trustInner}`}>
           {[
@@ -204,7 +199,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* KULLANICI KARŞILAMA */}
       {user && (
         <div style={{ background: '#E6F5F2', borderBottom: '1px solid #B2DDD7', padding: '8px 16px' }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
@@ -217,10 +211,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* MAIN */}
       <div className={`container ${styles.main}`}>
-
-        {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.ctaCard}>
             <h4>Talep ver, satıcılar seni bulsun</h4>
@@ -229,8 +220,6 @@ export default function Home() {
 
           <div className={styles.filterCard}>
             <div className={styles.filterTitle}>🔍 Filtrele</div>
-
-            {/* ŞEHİR */}
             <div className={styles.filterGroup}>
               <label className="form-label">📍 Şehir</label>
               <select className="form-select" value={filterSehir}
@@ -239,39 +228,25 @@ export default function Home() {
                 {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
               </select>
             </div>
-
             {filterSehir && (
               <div className={styles.filterGroup}>
                 <label className="form-label">📎 İlçe</label>
                 <select className="form-select" value={filterIlce} onChange={e => setFilterIlce(e.target.value)}>
                   <option value="">Tüm ilçeler</option>
-                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => (
-                    <option key={i} value={i}>{i}</option>
-                  ))}
+                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
             )}
-
-            {/* KATEGORİ — 3 seviyeli */}
             <div className={styles.filterGroup}>
               <label className="form-label">🗂️ Kategori</label>
-              <SidebarKategoriler
-                KATEGORILER={KATEGORILER}
-                activeCategory={activeCategory}
-                onKatChange={handleKatChange}
-              />
+              <SidebarKategoriler KATEGORILER={KATEGORILER} activeCategory={activeCategory} onKatChange={handleKatChange} />
             </div>
-
-            {/* TARİH */}
             <div className={styles.filterGroup}>
               <label className="form-label">📅 Tarih</label>
               <div className={styles.chips}>
                 {[{ v: '', l: 'Tümü' }, { v: 'bugun', l: 'Bugün' }, { v: 'hafta', l: 'Bu hafta' }].map(d => (
-                  <button key={d.v}
-                    className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
-                    onClick={() => setFilterTarih(d.v)}>
-                    {d.l}
-                  </button>
+                  <button key={d.v} className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
+                    onClick={() => setFilterTarih(d.v)}>{d.l}</button>
                 ))}
               </div>
             </div>
@@ -281,31 +256,23 @@ export default function Home() {
             <div className={styles.freeBadge}>3 ücretsiz hak</div>
             <h5>Emlakçı veya Galericiler</h5>
             <p>Talep ilanlarına erişin.</p>
-            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>
-              Satıcı girişi →
-            </a>
+            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>Satıcı girişi →</a>
           </div>
         </aside>
 
-        {/* LİSTİNGS */}
         <main className={styles.listings} id="ilan-listesi">
           <div className={styles.listHeader}>
-            <div className={styles.listCount}>
-              <strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı
-            </div>
+            <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
             <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>
               <option value="yeni">En yeni</option>
               <option value="cok-goruntulenen">En çok görüntülenen</option>
             </select>
           </div>
-
           <div className={styles.listGrid}>
             {filtered.length === 0 ? (
               <div className={styles.empty}>
                 <p>Bu kriterlere uygun ilan bulunamadı.</p>
-                <button className="btn-primary" onClick={() => setFormOpen(true)}>
-                  İlk ilanı siz verin →
-                </button>
+                <button className="btn-primary" onClick={() => setFormOpen(true)}>İlk ilanı siz verin →</button>
               </div>
             ) : (
               filtered.map(ilan => (
@@ -313,20 +280,8 @@ export default function Home() {
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
-                    const { data: konusma } = await kBVG({
-                      ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori,
-                      aliciEmail: il.email || '', aliciAd: il.ad || '',
-                      saticiEmail: user?.email || 'anonim',
-                      saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
-                      saticiIfirma: user?.firma || null,
-                    })
-                    if (konusma) {
-                      await kMG({
-                        konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim',
-                        gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
-                        metin: mesaj, gonderenAliciMi: false,
-                      })
-                    }
+                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
+                    if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
                     setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
                     setKalanGenel(p => Math.max(0, p - 1))
                   }}
@@ -335,7 +290,6 @@ export default function Home() {
               ))
             )}
           </div>
-
           {filtered.length > 0 && (
             <div className={styles.pagination}>
               {['←', '1', '2', '3', '...', '→'].map((p, i) => (
@@ -354,15 +308,9 @@ export default function Home() {
           <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 360, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>🔒</div>
             <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Telefon için paket gerekli</h3>
-            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>
-              Alıcının numarasını görmek için Starter paketi gerekiyor.
-            </p>
-            <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>
-              Paketlere Bak →
-            </a>
-            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer' }}>
-              Şimdilik geç
-            </button>
+            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>Alıcının numarasını görmek için Starter paketi gerekiyor.</p>
+            <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Paketlere Bak →</a>
+            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer' }}>Şimdilik geç</button>
           </div>
         </div>
       )}

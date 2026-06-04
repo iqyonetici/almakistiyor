@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 // ==================== İLAN FONKSİYONLARI ====================
 
-export async function ilanListele({ kategori, altKategori, sehir, ilce, limit = 50 } = {}) {
+export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip, marka, limit = 50 } = {}) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
   let q = supabase
     .from('ilanlar')
@@ -10,12 +10,19 @@ export async function ilanListele({ kategori, altKategori, sehir, ilce, limit = 
     .eq('durum', 'aktif')
     .order('created_at', { ascending: false })
     .limit(limit)
-  // Alt kategori varsa onu filtrele, yoksa ana kategoriyi
-  if (altKategori) {
+
+  // 3. seviye filtreler (en spesifik)
+  if (emlakTip) {
+    q = q.eq('emlak_tip', emlakTip)
+  } else if (marka) {
+    // markalar kolonu "BMW 320i" gibi olabilir, başlangıç eşleşmesi
+    q = q.ilike('markalar', marka + '%')
+  } else if (altKategori) {
     q = q.eq('alt_kategori', altKategori)
   } else if (kategori) {
     q = q.eq('kategori', kategori)
   }
+
   if (sehir) q = q.eq('sehir', sehir)
   if (ilce) q = q.eq('ilce', ilce)
   return await q
@@ -24,13 +31,10 @@ export async function ilanListele({ kategori, altKategori, sehir, ilce, limit = 
 export async function ilanOlustur(ilanData, user) {
   if (!supabase) return { data: null, error: 'Supabase bağlı değil' }
 
-  // Vasıta marka: wizard'dan seçilen marka öncelikli, yoksa markalar array'i
-  const vasitaMarka = ilanData.vasitaMarka ||
-    (ilanData.markalar?.length ? ilanData.markalar[0] : null)
+  const vasitaMarka = ilanData.vasitaMarka || (ilanData.markalar?.length ? ilanData.markalar[0] : null)
   const vasitaModel = ilanData.vasitaModel || null
   const vasitaVersiyon = ilanData.vasitaVersiyon || null
 
-  // Markalar string: wizard'dan seçilen veya çoklu seçim
   let markaStr = null
   if (vasitaMarka) {
     markaStr = vasitaModel ? `${vasitaMarka} ${vasitaModel}${vasitaVersiyon?' '+vasitaVersiyon:''}` : vasitaMarka
@@ -75,11 +79,7 @@ export async function ilanOlustur(ilanData, user) {
 
 export async function kullanicIlanlari(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase
-    .from('ilanlar')
-    .select('*')
-    .eq('kullanici_email', kullaniciEmail)
-    .order('created_at', { ascending: false })
+  return await supabase.from('ilanlar').select('*').eq('kullanici_email', kullaniciEmail).order('created_at', { ascending: false })
 }
 
 export async function ilanSil(ilanId) {
@@ -101,29 +101,13 @@ export async function goruntulemeArttir(ilanId) {
 
 export async function mesajGonder({ ilanId, gonderenEmail, gonderenAd, gonderenFirma, aliciEmail, metin }) {
   if (!supabase) return { data: null, error: 'Supabase bağlı değil' }
-  const { data, error } = await supabase
-    .from('mesajlar')
-    .insert([{
-      ilan_id: ilanId,
-      gonderen_email: gonderenEmail,
-      gonderen_ad: gonderenAd,
-      gonderen_firma: gonderenFirma || null,
-      alici_email: aliciEmail,
-      metin,
-      okundu: false,
-    }])
-    .select()
-    .single()
+  const { data, error } = await supabase.from('mesajlar').insert([{ ilan_id: ilanId, gonderen_email: gonderenEmail, gonderen_ad: gonderenAd, gonderen_firma: gonderenFirma || null, alici_email: aliciEmail, metin, okundu: false }]).select().single()
   return { data, error }
 }
 
 export async function mesajlariGetir(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase
-    .from('mesajlar')
-    .select('*')
-    .eq('alici_email', kullaniciEmail)
-    .order('created_at', { ascending: false })
+  return await supabase.from('mesajlar').select('*').eq('alici_email', kullaniciEmail).order('created_at', { ascending: false })
 }
 
 export async function mesajOkunduIsaretle(mesajId) {
@@ -131,133 +115,59 @@ export async function mesajOkunduIsaretle(mesajId) {
   await supabase.from('mesajlar').update({ okundu: true }).eq('id', mesajId)
 }
 
-export async function yanıtGonder({ mesajId, gonderenEmail, gonderenAd, metin }) {
+export async function yanitGonder({ mesajId, gonderenEmail, gonderenAd, metin }) {
   if (!supabase) return { error: 'Supabase bağlı değil' }
-  return await supabase
-    .from('yanitlar')
-    .insert([{ mesaj_id: mesajId, gonderen_email: gonderenEmail, gonderen_ad: gonderenAd, metin }])
-    .select()
-    .single()
+  return await supabase.from('yanitlar').insert([{ mesaj_id: mesajId, gonderen_email: gonderenEmail, gonderen_ad: gonderenAd, metin }]).select().single()
 }
 
 export async function mesajYanitlari(mesajId) {
   if (!supabase) return { data: [], error: null }
-  return await supabase
-    .from('yanitlar')
-    .select('*')
-    .eq('mesaj_id', mesajId)
-    .order('created_at', { ascending: true })
+  return await supabase.from('yanitlar').select('*').eq('mesaj_id', mesajId).order('created_at', { ascending: true })
 }
 
-// Satıcının bir alıcıya kaç mesaj gönderdiğini say (5 limit için)
 export async function mesajSayisi(gonderenEmail, ilanId) {
   if (!supabase) return 0
-  const { count } = await supabase
-    .from('mesajlar')
-    .select('*', { count: 'exact', head: true })
-    .eq('gonderen_email', gonderenEmail)
-    .eq('ilan_id', ilanId)
+  const { count } = await supabase.from('mesajlar').select('*', { count: 'exact', head: true }).eq('gonderen_email', gonderenEmail).eq('ilan_id', ilanId)
   return count || 0
 }
 
 // ==================== KONUŞMA FONKSİYONLARI ====================
 
-// Konuşma başlat veya mevcut konuşmayı getir
 export async function konusmaBaslatVeyaGetir({ ilanId, ilanBaslik, ilanKategori, aliciEmail, aliciAd, saticiEmail, saticiAd, saticiIfirma }) {
   if (!supabase) return { data: null, error: 'Supabase bağlı değil' }
-  
-  // Önce bu ilan + bu iki kullanıcı arasında konuşma var mı bak
-  const { data: mevcut } = await supabase
-    .from('konusmalar')
-    .select('*')
-    .eq('ilan_id', ilanId)
-    .eq('alici_email', aliciEmail)
-    .eq('satici_email', saticiEmail)
-    .single()
-  
+  const { data: mevcut } = await supabase.from('konusmalar').select('*').eq('ilan_id', ilanId).eq('alici_email', aliciEmail).eq('satici_email', saticiEmail).single()
   if (mevcut) return { data: mevcut, error: null }
-  
-  // Yoksa yeni konuşma oluştur
-  const { data, error } = await supabase
-    .from('konusmalar')
-    .insert([{
-      ilan_id: ilanId,
-      ilan_baslik: ilanBaslik,
-      ilan_kategori: ilanKategori,
-      alici_email: aliciEmail,
-      alici_ad: aliciAd,
-      satici_email: saticiEmail,
-      satici_ad: saticiAd,
-      satici_firma: saticiIfirma || null,
-    }])
-    .select()
-    .single()
-  
+  const { data, error } = await supabase.from('konusmalar').insert([{ ilan_id: ilanId, ilan_baslik: ilanBaslik, ilan_kategori: ilanKategori, alici_email: aliciEmail, alici_ad: aliciAd, satici_email: saticiEmail, satici_ad: saticiAd, satici_firma: saticiIfirma || null }]).select().single()
   return { data, error }
 }
 
-// Kullanıcının tüm konuşmalarını getir (hem alıcı hem satıcı olarak)
 export async function konusmalariGetir(kullaniciEmail) {
   if (!supabase) return { data: [], error: null }
-  const { data: alici } = await supabase
-    .from('konusmalar').select('*')
-    .eq('alici_email', kullaniciEmail)
-    .order('guncellendi_at', { ascending: false })
-  const { data: satici } = await supabase
-    .from('konusmalar').select('*')
-    .eq('satici_email', kullaniciEmail)
-    .order('guncellendi_at', { ascending: false })
-  
+  const { data: alici } = await supabase.from('konusmalar').select('*').eq('alici_email', kullaniciEmail).order('guncellendi_at', { ascending: false })
+  const { data: satici } = await supabase.from('konusmalar').select('*').eq('satici_email', kullaniciEmail).order('guncellendi_at', { ascending: false })
   const hepsi = [...(alici||[]), ...(satici||[])]
-  // Tekrarları kaldır, en yeni önce sırala
   const tekrarsiz = hepsi.filter((k,i,a) => a.findIndex(x=>x.id===k.id)===i)
   tekrarsiz.sort((a,b) => new Date(b.guncellendi_at) - new Date(a.guncellendi_at))
   return { data: tekrarsiz, error: null }
 }
 
-// Konuşmadaki mesajları getir
 export async function konusmaMesajlariGetir(konusmaId) {
   if (!supabase) return { data: [], error: null }
-  return await supabase
-    .from('konusma_mesajlari')
-    .select('*')
-    .eq('konusma_id', konusmaId)
-    .order('created_at', { ascending: true })
+  return await supabase.from('konusma_mesajlari').select('*').eq('konusma_id', konusmaId).order('created_at', { ascending: true })
 }
 
-// Konuşmaya mesaj gönder
-export async function konusmaMesajGonder({ konusmaId, gonderenEmail, gonderenAd, metin, aliciEmail, saticiEmail, gonderenAliciMi }) {
+export async function konusmaMesajGonder({ konusmaId, gonderenEmail, gonderenAd, metin, gonderenAliciMi }) {
   if (!supabase) return { data: null, error: 'Supabase bağlı değil' }
-  
-  const { data, error } = await supabase
-    .from('konusma_mesajlari')
-    .insert([{ konusma_id: konusmaId, gonderen_email: gonderenEmail, gonderen_ad: gonderenAd, metin }])
-    .select().single()
-  
+  const { data, error } = await supabase.from('konusma_mesajlari').insert([{ konusma_id: konusmaId, gonderen_email: gonderenEmail, gonderen_ad: gonderenAd, metin }]).select().single()
   if (!error) {
-    // Konuşmayı güncelle: son mesaj + okunmamış sayısı
-    const guncelle = {
-      son_mesaj: metin.slice(0,100),
-      guncellendi_at: new Date().toISOString(),
-    }
-    if (gonderenAliciMi) {
-      guncelle.okunmamis_satici = supabase.rpc ? undefined : 1
-    }
-    await supabase.from('konusmalar').update(guncelle).eq('id', konusmaId)
+    await supabase.from('konusmalar').update({ son_mesaj: metin.slice(0,100), guncellendi_at: new Date().toISOString() }).eq('id', konusmaId)
   }
   return { data, error }
 }
 
-// Konuşmayı okundu işaretle
 export async function konusmaOkunduIsaretle(konusmaId, kullaniciEmail, rolAlici) {
   if (!supabase) return
-  const guncelle = rolAlici
-    ? { okunmamis_alici: 0 }
-    : { okunmamis_satici: 0 }
+  const guncelle = rolAlici ? { okunmamis_alici: 0 } : { okunmamis_satici: 0 }
   await supabase.from('konusmalar').update(guncelle).eq('id', konusmaId)
-  // Mesajları okundu işaretle
-  await supabase.from('konusma_mesajlari')
-    .update({ okundu: true })
-    .eq('konusma_id', konusmaId)
-    .neq('gonderen_email', kullaniciEmail)
+  await supabase.from('konusma_mesajlari').update({ okundu: true }).eq('konusma_id', konusmaId).neq('gonderen_email', kullaniciEmail)
 }
