@@ -10,11 +10,9 @@ function randomCaptcha() {
   const b = Math.floor(Math.random() * 9) + 1
   return { a, b, answer: a + b }
 }
-function fakeCode() { return String(Math.floor(100000 + Math.random() * 900000)) }
 
-// Telefon formatlama — başında sıfır olmadan, boşluklu: 532 111 22 33
 function formatTel(val) {
-  const digits = val.replace(/\D/g,'').replace(/^0+/,'') // başındaki sıfırları sil
+  const digits = val.replace(/\D/g,'').replace(/^0+/,'')
   if (digits.length <= 3) return digits
   if (digits.length <= 6) return digits.slice(0,3) + ' ' + digits.slice(3)
   if (digits.length <= 8) return digits.slice(0,3) + ' ' + digits.slice(3,6) + ' ' + digits.slice(6)
@@ -22,21 +20,17 @@ function formatTel(val) {
 }
 
 export default function Kayit() {
-  const { kayitOl, demoGiris } = useAuth()
+  const { kayitOl } = useAuth()
   const router = useRouter()
 
-  // Hesap türü seçimi kaldırıldı — herkes alıcı
   const [step, setStep] = useState(1)
   const [hatalar, setHatalar] = useState({})
   const [captcha] = useState(randomCaptcha())
   const [captchaInput, setCaptchaInput] = useState('')
-  const [dogrulamaKodu] = useState(fakeCode())
-  const [girilenKod, setGirilenKod] = useState('')
-  const [kodHata, setKodHata] = useState('')
   const [kayitHata, setKayitHata] = useState('')
   const [yukleniyor, setYukleniyor] = useState(false)
+  const [basarili, setBasarili] = useState(false)
 
-  // Form alanları
   const [ad, setAd] = useState('')
   const [soyad, setSoyad] = useState('')
   const [email, setEmail] = useState('')
@@ -48,26 +42,17 @@ export default function Kayit() {
   const [dogumYili, setDogumYili] = useState('')
   const [cinsiyet, setCinsiyet] = useState('')
   const [iletisimTercihi, setIletisimTercihi] = useState('ikisi')
-  const [firmaTur, setFirmaTur] = useState('')
-  const [firmaAd, setFirmaAd] = useState('')
-  const [vergiNo, setVergiNo] = useState('')
-  const [vergiDairesi, setVergiDairesi] = useState('')
-  const [firmaAdres, setFirmaAdres] = useState('')
-  const [firmaWeb, setFirmaWeb] = useState('')
-  const [firmaTelefon, setFirmaTelefon] = useState('')
   const [kvkk, setKvkk] = useState(false)
   const [sozlesme, setSozlesme] = useState(false)
 
   const ilceler = getIlceler(sehir)
-  const toplamStep = 3 // Kişisel bilgiler → İletişim tercihi + Onay → Doğrulama
 
   function validate1() {
     const h = {}
     if (!ad.trim()) h.ad = 'Zorunlu'
     if (!soyad.trim()) h.soyad = 'Zorunlu'
     if (!email.includes('@')) h.email = 'Geçerli e-posta girin'
-    const digits = telefon.replace(/\D/g,'')
-    if (digits.length < 10) h.telefon = 'En az 10 rakam'
+    if (telefon.replace(/\D/g,'').length < 10) h.telefon = 'En az 10 rakam'
     if (sifre.length < 6) h.sifre = 'En az 6 karakter'
     if (sifre !== sifre2) h.sifre2 = 'Şifreler eşleşmiyor'
     if (!sehir) h.sehir = 'Şehir seçin'
@@ -85,41 +70,27 @@ export default function Kayit() {
 
   function ileri() {
     setHatalar({})
-    if (step === 1) { if (!validate1()) return; setStep(2); return }
-    if (step === 2) {
-      if (!validate2()) return
-      setStep(3)
-    }
+    if (step === 1) { if (validate1()) setStep(2) }
   }
 
-  async function dogrula() {
-    if (girilenKod !== dogrulamaKodu) {
-      setKodHata('Kod hatalı. Tekrar deneyin.')
-      return
-    }
+  async function kayitTamamla() {
+    if (!validate2()) return
     setYukleniyor(true)
     setKayitHata('')
 
-    // Supabase Auth ile kayıt dene
     const { error } = await kayitOl({
       email, sifre, ad, soyad,
       telefon: telefon.replace(/\D/g,''),
-      sehir, ilce,
+      sehir, ilce, iletisimTercihi,
     })
 
+    setYukleniyor(false)
     if (error) {
-      // Supabase yoksa demo girişi yap
-      const yeniUser = {
-        ad, soyad, email,
-        telefon: telefon.replace(/\D/g,''),
-        sehir, ilce,
-        iletisimTercihi,
-        paket: 'Ücretsiz',
-        kalanHak: 3,
-      }
-      demoGiris(yeniUser)
+      setKayitHata(error)
+      return
     }
-    router.push('/')
+    // Başarılı — Supabase doğrulama maili gönderdi
+    setBasarili(true)
   }
 
   const Logo = () => (
@@ -134,32 +105,29 @@ export default function Kayit() {
     </a>
   )
 
-  // ADIM 4 — E-posta doğrulama
-  if (step === 3) return (
+  // BAŞARILI — e-posta doğrulama bekleniyor
+  if (basarili) return (
     <>
       <Head><title>E-posta Doğrulama — AlmakIstiyor.com</title></Head>
       <div className={styles.wrap}>
         <div className={styles.boxSm}>
           <Logo />
           <div className={styles.dogrulamaIcon}>📧</div>
-          <h2 className={styles.stepTitle}>E-postanızı doğrulayın</h2>
-          <p className={styles.stepSub}><strong>{email}</strong> adresine 6 haneli kod gönderdik.</p>
+          <h2 className={styles.stepTitle}>E-postanızı kontrol edin</h2>
+          <p className={styles.stepSub}>
+            <strong>{email}</strong> adresine bir doğrulama bağlantısı gönderdik.
+            Bağlantıya tıklayarak hesabınızı aktifleştirin.
+          </p>
           <div className={styles.demoBox} style={{marginBottom:20}}>
-            <strong>🔧 Demo:</strong> Kod: <strong style={{letterSpacing:3,fontSize:16}}>{dogrulamaKodu}</strong>
+            💡 E-posta birkaç dakika içinde gelmezse spam/gereksiz klasörünü kontrol edin.
           </div>
-          <label className="form-label" style={{textAlign:'center',display:'block'}}>Doğrulama Kodu</label>
-          <input className={`form-input ${kodHata ? styles.inputHata : ''}`}
-            style={{textAlign:'center',fontSize:22,letterSpacing:6,fontFamily:'Sora,sans-serif',fontWeight:700,marginBottom:8}}
-            placeholder="000000" maxLength={6}
-            value={girilenKod} onChange={e => { setGirilenKod(e.target.value); setKodHata('') }} />
-          {kodHata && <p className={styles.hata} style={{textAlign:'center',marginBottom:8}}>{kodHata}</p>}
           <button className="btn-primary" style={{width:'100%',justifyContent:'center',padding:13,marginBottom:12}}
-            onClick={dogrula} disabled={girilenKod.length !== 6}>
-            Hesabı Onayla ve Giriş Yap ✓
+            onClick={() => router.push('/giris')}>
+            Giriş Sayfasına Git →
           </button>
-          <button className={styles.tekrarBtn} onClick={() => alert(`Demo kod: ${dogrulamaKodu}`)}>
-            Kodu tekrar gönder
-          </button>
+          <p style={{fontSize:12,color:'var(--text-3)',textAlign:'center'}}>
+            E-postanızı doğruladıktan sonra giriş yapabilirsiniz.
+          </p>
         </div>
       </div>
     </>
@@ -172,9 +140,8 @@ export default function Kayit() {
         <div className={styles.boxFull}>
           <div className={styles.boxHeader}>
             <Logo />
-            {/* Progress bar */}
             <div className={styles.progRow}>
-              {['Kişisel Bilgiler','Tercih & Onay','E-posta Doğrulama'].map((s,i) => (
+              {['Kişisel Bilgiler','Onay & Doğrulama'].map((s,i) => (
                 <div key={i} className={styles.progItem}>
                   <div className={`${styles.progDot} ${step > i+1?styles.progDone:''} ${step===i+1?styles.progActive:''}`}>
                     {step > i+1 ? '✓' : i+1}
@@ -186,14 +153,12 @@ export default function Kayit() {
           </div>
 
           <div className={styles.boxBody}>
-
-            {/* ADIM 1 — KİŞİSEL BİLGİLER (eski adım 2) */}
+            {/* ADIM 1 — KİŞİSEL BİLGİLER */}
             {step === 1 && (
               <div>
                 <h2 className={styles.stepTitle}>Hesap oluşturun</h2>
                 <p className={styles.stepSub2}>Bilgileriniz güvenle saklanır, üçüncü taraflarla paylaşılmaz</p>
                 <div className={styles.kompaktGrid}>
-                  {/* Satır 1: Ad, Soyad */}
                   <div className={styles.fg}>
                     <label className="form-label">Ad *</label>
                     <input className={`form-input ${styles.kompaktInput} ${hatalar.ad?styles.inputHata:''}`}
@@ -206,7 +171,6 @@ export default function Kayit() {
                       placeholder="Soyadınız" value={soyad} onChange={e => setSoyad(e.target.value)} />
                     {hatalar.soyad && <span className={styles.hata}>{hatalar.soyad}</span>}
                   </div>
-                  {/* Satır 2: E-posta, Telefon */}
                   <div className={styles.fg}>
                     <label className="form-label">E-posta *</label>
                     <input className={`form-input ${styles.kompaktInput} ${hatalar.email?styles.inputHata:''}`}
@@ -221,12 +185,10 @@ export default function Kayit() {
                       <input className={`form-input ${styles.kompaktInput} ${hatalar.telefon?styles.inputHata:''}`}
                         style={{borderRadius:'0 8px 8px 0',borderLeft:'none'}}
                         placeholder="532 111 22 33" value={telefon}
-                        onChange={e => setTelefon(formatTel(e.target.value))}
-                        maxLength={13} />
+                        onChange={e => setTelefon(formatTel(e.target.value))} maxLength={13} />
                     </div>
                     {hatalar.telefon && <span className={styles.hata}>{hatalar.telefon}</span>}
                   </div>
-                  {/* Satır 3: Şehir, İlçe */}
                   <div className={styles.fg}>
                     <label className="form-label">Şehir *</label>
                     <select className={`form-select ${styles.kompaktInput} ${hatalar.sehir?styles.inputHata:''}`}
@@ -244,7 +206,6 @@ export default function Kayit() {
                       {ilceler.map(i => <option key={i} value={i}>{i}</option>)}
                     </select>
                   </div>
-                  {/* Satır 4: Şifre, Şifre tekrar */}
                   <div className={styles.fg}>
                     <label className="form-label">Şifre * <span style={{fontWeight:400,color:'var(--text-3)',fontSize:11}}>(en az 6 karakter)</span></label>
                     <input className={`form-input ${styles.kompaktInput} ${hatalar.sifre?styles.inputHata:''}`}
@@ -259,7 +220,6 @@ export default function Kayit() {
                       onChange={e => setSifre2(e.target.value)} />
                     {hatalar.sifre2 && <span className={styles.hata}>{hatalar.sifre2}</span>}
                   </div>
-                  {/* İsteğe bağlı */}
                   <div className={styles.fg}>
                     <label className="form-label">Doğum Yılı <span style={{fontWeight:400,color:'var(--text-3)',fontSize:11}}>(isteğe bağlı)</span></label>
                     <input className={`form-input ${styles.kompaktInput}`} type="number"
@@ -282,90 +242,29 @@ export default function Kayit() {
               </div>
             )}
 
-            {/* ADIM 3 — TERCİH / FİRMA + ONAY */}
-            {step === 3 && (
+            {/* ADIM 2 — İLETİŞİM TERCİHİ + CAPTCHA + ONAY */}
+            {step === 2 && (
               <div>
-                <h2 className={styles.stepTitle}>{tur==='satici'?'Firma bilgileri ve onay':'Tercihler ve onay'}</h2>
+                <h2 className={styles.stepTitle}>Tercihler ve onay</h2>
 
-                {/* ALICI — iletişim tercihi */}
-                {tur === 'alici' && (
-                  <div className={styles.fgFull}>
-                    <label className="form-label">Satıcılar size nasıl ulaşsın?</label>
-                    <div className={styles.iletisimGrid}>
-                      {[
-                        {v:'mesaj',icon:'💬',l:'Sadece Mesaj',a:'Telefon gizli kalır'},
-                        {v:'telefon',icon:'📞',l:'Sadece Telefon',a:'Tel görünür, mesaj kapalı'},
-                        {v:'ikisi',icon:'✉️',l:'Mesaj ve Telefon',a:'Her ikisi açık'},
-                      ].map(o => (
-                        <button key={o.v}
-                          className={`${styles.iletisimBtn} ${iletisimTercihi===o.v?styles.iletisimSel:''}`}
-                          onClick={() => setIletisimTercihi(o.v)}>
-                          <span style={{fontSize:18}}>{o.icon}</span>
-                          <span style={{fontWeight:500,fontSize:13}}>{o.l}</span>
-                          <span style={{fontSize:11,color:'var(--text-3)'}}>{o.a}</span>
-                        </button>
-                      ))}
-                    </div>
+                <div className={styles.fgFull}>
+                  <label className="form-label">Satıcılar size nasıl ulaşsın?</label>
+                  <div className={styles.iletisimGrid}>
+                    {[
+                      {v:'mesaj',icon:'💬',l:'Sadece Mesaj',a:'Telefon gizli kalır'},
+                      {v:'telefon',icon:'📞',l:'Sadece Telefon',a:'Tel görünür, mesaj kapalı'},
+                      {v:'ikisi',icon:'✉️',l:'Mesaj ve Telefon',a:'Her ikisi açık'},
+                    ].map(o => (
+                      <button key={o.v}
+                        className={`${styles.iletisimBtn} ${iletisimTercihi===o.v?styles.iletisimSel:''}`}
+                        onClick={() => setIletisimTercihi(o.v)}>
+                        <span style={{fontSize:18}}>{o.icon}</span>
+                        <span style={{fontWeight:500,fontSize:13}}>{o.l}</span>
+                        <span style={{fontSize:11,color:'var(--text-3)'}}>{o.a}</span>
+                      </button>
+                    ))}
                   </div>
-                )}
-
-                {/* SATICI — firma bilgileri */}
-                {tur === 'satici' && (
-                  <div className={styles.firmaBlok}>
-                    <label className="form-label">Firma türü *</label>
-                    <div className={styles.firmaTurGrid}>
-                      {[{v:'bireysel',i:'👤',l:'Bireysel'},{v:'emlak',i:'🏠',l:'Emlak Ofisi'},{v:'galeri',i:'🚗',l:'Oto Galerisi'},{v:'diger',i:'🏢',l:'Diğer'}].map(f => (
-                        <button key={f.v} className={`${styles.firmaTurBtn} ${firmaTur===f.v?styles.firmaTurSel:''}`}
-                          onClick={() => setFirmaTur(f.v)}>
-                          {f.i} {f.l}
-                        </button>
-                      ))}
-                    </div>
-                    {firmaTur && firmaTur !== 'bireysel' && (
-                      <div className={styles.kompaktGrid} style={{marginTop:12}}>
-                        <div className={styles.fg}>
-                          <label className="form-label">Firma Adı *</label>
-                          <input className={`form-input ${styles.kompaktInput} ${hatalar.firmaAd?styles.inputHata:''}`}
-                            placeholder="Firma adınız" value={firmaAd} onChange={e => setFirmaAd(e.target.value)} />
-                          {hatalar.firmaAd && <span className={styles.hata}>{hatalar.firmaAd}</span>}
-                        </div>
-                        <div className={styles.fg}>
-                          <label className="form-label">Firma Telefonu</label>
-                          <div className={styles.telWrap}>
-                            <span className={styles.telPrefiks}>+90</span>
-                            <input className={`form-input ${styles.kompaktInput}`}
-                              style={{borderRadius:'0 8px 8px 0',borderLeft:'none'}}
-                              placeholder="212 555 66 77" value={firmaTelefon}
-                              onChange={e => setFirmaTelefon(formatTel(e.target.value))} maxLength={13} />
-                          </div>
-                        </div>
-                        <div className={styles.fg}>
-                          <label className="form-label">Vergi No *</label>
-                          <input className={`form-input ${styles.kompaktInput} ${hatalar.vergiNo?styles.inputHata:''}`}
-                            placeholder="1234567890" value={vergiNo}
-                            onChange={e => setVergiNo(e.target.value)} />
-                          {hatalar.vergiNo && <span className={styles.hata}>{hatalar.vergiNo}</span>}
-                        </div>
-                        <div className={styles.fg}>
-                          <label className="form-label">Vergi Dairesi</label>
-                          <input className={`form-input ${styles.kompaktInput}`}
-                            placeholder="Vergi dairesi" value={vergiDairesi}
-                            onChange={e => setVergiDairesi(e.target.value)} />
-                        </div>
-                        <div className={styles.fgFull}>
-                          <label className="form-label">Firma Adresi</label>
-                          <input className={`form-input ${styles.kompaktInput}`}
-                            placeholder="Mahalle, cadde, bina no, ilçe, şehir"
-                            value={firmaAdres} onChange={e => setFirmaAdres(e.target.value)} />
-                        </div>
-                      </div>
-                    )}
-                    <div className={styles.uyariBox}>
-                      <span>💡</span>
-                      <span>Her alıcıya ücretsiz <strong>1 mesaj</strong> gönderebilirsiniz. Telefon ve daha fazla mesaj için paket gereklidir.</span>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 {/* CAPTCHA */}
                 <div className={styles.captchaBox}>
@@ -391,15 +290,21 @@ export default function Kayit() {
                   {hatalar.sozlesme && <p className={styles.hata}>{hatalar.sozlesme}</p>}
                 </div>
 
+                {kayitHata && (
+                  <div style={{background:'#FEE2E2',color:'#B91C1C',padding:'10px 14px',borderRadius:8,fontSize:13,marginBottom:12}}>
+                    ⚠️ {kayitHata}
+                  </div>
+                )}
+
                 <div className={styles.navBtns}>
-                  <button className="btn-ghost" onClick={() => setStep(2)}>← Geri</button>
-                  <button className="btn-primary" style={{flex:1,justifyContent:'center'}} onClick={ileri}>
-                    Doğrulama Kodu Gönder →
+                  <button className="btn-ghost" onClick={() => setStep(1)}>← Geri</button>
+                  <button className="btn-primary" style={{flex:1,justifyContent:'center'}}
+                    onClick={kayitTamamla} disabled={yukleniyor}>
+                    {yukleniyor ? 'Kaydediliyor...' : 'Kaydı Tamamla →'}
                   </button>
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
