@@ -207,7 +207,7 @@ function Kullanicilar() {
   async function yukle() { setYukleniyor(true); setListe(await kullanicilariGetir(arama)); setYukleniyor(false) }
   useEffect(() => { yukle() }, [])
   async function engelleDegistir(k) { await kullaniciEngelle(k.id, !k.engelli); yukle() }
-  async function paketYap(k, paket, hak) { await kullaniciPaketDegistir(k.id, paket, hak); yukle() }
+  async function paketYap(k, paket) { await kullaniciPaketDegistir(k.id, paket); yukle() }
 
   return (
     <div>
@@ -229,9 +229,7 @@ function Kullanicilar() {
               <div className={styles.ilanTarih}>Günlük hak: {k.gunluk_ilan_hakki||3} • Üyelik: {new Date(k.created_at).toLocaleDateString('tr-TR')}</div>
             </div>
             <div className={styles.ilanAksiyon}>
-              <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>{
-                const p=e.target.value; const haklar={ucretsiz:3,pro1:10,pro2:30,pro3:999}; paketYap(k,p,haklar[p])
-              }}>
+              <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>paketYap(k, e.target.value)}>
                 <option value="ucretsiz">Ücretsiz (3)</option>
                 <option value="pro1">Pro1 (10)</option>
                 <option value="pro2">Pro2 (30)</option>

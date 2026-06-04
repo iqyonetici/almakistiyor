@@ -9,6 +9,7 @@ import SidebarKategoriler from '../components/SidebarKategoriler'
 import { sehirler } from '../data/sehirler'
 import { kategorileriGetir } from '../lib/kategoriDB'
 import { ilanListele, ilanOlustur } from '../lib/db'
+import { ilanHakkiVarMi } from '../lib/limitDB'
 import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
 
@@ -33,6 +34,32 @@ export default function Home() {
   const [mesajHaklari, setMesajHaklari] = useState({})
   const [kalanGenel, setKalanGenel] = useState(3)
   const [paketModal, setPaketModal] = useState(false)
+  const [limitUyari, setLimitUyari] = useState(null)
+  const [misafirIlanSayisi, setMisafirIlanSayisi] = useState(0)
+
+  // İlan formunu açmadan önce hak kontrolü
+  async function formAc() {
+    // Misafir (üye değil): localStorage'da kaç ilan verdiğini say
+    if (!user?.email) {
+      const verilen = Number(localStorage.getItem('misafir_ilan') || 0)
+      if (verilen >= 1) {
+        setLimitUyari({
+          tip: 'misafir',
+          mesaj: 'Misafir olarak 1 ilan verebilirsiniz. Daha fazla ilan için ücretsiz üye olun (mail onayı ile günde 3 ilan).'
+        })
+        return
+      }
+      setFormOpen(true)
+      return
+    }
+    // Üye: DB'den hak kontrolü
+    const sonuc = await ilanHakkiVarMi(user)
+    if (!sonuc.izin) {
+      setLimitUyari({ tip: sonuc.sebep, mesaj: sonuc.mesaj, paket: sonuc.paket })
+      return
+    }
+    setFormOpen(true)
+  }
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
   const [kategoriAgaci, setKategoriAgaci] = useState([])
   const [kelimeIndex, setKelimeIndex] = useState(0)
@@ -123,6 +150,11 @@ export default function Home() {
 
   async function handleSubmit(data) {
     await ilanOlustur(data, user)
+    // Misafir ilan sayacını artır
+    if (!user?.email) {
+      const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
+      localStorage.setItem('misafir_ilan', String(v))
+    }
     setIlanlar(prev => [{
       id: Date.now(), kategori: data.kategori, ad: data.ad, sehir: data.sehir, ilce: data.ilce,
       baslik: `${data.sehir}'de arıyorum`, fiyatMin: null, fiyatMax: null, tags: [],
@@ -137,7 +169,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
-      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={() => setFormOpen(true)} />
+      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} />
 
       <section className={styles.hero}>
         <div className={styles.heroInner}>
@@ -153,7 +185,7 @@ export default function Home() {
           <p className={styles.heroSub}>
             Ne almak istediğinizi yazın; ev, araba, telefon ne olursa. Satıcılar size özel teklif göndersin.
           </p>
-          <button className={styles.heroArama} onClick={() => setFormOpen(true)}>
+          <button className={styles.heroArama} onClick={formAc}>
             <span className={styles.heroAramaSol}>
               <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyorum...</span>
             </span>
@@ -215,7 +247,7 @@ export default function Home() {
         <aside className={styles.sidebar}>
           <div className={styles.ctaCard}>
             <h4>Talep ver, satıcılar seni bulsun</h4>
-            <button className={styles.ctaWhite} onClick={() => setFormOpen(true)}>Hemen başla →</button>
+            <button className={styles.ctaWhite} onClick={formAc}>Hemen başla →</button>
           </div>
 
           <div className={styles.filterCard}>
@@ -272,7 +304,7 @@ export default function Home() {
             {filtered.length === 0 ? (
               <div className={styles.empty}>
                 <p>Bu kriterlere uygun ilan bulunamadı.</p>
-                <button className="btn-primary" onClick={() => setFormOpen(true)}>İlk ilanı siz verin →</button>
+                <button className="btn-primary" onClick={formAc}>İlk ilanı siz verin →</button>
               </div>
             ) : (
               filtered.map(ilan => (
@@ -301,6 +333,28 @@ export default function Home() {
       </div>
 
       <Footer />
+
+      {limitUyari && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setLimitUyari(null)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 380, maxWidth: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>{limitUyari.tip === 'misafir' ? '📧' : '⏳'}</div>
+            <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              {limitUyari.tip === 'misafir' ? 'Üye Olun' : limitUyari.tip === 'engelli' ? 'Hesap Askıda' : 'Günlük Limit Doldu'}
+            </h3>
+            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>{limitUyari.mesaj}</p>
+            {limitUyari.tip === 'misafir' ? (
+              <>
+                <a href="/kayit" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>Ücretsiz Üye Ol →</a>
+                <a href="/giris" style={{ display: 'block', padding: '10px', borderRadius: 9, border: '1.5px solid #e2e8f0', color: '#4a5568', fontWeight: 500, fontSize: 14, textDecoration: 'none' }}>Zaten üyeyim, Giriş yap</a>
+              </>
+            ) : limitUyari.paket === 'ucretsiz' && limitUyari.tip === 'limit' ? (
+              <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>💎 Pro Üyeliğe Geç →</a>
+            ) : null}
+            <button onClick={() => setLimitUyari(null)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>Kapat</button>
+          </div>
+        </div>
+      )}
 
       {paketModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}

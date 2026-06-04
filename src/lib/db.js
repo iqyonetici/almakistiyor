@@ -68,7 +68,8 @@ export async function ilanOlustur(ilanData, user) {
       yakit: ilanData.yakit?.length ? ilanData.yakit.join(',') : null,
       vites: ilanData.vites?.length ? ilanData.vites.join(',') : null,
       aciklama: ilanData.aciklama || null,
-      durum: 'aktif',
+      durum: 'pasif',
+      onay_durumu: 'beklemede',
       goruntuleme: 0,
       iletisim_tercihi: ilanData.iletisimTercihi || 'mesaj',
     }])

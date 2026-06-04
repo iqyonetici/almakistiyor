@@ -137,7 +137,7 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
         <div className={styles.boxTop}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
             <div>
-              <h2 className={styles.title}>{done ? 'İlanınız yayında! 🎉' : STEPS[step-1]}</h2>
+              <h2 className={styles.title}>{done ? 'İlanınız alındı! 📨' : STEPS[step-1]}</h2>
               {!done && <p className={styles.sub}>Adım {step} / {TOPLAM}</p>}
             </div>
             <button className={styles.close} onClick={() => { reset(); onClose() }}>✕</button>
@@ -155,9 +155,9 @@ export default function IlanForm({ open, onClose, onSubmit, user }) {
         <div className={styles.boxBody} ref={bodyRef}>
           {done ? (
             <div className={styles.success}>
-              <div className={styles.successIcon}>🎉</div>
-              <h3>İlanınız yayında!</h3>
-              <p>Talebiniz satıcılara ulaştı.</p>
+              <div className={styles.successIcon}>📨</div>
+              <h3>İlanınız onaya gönderildi!</h3>
+              <p style={{lineHeight:1.6}}>İlanınız <strong>onay bekliyor</strong>. Yönetici onayından sonra kısa sürede yayına alınacak ve satıcılar size ulaşabilecek. Genellikle birkaç saat içinde cevap verilir.</p>
               <div className={styles.successInfo}>
                 <p>🔒 Telefon numaranız gizlidir</p>
                 <p>👤 Yalnızca adınız ve soyad baş harfiniz görünür</p>

@@ -56,10 +56,16 @@ export async function kullaniciEngelle(id, engelli) {
   return await supabase.from('kullanicilar').update({ engelli }).eq('id', id)
 }
 
-export async function kullaniciPaketDegistir(id, paket, gunlukHak) {
+export async function kullaniciPaketDegistir(id, paket) {
   if (!supabase) return
+  // Paketin ilan + mesaj haklarını DB'den çek (admin panelden değiştirilebilir)
+  const { data: p } = await supabase.from('paketler').select('gunluk_ilan, gunluk_mesaj').eq('kod', paket).single()
+  const gunlukIlan = p?.gunluk_ilan ?? 3
+  const gunlukMesaj = p?.gunluk_mesaj ?? 1
   return await supabase.from('kullanicilar').update({
-    paket, gunluk_ilan_hakki: gunlukHak,
+    paket,
+    gunluk_ilan_hakki: gunlukIlan,
+    gunluk_mesaj_hakki: gunlukMesaj,
     paket_bitis: paket === 'ucretsiz' ? null : new Date(Date.now()+30*24*60*60*1000).toISOString(),
   }).eq('id', id)
 }
