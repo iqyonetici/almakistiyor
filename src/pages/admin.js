@@ -281,9 +281,28 @@ function Sikayetler() {
 function Paketler() {
   const [liste, setListe] = useState([])
   const [yukleniyor, setYukleniyor] = useState(true)
+  const [kayitDurum, setKayitDurum] = useState({})  // {paketId: 'kaydedildi'}
+
   async function yukle() { setYukleniyor(true); setListe(await paketleriGetir()); setYukleniyor(false) }
   useEffect(() => { yukle() }, [])
-  async function guncelle(id, alan, deger) { await paketGuncelle(id, {[alan]:deger}); yukle() }
+
+  // Local state'i güncelle (input'a yazarken anında görünsün)
+  function alanDegistir(id, alan, deger) {
+    setListe(prev => prev.map(p => p.id === id ? { ...p, [alan]: deger } : p))
+  }
+
+  // DB'ye kaydet
+  async function kaydet(p) {
+    await paketGuncelle(p.id, {
+      fiyat: Number(p.fiyat) || 0,
+      gunluk_ilan: Number(p.gunluk_ilan) || 0,
+      gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
+      telefon_goster: !!p.telefon_goster,
+    })
+    setKayitDurum(s => ({ ...s, [p.id]: 'kaydedildi' }))
+    setTimeout(() => setKayitDurum(s => ({ ...s, [p.id]: null })), 2000)
+  }
+
   return (
     <div>
       <h1 className={styles.baslik}>💎 Pro Üyelik Paketleri</h1>
@@ -293,11 +312,16 @@ function Paketler() {
             <div className={styles.ilanBilgi}>
               <div className={styles.ilanBaslik}>{p.ad} <span className={styles.ilanTarih}>({p.kod})</span></div>
               <div className={styles.ilanDetay} style={{display:'flex',gap:16,alignItems:'center',marginTop:8,flexWrap:'wrap'}}>
-                <label>Fiyat ₺: <input type="number" className={styles.miniInput} defaultValue={p.fiyat} onBlur={e=>guncelle(p.id,'fiyat',Number(e.target.value))} /></label>
-                <label>Günlük ilan: <input type="number" className={styles.miniInput} defaultValue={p.gunluk_ilan} onBlur={e=>guncelle(p.id,'gunluk_ilan',Number(e.target.value))} /></label>
-                <label>Günlük mesaj: <input type="number" className={styles.miniInput} defaultValue={p.gunluk_mesaj} onBlur={e=>guncelle(p.id,'gunluk_mesaj',Number(e.target.value))} /></label>
-                <label><input type="checkbox" defaultChecked={p.telefon_goster} onChange={e=>guncelle(p.id,'telefon_goster',e.target.checked)} /> Telefon göster</label>
+                <label>Fiyat ₺: <input type="number" className={styles.miniInput} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} /></label>
+                <label>Günlük ilan: <input type="number" className={styles.miniInput} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} /></label>
+                <label>Günlük mesaj: <input type="number" className={styles.miniInput} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} /></label>
+                <label><input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon göster</label>
               </div>
+            </div>
+            <div className={styles.ilanAksiyon}>
+              <button className={styles.btnOnay} onClick={()=>kaydet(p)}>
+                {kayitDurum[p.id] === 'kaydedildi' ? '✓ Kaydedildi' : '💾 Kaydet'}
+              </button>
             </div>
           </div>
         ))
