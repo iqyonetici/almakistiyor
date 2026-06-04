@@ -140,17 +140,38 @@ export default function Home() {
       <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={() => setFormOpen(true)} />
 
       <section className={styles.hero}>
-        <div className={styles.heroBannerWrap}>
-          <img src="/almak-istiyor-hero-banner.webp"
-            className={styles.heroBannerImg}
-            alt="Aradığınız ürünü çarşı pazar gezerek aramayın — Ne almak istediğinizi söyleyin, satıcılar size özel teklif göndersin. AlmakIstiyor.com yeni nesil ilan platformu"
-            loading="eager" width="1717" height="916" />
-          <div className={styles.heroBannerBtns}>
-            <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>+ Almak İstiyorum</button>
-            <a href="#ilan-listesi" className={styles.heroBtnSecondary}
-              onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}>
-              İlanları Gör →
-            </a>
+        <div className={styles.heroInner}>
+          <div className={styles.heroLogo}>
+            <span className={styles.heroLogoIkon}>✓</span>
+            <span className={styles.heroLogoText}>
+              <strong>almak</strong>istiyor<span className={styles.heroLogoCom}>.com</span>
+            </span>
+          </div>
+          <h1 className={styles.heroH1}>
+            Aramayı bırakın, <span className={styles.heroVurgu}>satıcılar sizi bulsun</span>
+          </h1>
+          <p className={styles.heroSub}>
+            Ne almak istediğinizi yazın; ev, araba, telefon ne olursa. Satıcılar size özel teklif göndersin.
+          </p>
+          <button className={styles.heroArama} onClick={() => setFormOpen(true)}>
+            <span className={styles.heroAramaSol}>
+              <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyorum...</span>
+            </span>
+            <span className={styles.heroAramaBtn}>+ Talep Oluştur</span>
+          </button>
+          <div className={styles.heroStats}>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>{stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.854'}</span>
+              <span className={styles.statLabel}>aktif talep</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>{stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '1.426'}</span>
+              <span className={styles.statLabel}>kullanıcı</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>%94</span>
+              <span className={styles.statLabel}>eşleşme</span>
+            </div>
           </div>
         </div>
       </section>
