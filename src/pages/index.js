@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
 import Navbar, { kategoriler as navKategoriler } from '../components/Navbar'
@@ -113,11 +113,11 @@ export default function Home() {
       return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
     })
 
-  const handleKatChange = (slug, filtre = null) => {
+  const handleKatChange = useCallback((slug, filtre = null) => {
     setActiveCategory(slug)
     setAktifFiltre(filtre)
     setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-  }
+  }, [])
 
   async function handleSubmit(data) {
     await ilanOlustur(data, user)
