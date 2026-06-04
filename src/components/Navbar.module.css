@@ -226,11 +226,6 @@
 @media (max-width: 768px) {
   .topActions { display: none; }
   .bottomNav { display: flex; }
-
-  /* Sayfa altına padding ekle (alt nav için) */
-  :global(body) {
-    padding-bottom: 64px;
-  }
 }
 
 @media (min-width: 769px) {
