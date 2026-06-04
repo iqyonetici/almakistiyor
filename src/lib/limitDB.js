@@ -1,32 +1,35 @@
-// src/lib/limitDB.js — ilan ve mesaj limit kontrolü (pakete bağlı)
+// src/lib/limitDB.js — ilan ve mesaj limit kontrolü (CANLI paket bazlı)
 import { supabase } from './supabase'
 
-// Kullanıcının güncel paket bilgisini + haklarını getir
+// Kullanıcının paketini ve O PAKETİN güncel haklarını getir
+// (kullanicilar.gunluk_mesaj_hakki yerine DOĞRUDAN paketler tablosundan okur
+//  böylece admin paketi değiştirince anında yansır)
 export async function kullaniciHaklari(email) {
   if (!supabase || !email) {
-    return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, telefonGoster: false }
+    return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, telefonGoster: false, engelli: false }
   }
-  const { data } = await supabase
+  // 1. Kullanıcının paket kodunu al
+  const { data: k } = await supabase
     .from('kullanicilar')
-    .select('paket, gunluk_ilan_hakki, gunluk_mesaj_hakki, engelli')
+    .select('paket, engelli')
     .eq('email', email)
     .single()
 
-  if (!data) return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, telefonGoster: false }
+  const paketKod = k?.paket || 'ucretsiz'
 
-  // Paket detayını çek (telefon gösterme yetkisi için)
-  const { data: paket } = await supabase
+  // 2. O paketin GÜNCEL haklarını paketler tablosundan al
+  const { data: p } = await supabase
     .from('paketler')
-    .select('telefon_goster')
-    .eq('kod', data.paket || 'ucretsiz')
+    .select('gunluk_ilan, gunluk_mesaj, telefon_goster')
+    .eq('kod', paketKod)
     .single()
 
   return {
-    paket: data.paket || 'ucretsiz',
-    gunlukIlan: data.gunluk_ilan_hakki ?? 3,
-    gunlukMesaj: data.gunluk_mesaj_hakki ?? 1,
-    telefonGoster: paket?.telefon_goster ?? false,
-    engelli: data.engelli ?? false,
+    paket: paketKod,
+    gunlukIlan: p?.gunluk_ilan ?? 3,
+    gunlukMesaj: p?.gunluk_mesaj ?? 1,
+    telefonGoster: p?.telefon_goster ?? false,
+    engelli: k?.engelli ?? false,
   }
 }
 
@@ -42,7 +45,7 @@ export async function bugunkuIlanSayisi(email) {
   return count || 0
 }
 
-// Bugün kaç mesaj/teklif gönderdi?
+// Bugün kaç mesaj gönderdi?
 export async function bugunkuMesajSayisi(email) {
   if (!supabase || !email) return 0
   const bugun = new Date(); bugun.setHours(0,0,0,0)
@@ -54,9 +57,8 @@ export async function bugunkuMesajSayisi(email) {
   return count || 0
 }
 
-// İLAN VEREBİLİR Mİ? — kontrol
+// İLAN VEREBİLİR Mİ?
 export async function ilanHakkiVarMi(user) {
-  // Misafir (üye değil): 1 ilan hakkı (localStorage'da sayılır, burada DB yok)
   if (!user?.email) {
     return { izin: true, sebep: 'misafir', kalan: 1 }
   }
@@ -75,7 +77,7 @@ export async function ilanHakkiVarMi(user) {
   return { izin: true, kalan, toplam: haklar.gunlukIlan, paket: haklar.paket }
 }
 
-// MESAJ GÖNDEREBİLİR Mİ? — kontrol
+// MESAJ GÖNDEREBİLİR Mİ? — her çağrıda CANLI hesaplar
 export async function mesajHakkiVarMi(user) {
   if (!user?.email) {
     return { izin: false, sebep: 'giris-gerekli', mesaj: 'Mesaj göndermek için giriş yapmalısınız.' }
@@ -93,4 +95,12 @@ export async function mesajHakkiVarMi(user) {
     }
   }
   return { izin: true, kalan, toplam: haklar.gunlukMesaj, telefonGoster: haklar.telefonGoster, paket: haklar.paket }
+}
+
+// Kalan mesaj hakkını döndür (gösterim için)
+export async function kalanMesajHakki(email) {
+  if (!supabase || !email) return 0
+  const haklar = await kullaniciHaklari(email)
+  const bugunku = await bugunkuMesajSayisi(email)
+  return Math.max(0, haklar.gunlukMesaj - bugunku)
 }
