@@ -226,7 +226,7 @@ function Kullanicilar() {
                 {k.engelli && <span className={styles.durumPasif} style={{marginLeft:6,padding:'2px 8px',borderRadius:6,fontSize:11}}>🚫 Engelli</span>}
               </div>
               <div className={styles.ilanDetay}>📧 {k.email} • 📞 {k.telefon||'-'} • 📍 {k.sehir||'-'}</div>
-              <div className={styles.ilanTarih}>Günlük hak: {k.gunluk_ilan_hakki||3} • Üyelik: {new Date(k.created_at).toLocaleDateString('tr-TR')}</div>
+              <div className={styles.ilanTarih}>📋 {k.gunluk_ilan_hakki||3} ilan/gün • 💬 {k.gunluk_mesaj_hakki||1} mesaj/gün • Üyelik: {new Date(k.created_at).toLocaleDateString('tr-TR')}</div>
             </div>
             <div className={styles.ilanAksiyon}>
               <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>paketYap(k, e.target.value)}>
@@ -295,6 +295,7 @@ function Paketler() {
               <div className={styles.ilanDetay} style={{display:'flex',gap:16,alignItems:'center',marginTop:8,flexWrap:'wrap'}}>
                 <label>Fiyat ₺: <input type="number" className={styles.miniInput} defaultValue={p.fiyat} onBlur={e=>guncelle(p.id,'fiyat',Number(e.target.value))} /></label>
                 <label>Günlük ilan: <input type="number" className={styles.miniInput} defaultValue={p.gunluk_ilan} onBlur={e=>guncelle(p.id,'gunluk_ilan',Number(e.target.value))} /></label>
+                <label>Günlük mesaj: <input type="number" className={styles.miniInput} defaultValue={p.gunluk_mesaj} onBlur={e=>guncelle(p.id,'gunluk_mesaj',Number(e.target.value))} /></label>
                 <label><input type="checkbox" defaultChecked={p.telefon_goster} onChange={e=>guncelle(p.id,'telefon_goster',e.target.checked)} /> Telefon göster</label>
               </div>
             </div>

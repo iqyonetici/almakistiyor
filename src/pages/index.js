@@ -9,7 +9,7 @@ import SidebarKategoriler from '../components/SidebarKategoriler'
 import { sehirler } from '../data/sehirler'
 import { kategorileriGetir } from '../lib/kategoriDB'
 import { ilanListele, ilanOlustur } from '../lib/db'
-import { ilanHakkiVarMi } from '../lib/limitDB'
+import { ilanHakkiVarMi, mesajHakkiVarMi, kullaniciHaklari, bugunkuMesajSayisi } from '../lib/limitDB'
 import { supabase } from '../lib/supabase'
 import styles from './index.module.css'
 
@@ -32,7 +32,8 @@ export default function Home() {
   const [ilanlar, setIlanlar] = useState(demoIlanlar)
   const [sort, setSort] = useState('yeni')
   const [mesajHaklari, setMesajHaklari] = useState({})
-  const [kalanGenel, setKalanGenel] = useState(3)
+  const [kalanGenel, setKalanGenel] = useState(0)
+  const [telefonYetkisi, setTelefonYetkisi] = useState(false)
   const [paketModal, setPaketModal] = useState(false)
   const [limitUyari, setLimitUyari] = useState(null)
   const [misafirIlanSayisi, setMisafirIlanSayisi] = useState(0)
@@ -83,6 +84,14 @@ export default function Home() {
     }
     loadStats()
     kategorileriGetir().then(setKategoriAgaci)
+    // Kullanıcının mesaj hakkını yükle
+    if (user?.email) {
+      kullaniciHaklari(user.email).then(async (h) => {
+        const kullanilan = await bugunkuMesajSayisi(user.email)
+        setKalanGenel(Math.max(0, h.gunlukMesaj - kullanilan))
+        setTelefonYetkisi(h.telefonGoster)
+      })
+    }
 
     async function yukle() {
       const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
@@ -311,11 +320,18 @@ export default function Home() {
                 <IlanKarti key={ilan.id} ilan={ilan} user={user}
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
+                    // Mesaj göndermeden önce paket limit kontrolü
+                    const kontrol = await mesajHakkiVarMi(user)
+                    if (!kontrol.izin) {
+                      setLimitUyari({ tip: kontrol.sebep === 'limit' ? 'mesaj-limit' : kontrol.sebep, mesaj: kontrol.mesaj, paket: kontrol.paket })
+                      return false
+                    }
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
                     const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
                     if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
                     setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
                     setKalanGenel(p => Math.max(0, p - 1))
+                    return true
                   }}
                   onTelefonGoster={() => setPaketModal(true)}
                 />
@@ -340,7 +356,7 @@ export default function Home() {
           <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 380, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>{limitUyari.tip === 'misafir' ? '📧' : '⏳'}</div>
             <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-              {limitUyari.tip === 'misafir' ? 'Üye Olun' : limitUyari.tip === 'engelli' ? 'Hesap Askıda' : 'Günlük Limit Doldu'}
+              {limitUyari.tip === 'misafir' ? 'Üye Olun' : limitUyari.tip === 'engelli' ? 'Hesap Askıda' : limitUyari.tip === 'mesaj-limit' ? 'Mesaj Hakkınız Doldu' : 'Günlük Limit Doldu'}
             </h3>
             <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>{limitUyari.mesaj}</p>
             {limitUyari.tip === 'misafir' ? (
@@ -348,7 +364,7 @@ export default function Home() {
                 <a href="/kayit" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>Ücretsiz Üye Ol →</a>
                 <a href="/giris" style={{ display: 'block', padding: '10px', borderRadius: 9, border: '1.5px solid #e2e8f0', color: '#4a5568', fontWeight: 500, fontSize: 14, textDecoration: 'none' }}>Zaten üyeyim, Giriş yap</a>
               </>
-            ) : limitUyari.paket === 'ucretsiz' && limitUyari.tip === 'limit' ? (
+            ) : limitUyari.paket === 'ucretsiz' && (limitUyari.tip === 'limit' || limitUyari.tip === 'mesaj-limit') ? (
               <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>💎 Pro Üyeliğe Geç →</a>
             ) : null}
             <button onClick={() => setLimitUyari(null)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>Kapat</button>
