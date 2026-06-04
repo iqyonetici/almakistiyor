@@ -71,33 +71,41 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
   const [mesajGonderildi, setMesajGonderildi] = useState(false)
   const [telefonAcik, setTelefonAcik] = useState(false)
   const [uyari, setUyari] = useState('')
+  const [gonderiliyor, setGonderiliyor] = useState(false)
 
-  const kalanGenel = mesajHaklari?.kalanGenel ?? 3
-  const gonderilenBuKisiye = mesajHaklari?.gonderilenBuKisiye ?? 0
-  const MAX_BU_KISIYE = 5
+  // kalanGenel: index.js'den gelen gerçek paket mesaj hakkı (giriş yoksa null)
+  const kalanGenel = mesajHaklari?.kalanGenel
 
   function handleMesajAc() {
     if (!user) { window.location.href = '/giris'; return }
-    if (kalanGenel <= 0) { setUyari('⚠️ Ücretsiz mesaj hakkınız doldu.'); setTimeout(()=>setUyari(''),4000); return }
-    if (gonderilenBuKisiye >= MAX_BU_KISIYE) { setUyari(`⚠️ Bu alıcıya en fazla ${MAX_BU_KISIYE} mesaj gönderebilirsiniz.`); setTimeout(()=>setUyari(''),4000); return }
     setMesajAcik(true); setMesajGonderildi(false); setMesajMetni('')
   }
 
-  function handleMesajGonder() {
-    if (!mesajMetni.trim()) return
-    onMesajGonder && onMesajGonder({ ilan, mesaj: mesajMetni })
+  async function handleMesajGonder() {
+    if (!mesajMetni.trim() || gonderiliyor) return
+    setGonderiliyor(true)
+    // onMesajGonder true/false döner (limit kontrolü index.js'de)
+    const sonuc = await onMesajGonder?.({ ilan, mesaj: mesajMetni })
+    setGonderiliyor(false)
+    if (sonuc === false) {
+      // Limit doldu — index.js modal gösterdi, kutuyu kapat
+      setMesajAcik(false)
+      return
+    }
     setMesajGonderildi(true); setMesajMetni('')
     setTimeout(() => setMesajAcik(false), 2000)
   }
 
   function handleTelefon() {
     if (!user) { window.location.href = '/giris'; return }
-    const paketliMi = user?.paket && user.paket !== 'Ücretsiz'
+    const paketliMi = user?.paket && user.paket !== 'ucretsiz' && user.paket !== 'Ücretsiz'
     if (!paketliMi) { onTelefonGoster && onTelefonGoster(ilan); return }
     setTelefonAcik(true)
   }
 
-  const kalanRenk = kalanGenel===1?'#E53E3E':kalanGenel===2?'#D97706':'#0D7A6B'
+  // Az hak kaldıysa uyarı rengi (sadece 5 ve altındaysa göster)
+  const azKaldi = typeof kalanGenel === 'number' && kalanGenel <= 5
+  const kalanRenk = kalanGenel===1?'#E53E3E':kalanGenel<=3?'#D97706':'#0D7A6B'
 
   return (
     <div className={styles.card} style={{background:renk.bg, borderColor:renk.border}}>
@@ -148,13 +156,15 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
             <>
               <div className={styles.mesajHeader}>
                 <span className={styles.mesajBaslik}>{maskedName(ilanAd)} adlı alıcıya mesaj</span>
-                {kalanGenel<=3 && <span style={{fontSize:11,fontWeight:600,color:kalanRenk}}>{kalanGenel} hak kaldı</span>}
+                {azKaldi && <span style={{fontSize:11,fontWeight:600,color:kalanRenk}}>{kalanGenel} mesaj hakkı kaldı</span>}
               </div>
               <textarea className={styles.mesajInput} rows={3} placeholder="Mesajınızı yazın..."
                 value={mesajMetni} onChange={e=>setMesajMetni(e.target.value)} autoFocus />
               <div className={styles.mesajAlt}>
                 <button className={styles.iptalBtn} onClick={()=>setMesajAcik(false)}>İptal</button>
-                <button className={styles.gonderBtn} disabled={!mesajMetni.trim()} onClick={handleMesajGonder}>Gönder →</button>
+                <button className={styles.gonderBtn} disabled={!mesajMetni.trim()||gonderiliyor} onClick={handleMesajGonder}>
+                  {gonderiliyor ? 'Gönderiliyor...' : 'Gönder →'}
+                </button>
               </div>
             </>
           )}
