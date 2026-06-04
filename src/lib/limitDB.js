@@ -13,7 +13,7 @@ export async function kullaniciHaklari(email) {
     .from('kullanicilar')
     .select('paket, engelli')
     .eq('email', email)
-    .single()
+    .maybeSingle()
 
   const paketKod = k?.paket || 'ucretsiz'
 
@@ -22,7 +22,7 @@ export async function kullaniciHaklari(email) {
     .from('paketler')
     .select('gunluk_ilan, gunluk_mesaj, telefon_goster')
     .eq('kod', paketKod)
-    .single()
+    .maybeSingle()
 
   return {
     paket: paketKod,

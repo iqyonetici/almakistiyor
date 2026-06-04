@@ -90,6 +90,6 @@ export async function adminMi(email) {
     .from('adminler')
     .select('email')
     .eq('email', email)
-    .single()
+    .maybeSingle()
   return !!data
 }
