@@ -1,11 +1,11 @@
-import SidebarKategoriler from '../components/SidebarKategoriler'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
-import Navbar, { kategoriler } from '../components/Navbar'
+import Navbar, { kategoriler as navKategoriler } from '../components/Navbar'
 import IlanKarti from '../components/IlanKarti'
 import IlanForm from '../components/IlanForm'
 import Footer from '../components/Footer'
+import SidebarKategoriler from '../components/SidebarKategoriler'
 import { sehirler } from '../data/sehirler'
 import { KATEGORILER } from '../data/kategoriler'
 import { ilanListele, ilanOlustur } from '../lib/db'
@@ -36,14 +36,13 @@ export default function Home() {
   const [kalanGenel, setKalanGenel] = useState(3)
   const [paketModal, setPaketModal] = useState(false)
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
-  const [akordAcik, setAkordAcik] = useState(null)
   const [kelimeIndex, setKelimeIndex] = useState(0)
   const [kelimeFade, setKelimeFade] = useState(true)
 
   useEffect(() => {
     const interval = setInterval(() => {
       setKelimeFade(false)
-      setTimeout(() => { setKelimeIndex(i => (i + 1) % KELIMELER.length); setKelimeFade(true); }, 300)
+      setTimeout(() => { setKelimeIndex(i => (i + 1) % KELIMELER.length); setKelimeFade(true) }, 300)
     }, 2200)
     return () => clearInterval(interval)
   }, [])
@@ -57,8 +56,10 @@ export default function Home() {
       }
     }
     loadStats()
+
     async function yukle() {
-      const isAltKat = activeCategory && !['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca'].includes(activeCategory)
+      const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
+      const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
       const { data } = await ilanListele({
         kategori: isAltKat ? undefined : (activeCategory || undefined),
         altKategori: isAltKat ? activeCategory : undefined,
@@ -121,7 +122,7 @@ export default function Home() {
     setIlanlar(prev => [{
       id: Date.now(), kategori: data.kategori, ad: data.ad,
       sehir: data.sehir, ilce: data.ilce,
-      baslik: `${data.sehir}'de ${data.islemTuru === 'kirala' ? 'kiralık' : 'satılık'} arıyorum`,
+      baslik: `${data.sehir}'de arıyorum`,
       fiyatMin: null, fiyatMax: null, tags: [], aciklama: data.aciklama,
       tarih: 'Az önce', goruntuleme: 0,
     }, ...prev])
@@ -180,12 +181,10 @@ export default function Home() {
 
       {/* MOBİL KATEGORİ CHIPS */}
       <div className={styles.mobileFilterBar}>
-        {kategoriler.slice(0, 8).map(kat => (
-          <button
-            key={kat.slug}
+        {navKategoriler.slice(0, 8).map(kat => (
+          <button key={kat.slug}
             className={`${styles.mobileChip} ${activeCategory === kat.slug ? styles.mobileChipAktif : ''}`}
-            onClick={() => handleKatChange(kat.slug)}
-          >
+            onClick={() => handleKatChange(kat.slug)}>
             {kat.icon} {kat.label}
           </button>
         ))}
@@ -220,88 +219,93 @@ export default function Home() {
 
       {/* MAIN */}
       <div className={`container ${styles.main}`}>
+
         {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.ctaCard}>
             <h4>Talep ver, satıcılar seni bulsun</h4>
             <button className={styles.ctaWhite} onClick={() => setFormOpen(true)}>Hemen başla →</button>
           </div>
+
           <div className={styles.filterCard}>
             <div className={styles.filterTitle}>🔍 Filtrele</div>
-<div className={styles.filterGroup}>
-  <label className="form-label">🗂️ Kategori</label>
-  <SidebarKategoriler
-    KATEGORILER={KATEGORILER}
-    activeCategory={activeCategory}
-    onKatChange={handleKatChange}
-  />
-</div>
+
+            {/* ŞEHİR */}
+            <div className={styles.filterGroup}>
+              <label className="form-label">📍 Şehir</label>
+              <select className="form-select" value={filterSehir}
+                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
+                <option value="">Tüm şehirler</option>
+                {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
+              </select>
+            </div>
+
             {filterSehir && (
               <div className={styles.filterGroup}>
                 <label className="form-label">📎 İlçe</label>
                 <select className="form-select" value={filterIlce} onChange={e => setFilterIlce(e.target.value)}>
                   <option value="">Tüm ilçeler</option>
-                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => <option key={i} value={i}>{i}</option>)}
+                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
                 </select>
               </div>
             )}
+
+            {/* KATEGORİ — 3 seviyeli */}
             <div className={styles.filterGroup}>
               <label className="form-label">🗂️ Kategori</label>
-              <button className={`${styles.akkordBtn} ${activeCategory === '' ? styles.akkordAktif : ''}`}
-                onClick={() => { setActiveCategory(''); setAkordAcik(null) }}>✓ Tümü</button>
-              {KATEGORILER.map(k => (
-                <div key={k.slug}>
-                  <button className={`${styles.akkordBtn} ${activeCategory === k.slug ? styles.akkordAktif : ''}`}
-                    onClick={() => { setAkordAcik(akordAcik === k.slug ? null : k.slug); handleKatChange(k.slug) }}>
-                    <span>{k.icon} {k.label}</span>
-                    <span style={{ fontSize: 10, color: '#8a95a3' }}>{akordAcik === k.slug ? '▲' : '▼'}</span>
-                  </button>
-                  {akordAcik === k.slug && k.altKategoriler?.length > 0 && (
-                    <div className={styles.akkordAlt}>
-                      {k.altKategoriler.map(alt => (
-                        <button key={alt.slug}
-                          className={`${styles.akkordAltItem} ${activeCategory === alt.slug ? styles.akkordAltAktif : ''}`}
-                          onClick={() => handleKatChange(alt.slug)}>
-                          {alt.icon} {alt.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              <SidebarKategoriler
+                KATEGORILER={KATEGORILER}
+                activeCategory={activeCategory}
+                onKatChange={handleKatChange}
+              />
             </div>
+
+            {/* TARİH */}
             <div className={styles.filterGroup}>
               <label className="form-label">📅 Tarih</label>
               <div className={styles.chips}>
                 {[{ v: '', l: 'Tümü' }, { v: 'bugun', l: 'Bugün' }, { v: 'hafta', l: 'Bu hafta' }].map(d => (
-                  <button key={d.v} className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
-                    onClick={() => setFilterTarih(d.v)}>{d.l}</button>
+                  <button key={d.v}
+                    className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
+                    onClick={() => setFilterTarih(d.v)}>
+                    {d.l}
+                  </button>
                 ))}
               </div>
             </div>
           </div>
+
           <div className={styles.sellerCard}>
             <div className={styles.freeBadge}>3 ücretsiz hak</div>
             <h5>Emlakçı veya Galericiler</h5>
             <p>Talep ilanlarına erişin.</p>
-            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>Satıcı girişi →</a>
+            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>
+              Satıcı girişi →
+            </a>
           </div>
         </aside>
 
         {/* LİSTİNGS */}
         <main className={styles.listings} id="ilan-listesi">
           <div className={styles.listHeader}>
-            <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
+            <div className={styles.listCount}>
+              <strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı
+            </div>
             <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>
               <option value="yeni">En yeni</option>
               <option value="cok-goruntulenen">En çok görüntülenen</option>
             </select>
           </div>
+
           <div className={styles.listGrid}>
             {filtered.length === 0 ? (
               <div className={styles.empty}>
                 <p>Bu kriterlere uygun ilan bulunamadı.</p>
-                <button className="btn-primary" onClick={() => setFormOpen(true)}>İlk ilanı siz verin →</button>
+                <button className="btn-primary" onClick={() => setFormOpen(true)}>
+                  İlk ilanı siz verin →
+                </button>
               </div>
             ) : (
               filtered.map(ilan => (
@@ -309,8 +313,20 @@ export default function Home() {
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
-                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
-                    if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
+                    const { data: konusma } = await kBVG({
+                      ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori,
+                      aliciEmail: il.email || '', aliciAd: il.ad || '',
+                      saticiEmail: user?.email || 'anonim',
+                      saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
+                      saticiIfirma: user?.firma || null,
+                    })
+                    if (konusma) {
+                      await kMG({
+                        konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim',
+                        gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim',
+                        metin: mesaj, gonderenAliciMi: false,
+                      })
+                    }
                     setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
                     setKalanGenel(p => Math.max(0, p - 1))
                   }}
@@ -319,6 +335,7 @@ export default function Home() {
               ))
             )}
           </div>
+
           {filtered.length > 0 && (
             <div className={styles.pagination}>
               {['←', '1', '2', '3', '...', '→'].map((p, i) => (
@@ -337,9 +354,15 @@ export default function Home() {
           <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 360, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>🔒</div>
             <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Telefon için paket gerekli</h3>
-            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>Alıcının numarasını görmek için Starter paketi gerekiyor.</p>
-            <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Paketlere Bak →</a>
-            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer' }}>Şimdilik geç</button>
+            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>
+              Alıcının numarasını görmek için Starter paketi gerekiyor.
+            </p>
+            <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>
+              Paketlere Bak →
+            </a>
+            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer' }}>
+              Şimdilik geç
+            </button>
           </div>
         </div>
       )}
