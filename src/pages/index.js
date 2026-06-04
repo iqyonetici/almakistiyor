@@ -1,3 +1,4 @@
+import SidebarKategoriler from '../components/SidebarKategoriler'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
@@ -227,13 +228,14 @@ export default function Home() {
           </div>
           <div className={styles.filterCard}>
             <div className={styles.filterTitle}>🔍 Filtrele</div>
-            <div className={styles.filterGroup}>
-              <label className="form-label">📍 Şehir</label>
-              <select className="form-select" value={filterSehir} onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
-                <option value="">Tüm şehirler</option>
-                {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
-              </select>
-            </div>
+<div className={styles.filterGroup}>
+  <label className="form-label">🗂️ Kategori</label>
+  <SidebarKategoriler
+    KATEGORILER={KATEGORILER}
+    activeCategory={activeCategory}
+    onKatChange={handleKatChange}
+  />
+</div>
             {filterSehir && (
               <div className={styles.filterGroup}>
                 <label className="form-label">📎 İlçe</label>
