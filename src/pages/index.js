@@ -162,18 +162,23 @@ export default function Home() {
                 İlanları Gör →
               </a>
             </div>
+            <div className={styles.heroStats}>
+              {[
+                { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853', label: 'Aktif ilan' },
+                { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '1.424', label: 'Kullanıcı' },
+                { num: '%94', label: 'Eşleşme' },
+              ].map(s => (
+                <div key={s.label} className={styles.stat}>
+                  <div className={styles.statNum}>{s.num}</div>
+                  <div className={styles.statLabel}>{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className={styles.heroStats}>
-            {[
-              { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853', label: 'Aktif ilan' },
-              { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '1.424', label: 'Kullanıcı' },
-              { num: '%94', label: 'Eşleşme' },
-            ].map(s => (
-              <div key={s.label} className={styles.stat}>
-                <div className={styles.statNum}>{s.num}</div>
-                <div className={styles.statLabel}>{s.label}</div>
-              </div>
-            ))}
+          <div className={styles.heroGorsel}>
+            <img src="/almak-istiyor-satici-teklif.webp"
+              alt="Ne aradığınızı söyleyin, satıcılar size özel teklif göndersin — AlmakIstiyor.com"
+              loading="eager" width="670" height="659" />
           </div>
         </div>
       </section>

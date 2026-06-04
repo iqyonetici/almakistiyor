@@ -86,12 +86,12 @@
 .heroBtnSecondary:hover { background: rgba(255,255,255,0.18); }
 
 .heroStats {
-  display: flex;
+  display: inline-flex;
   gap: 0;
   background: rgba(255,255,255,0.07);
   border-radius: 10px;
   overflow: hidden;
-  flex-shrink: 0;
+  margin-top: 16px;
 }
 .stat {
   padding: 12px 20px; text-align: center;
@@ -104,6 +104,22 @@
 }
 .statLabel {
   font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;
+}
+
+/* HERO GÖRSELİ */
+.heroGorsel {
+  flex-shrink: 0;
+  width: 42%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.heroGorsel img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
 }
 
 /* Artık kullanılmıyor ama silmeyelim hata çıkmasın */
@@ -299,8 +315,13 @@
    RESPONSIVE
    ===================== */
 @media (max-width: 900px) {
-  .heroStats { display: none; }
   .heroInner { flex-direction: column; align-items: stretch; }
+  .heroGorsel { width: 100%; max-width: 400px; margin: 16px auto 0; }
+  .heroStats { display: inline-flex; }
+}
+
+@media (max-width: 600px) {
+  .heroGorsel { display: none; }
 }
 
 @media (max-width: 768px) {
