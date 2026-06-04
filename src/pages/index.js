@@ -140,45 +140,17 @@ export default function Home() {
       <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={() => setFormOpen(true)} />
 
       <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <div className={styles.heroContent}>
-            <div className={styles.heroBadge}>
-              <span className={styles.dot} />
-              {stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853'} aktif ilan
-            </div>
-            <h1 className={styles.heroH1}>
-              <span className={styles.kelimeWrapper}>
-                <span className={styles.kelime} style={{ opacity: kelimeFade ? 1 : 0, transform: kelimeFade ? 'translateY(0)' : 'translateY(-6px)' }}>
-                  {KELIMELER[kelimeIndex]}
-                </span>
-              </span>
-              {' '}mı arıyorsunuz?
-            </h1>
-            <p className={styles.heroSub}>Söyleyin — satıcılar sizi bulsun. Ücretsiz, spamsiz.</p>
-            <div className={styles.heroActions}>
-              <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>+ Almak İstiyorum</button>
-              <a href="#ilan-listesi" className={styles.heroBtnSecondary}
-                onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}>
-                İlanları Gör →
-              </a>
-            </div>
-            <div className={styles.heroStats}>
-              {[
-                { num: stats.ilanSayisi > 0 ? stats.ilanSayisi.toLocaleString('tr-TR') : '2.853', label: 'Aktif ilan' },
-                { num: stats.kullaniciSayisi > 0 ? stats.kullaniciSayisi.toLocaleString('tr-TR') : '1.424', label: 'Kullanıcı' },
-                { num: '%94', label: 'Eşleşme' },
-              ].map(s => (
-                <div key={s.label} className={styles.stat}>
-                  <div className={styles.statNum}>{s.num}</div>
-                  <div className={styles.statLabel}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className={styles.heroGorsel}>
-            <img src="/almak-istiyor-satici-teklif.webp"
-              alt="Ne aradığınızı söyleyin, satıcılar size özel teklif göndersin — AlmakIstiyor.com"
-              loading="eager" width="670" height="659" />
+        <div className={styles.heroBannerWrap}>
+          <img src="/almak-istiyor-hero-banner.webp"
+            className={styles.heroBannerImg}
+            alt="Aradığınız ürünü çarşı pazar gezerek aramayın — Ne almak istediğinizi söyleyin, satıcılar size özel teklif göndersin. AlmakIstiyor.com yeni nesil ilan platformu"
+            loading="eager" width="1717" height="916" />
+          <div className={styles.heroBannerBtns}>
+            <button className={styles.heroBtnPrimary} onClick={() => setFormOpen(true)}>+ Almak İstiyorum</button>
+            <a href="#ilan-listesi" className={styles.heroBtnSecondary}
+              onClick={e => { e.preventDefault(); document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth' }) }}>
+              İlanları Gör →
+            </a>
           </div>
         </div>
       </section>
