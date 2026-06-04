@@ -1,362 +1,294 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
+import { supabase } from '../lib/supabase'
+import { adminMi, tumKategorileriGetir, kategoriEkle, kategoriGuncelle, kategoriSil } from '../lib/kategoriDB'
 import styles from './admin.module.css'
 
-// Demo veriler
-const demoIlanlar = [
-  { id: 1, ad: 'Mehmet Arslan', tel: '0532 111 22 33', kategori: 'Emlak', sehir: 'İstanbul', baslik: 'Kadıköy 3+1 kiralık daire', tarih: '2 saat önce', durum: 'aktif' },
-  { id: 2, ad: 'Zeynep Koçak', tel: '0541 333 44 55', kategori: 'Vasıta', sehir: 'İstanbul', baslik: 'BMW veya Mercedes', tarih: '8 saat önce', durum: 'aktif' },
-  { id: 3, ad: 'Can Öztürk', tel: '0555 666 77 88', kategori: 'Emlak', sehir: 'İstanbul', baslik: 'Beşiktaş satılık daire', tarih: '2 gün önce', durum: 'aktif' },
-  { id: 4, ad: 'Selin Aktaş', tel: '0532 999 00 11', kategori: 'Emlak', sehir: 'İzmir', baslik: 'Karşıyaka 2+1', tarih: '3 gün önce', durum: 'pasif' },
-  { id: 5, ad: 'Burak Demir', tel: '0543 222 33 44', kategori: 'Vasıta', sehir: 'Ankara', baslik: 'VW Golf arıyorum', tarih: '4 gün önce', durum: 'aktif' },
-]
+export default function AdminPanel() {
+  const { user, yuklendi } = useAuth()
+  const router = useRouter()
+  const [yetkili, setYetkili] = useState(null) // null=kontrol ediliyor, true/false
+  const [sekme, setSekme] = useState('onaylar')
 
-const demoSaticilar = [
-  { id: 1, firma: 'IQ TEKNO Emlak', email: 'iqyonetici@gmail.com', paket: 'Pro', goruntuleme: 14, odeme: '₺1.299', tarih: '15 gün önce', durum: 'aktif' },
-  { id: 2, firma: 'Yıldız Gayrimenkul', email: 'yildiz@emlak.com', paket: 'Starter', goruntuleme: 7, odeme: '₺499', tarih: '22 gün önce', durum: 'aktif' },
-  { id: 3, firma: 'Oto Güven Galeri', email: 'info@otogüven.com', paket: 'Ücretsiz', goruntuleme: 3, odeme: '—', tarih: '1 ay önce', durum: 'aktif' },
-  { id: 4, firma: 'Metropol Emlak', email: 'metropol@email.com', paket: 'Kurumsal', goruntuleme: 89, odeme: '₺3.499', tarih: '5 gün önce', durum: 'aktif' },
-]
+  const [bekleyenIlanlar, setBekleyenIlanlar] = useState([])
+  const [tumIlanlar, setTumIlanlar] = useState([])
+  const [kategoriler, setKategoriler] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(false)
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@almakistiyor.com'
-const ADMIN_SIFRE = process.env.NEXT_PUBLIC_ADMIN_PASS || 'admin123'
+  // Yetki kontrolü
+  useEffect(() => {
+    if (!yuklendi) return
+    if (!user?.email) { setYetkili(false); return }
+    adminMi(user.email).then(setYetkili)
+  }, [user, yuklendi])
 
-export default function Admin() {
-  const [giris, setGiris] = useState(false)
-  const [email, setEmail] = useState('')
-  const [sifre, setSifre] = useState('')
-  const [hata, setHata] = useState('')
-  const [aktifTab, setAktifTab] = useState('ozet')
-  const [ilanlar, setIlanlar] = useState(demoIlanlar)
-  const [saticilar, setSaticilar] = useState(demoSaticilar)
+  // Veri yükle
+  useEffect(() => {
+    if (yetkili !== true) return
+    veriYukle()
+  }, [yetkili, sekme])
 
-  function handleGiris(e) {
-    e.preventDefault()
-    if (email === ADMIN_EMAIL && sifre === ADMIN_SIFRE) {
-      setGiris(true); setHata('')
-    } else {
-      setHata('E-posta veya şifre hatalı.')
+  async function veriYukle() {
+    setYukleniyor(true)
+    if (sekme === 'onaylar') {
+      const { data } = await supabase.from('ilanlar').select('*')
+        .eq('onay_durumu', 'beklemede').order('created_at', { ascending: false })
+      setBekleyenIlanlar(data || [])
+    } else if (sekme === 'ilanlar') {
+      const { data } = await supabase.from('ilanlar').select('*')
+        .order('created_at', { ascending: false }).limit(200)
+      setTumIlanlar(data || [])
+    } else if (sekme === 'kategoriler') {
+      setKategoriler(await tumKategorileriGetir())
     }
+    setYukleniyor(false)
   }
 
-  function ilanSil(id) {
-    setIlanlar(prev => prev.filter(i => i.id !== id))
+  // İlan onayla / reddet
+  async function ilanOnayla(id) {
+    await supabase.from('ilanlar').update({ onay_durumu: 'onaylandi', durum: 'aktif' }).eq('id', id)
+    veriYukle()
   }
-  function ilanDurumDegistir(id) {
-    setIlanlar(prev => prev.map(i => i.id === id ? {...i, durum: i.durum === 'aktif' ? 'pasif' : 'aktif'} : i))
+  async function ilanReddet(id) {
+    await supabase.from('ilanlar').update({ onay_durumu: 'reddedildi', durum: 'pasif' }).eq('id', id)
+    veriYukle()
+  }
+  async function ilanDurdur(id) {
+    await supabase.from('ilanlar').update({ durum: 'pasif' }).eq('id', id)
+    veriYukle()
+  }
+  async function ilanYayinla(id) {
+    await supabase.from('ilanlar').update({ durum: 'aktif', onay_durumu: 'onaylandi' }).eq('id', id)
+    veriYukle()
+  }
+  async function ilanSilKalici(id) {
+    if (!confirm('Bu ilan kalıcı olarak silinecek. Emin misiniz?')) return
+    await supabase.from('ilanlar').delete().eq('id', id)
+    veriYukle()
   }
 
-  const toplamIlan = ilanlar.length
-  const aktifIlan = ilanlar.filter(i => i.durum === 'aktif').length
-  const toplamSatici = saticilar.length
-  const toplamGelir = saticilar.reduce((sum, s) => {
-    const fiyat = parseInt(s.odeme.replace(/[^0-9]/g,'')) || 0
-    return sum + fiyat
-  }, 0)
-
-  if (!giris) {
+  if (yetkili === null) {
+    return <div className={styles.merkez}><div className={styles.spinner} /> Yetki kontrol ediliyor...</div>
+  }
+  if (yetkili === false) {
     return (
-      <>
-        <Head><title>Admin Girişi — AlmakIstiyor.com</title></Head>
-        <div className={styles.loginWrap}>
-          <div className={styles.loginBox}>
-            <div className={styles.loginLogo}>
-              <svg width="140" height="34" viewBox="0 0 300 72" fill="none">
-                <path d="M20 8 L36 4 L52 8 L52 30 C52 42 36 50 36 50 C36 50 20 42 20 30 Z" fill="#0D7A6B"/>
-                <path d="M27 27 L33 33 L46 20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <text x="62" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#0D7A6B">almak</text>
-                <text x="163" y="44" fontFamily="Sora,sans-serif" fontWeight="400" fontSize="28" fill="#1A1D23">istiyor</text>
-                <text x="277" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#F5A623">.</text>
-              </svg>
-            </div>
-            <div className={styles.adminBadge}>🔐 Admin Paneli</div>
-            <h2 className={styles.loginTitle}>Yönetici Girişi</h2>
-            <form onSubmit={handleGiris} className={styles.loginForm}>
-              <div>
-                <label className="form-label">E-posta</label>
-                <input className="form-input" type="email" placeholder="admin@almakistiyor.com"
-                  value={email} onChange={e => setEmail(e.target.value)} required />
-              </div>
-              <div>
-                <label className="form-label">Şifre</label>
-                <input className="form-input" type="password" placeholder="••••••••"
-                  value={sifre} onChange={e => setSifre(e.target.value)} required />
-              </div>
-              {hata && <div className={styles.hataBox}>{hata}</div>}
-              <button type="submit" className="btn-primary" style={{width:'100%',justifyContent:'center',padding:13}}>
-                Giriş Yap
-              </button>
-            </form>
-            <p style={{fontSize:12,color:'var(--text-3)',textAlign:'center',marginTop:14}}>
-              Demo: admin@almakistiyor.com / admin123
-            </p>
-          </div>
-        </div>
-      </>
+      <div className={styles.merkez}>
+        <div style={{ fontSize: 48 }}>🔒</div>
+        <h2>Erişim Reddedildi</h2>
+        <p>Bu sayfaya yalnızca yöneticiler erişebilir.</p>
+        <button className={styles.btn} onClick={() => router.push('/')}>Ana Sayfaya Dön</button>
+      </div>
     )
   }
 
   return (
     <>
-      <Head><title>Admin Paneli — AlmakIstiyor.com</title></Head>
+      <Head><title>Admin Panel | AlmakIstiyor</title></Head>
       <div className={styles.wrap}>
+        <header className={styles.header}>
+          <h1>⚙️ Admin Panel</h1>
+          <button className={styles.cikis} onClick={() => router.push('/')}>← Siteye Dön</button>
+        </header>
 
-        {/* SIDEBAR */}
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarLogo}>
-            <svg width="110" height="26" viewBox="0 0 300 72" fill="none">
-              <path d="M20 8 L36 4 L52 8 L52 30 C52 42 36 50 36 50 C36 50 20 42 20 30 Z" fill="rgba(255,255,255,0.9)"/>
-              <path d="M27 27 L33 33 L46 20" stroke="#0D7A6B" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <text x="62" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="white">almak</text>
-              <text x="163" y="44" fontFamily="Sora,sans-serif" fontWeight="400" fontSize="28" fill="rgba(255,255,255,0.7)">istiyor</text>
-              <text x="277" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#F5A623">.</text>
-            </svg>
-            <span className={styles.adminTag}>Admin</span>
-          </div>
+        <div className={styles.sekmeler}>
+          <button className={`${styles.sekme} ${sekme==='onaylar'?styles.sekmeAktif:''}`} onClick={() => setSekme('onaylar')}>
+            ⏳ İlan Onayları {bekleyenIlanlar.length > 0 && <span className={styles.rozet}>{bekleyenIlanlar.length}</span>}
+          </button>
+          <button className={`${styles.sekme} ${sekme==='ilanlar'?styles.sekmeAktif:''}`} onClick={() => setSekme('ilanlar')}>
+            📋 Tüm İlanlar
+          </button>
+          <button className={`${styles.sekme} ${sekme==='kategoriler'?styles.sekmeAktif:''}`} onClick={() => setSekme('kategoriler')}>
+            🗂️ Kategoriler
+          </button>
+        </div>
 
-          <nav className={styles.nav}>
-            {[
-              { id: 'ozet', icon: '📊', label: 'Özet' },
-              { id: 'ilanlar', icon: '📋', label: 'Talep İlanları' },
-              { id: 'saticilar', icon: '🏢', label: 'Satıcılar' },
-              { id: 'odemeler', icon: '💳', label: 'Ödemeler' },
-              { id: 'ayarlar', icon: '⚙️', label: 'Site Ayarları' },
-            ].map(m => (
-              <button key={m.id}
-                className={`${styles.navItem} ${aktifTab === m.id ? styles.navActive : ''}`}
-                onClick={() => setAktifTab(m.id)}>
-                <span>{m.icon}</span>{m.label}
-              </button>
-            ))}
-          </nav>
+        <div className={styles.icerik}>
+          {yukleniyor && <div className={styles.yukleniyor}>Yükleniyor...</div>}
 
-          <div className={styles.sidebarBottom}>
-            <a href="/" className={styles.siteLink}>← Siteye Dön</a>
-            <button className={styles.cikisBtn} onClick={() => setGiris(false)}>Çıkış Yap</button>
-          </div>
-        </aside>
-
-        {/* ANA ALAN */}
-        <main className={styles.main}>
-
-          {/* ÖZET */}
-          {aktifTab === 'ozet' && (
-            <div>
-              <h1 className={styles.pageTitle}>Genel Özet</h1>
-              <div className={styles.statGrid}>
-                {[
-                  { icon: '📋', label: 'Toplam İlan', val: toplamIlan, sub: `${aktifIlan} aktif`, renk: '#E6F5F2', irenk: '#0D7A6B' },
-                  { icon: '🏢', label: 'Kayıtlı Satıcı', val: toplamSatici, sub: '3 bu hafta', renk: '#EBF4FF', irenk: '#1A4A8A' },
-                  { icon: '💰', label: 'Aylık Gelir', val: `₺${toplamGelir.toLocaleString('tr-TR')}`, sub: 'Bu ay', renk: '#EBF8F0', irenk: '#1A5C35' },
-                  { icon: '👁️', label: 'Toplam Görüntülenme', val: '14.320', sub: 'Bu ay', renk: '#FEF3DC', irenk: '#7A4F01' },
-                ].map(s => (
-                  <div key={s.label} className={styles.statKart} style={{background: s.renk}}>
-                    <div className={styles.statIcon} style={{color: s.irenk}}>{s.icon}</div>
-                    <div className={styles.statVal} style={{color: s.irenk}}>{s.val}</div>
-                    <div className={styles.statLabel}>{s.label}</div>
-                    <div className={styles.statSub}>{s.sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={styles.ozet2Kol}>
-                <div className={styles.ozetBox}>
-                  <h3 className={styles.ozetBaslik}>Son Talep İlanları</h3>
-                  <table className={styles.tablo}>
-                    <thead><tr><th>Ad</th><th>Kategori</th><th>Şehir</th><th>Durum</th></tr></thead>
-                    <tbody>
-                      {ilanlar.slice(0,5).map(i => (
-                        <tr key={i.id}>
-                          <td>{i.ad}</td>
-                          <td><span className={styles.katBadge}>{i.kategori}</span></td>
-                          <td>{i.sehir}</td>
-                          <td><span className={`${styles.durumBadge} ${i.durum === 'aktif' ? styles.durumAktif : styles.durumPasif}`}>{i.durum}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className={styles.ozetBox}>
-                  <h3 className={styles.ozetBaslik}>Son Satıcılar</h3>
-                  <table className={styles.tablo}>
-                    <thead><tr><th>Firma</th><th>Paket</th><th>Gelir</th></tr></thead>
-                    <tbody>
-                      {saticilar.map(s => (
-                        <tr key={s.id}>
-                          <td style={{fontSize:13}}>{s.firma}</td>
-                          <td><span className={styles.paketBadge}>{s.paket}</span></td>
-                          <td style={{fontWeight:600,color:'#1A5C35'}}>{s.odeme}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TALEP İLANLARI */}
-          {aktifTab === 'ilanlar' && (
-            <div>
-              <div className={styles.tabHeader}>
-                <h1 className={styles.pageTitle}>Talep İlanları</h1>
-                <span className={styles.sayac}>{ilanlar.length} ilan</span>
-              </div>
-              <div className={styles.tableWrap}>
-                <table className={styles.tablo}>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Ad Soyad</th>
-                      <th>Telefon</th>
-                      <th>Başlık</th>
-                      <th>Kategori</th>
-                      <th>Şehir</th>
-                      <th>Tarih</th>
-                      <th>Durum</th>
-                      <th>İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ilanlar.map(i => (
-                      <tr key={i.id}>
-                        <td style={{color:'var(--text-3)',fontSize:12}}>{i.id}</td>
-                        <td style={{fontWeight:500}}>{i.ad}</td>
-                        <td style={{fontSize:13,color:'var(--teal)',fontWeight:500}}>{i.tel}</td>
-                        <td style={{fontSize:13,maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{i.baslik}</td>
-                        <td><span className={styles.katBadge}>{i.kategori}</span></td>
-                        <td style={{fontSize:13}}>{i.sehir}</td>
-                        <td style={{fontSize:12,color:'var(--text-3)'}}>{i.tarih}</td>
-                        <td>
-                          <span className={`${styles.durumBadge} ${i.durum === 'aktif' ? styles.durumAktif : styles.durumPasif}`}>
-                            {i.durum}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{display:'flex',gap:6}}>
-                            <button className={styles.islemBtn} onClick={() => ilanDurumDegistir(i.id)}
-                              title={i.durum === 'aktif' ? 'Pasife Al' : 'Aktife Al'}>
-                              {i.durum === 'aktif' ? '⏸' : '▶'}
-                            </button>
-                            <button className={`${styles.islemBtn} ${styles.silBtn}`} onClick={() => ilanSil(i.id)} title="Sil">🗑</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* SATICILAR */}
-          {aktifTab === 'saticilar' && (
-            <div>
-              <div className={styles.tabHeader}>
-                <h1 className={styles.pageTitle}>Satıcılar</h1>
-                <span className={styles.sayac}>{saticilar.length} satıcı</span>
-              </div>
-              <div className={styles.tableWrap}>
-                <table className={styles.tablo}>
-                  <thead>
-                    <tr>
-                      <th>Firma</th>
-                      <th>E-posta</th>
-                      <th>Paket</th>
-                      <th>Görüntüleme</th>
-                      <th>Aylık Ödeme</th>
-                      <th>Kayıt</th>
-                      <th>Durum</th>
-                      <th>İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {saticilar.map(s => (
-                      <tr key={s.id}>
-                        <td style={{fontWeight:500}}>{s.firma}</td>
-                        <td style={{fontSize:13,color:'var(--text-3)'}}>{s.email}</td>
-                        <td><span className={styles.paketBadge}>{s.paket}</span></td>
-                        <td style={{fontSize:13,textAlign:'center'}}>{s.goruntuleme}</td>
-                        <td style={{fontWeight:600,color:'#1A5C35'}}>{s.odeme}</td>
-                        <td style={{fontSize:12,color:'var(--text-3)'}}>{s.tarih}</td>
-                        <td><span className={`${styles.durumBadge} ${styles.durumAktif}`}>{s.durum}</span></td>
-                        <td>
-                          <div style={{display:'flex',gap:6}}>
-                            <button className={styles.islemBtn} title="Düzenle">✏️</button>
-                            <button className={`${styles.islemBtn} ${styles.silBtn}`}
-                              onClick={() => setSaticilar(prev => prev.filter(x => x.id !== s.id))} title="Sil">🗑</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ÖDEMELER */}
-          {aktifTab === 'odemeler' && (
-            <div>
-              <h1 className={styles.pageTitle}>Ödemeler</h1>
-              <div className={styles.statGrid} style={{gridTemplateColumns:'repeat(3,1fr)'}}>
-                {[
-                  { label: 'Bu Ay Gelir', val: `₺${toplamGelir.toLocaleString('tr-TR')}`, renk: '#EBF8F0', irenk: '#1A5C35', icon: '💰' },
-                  { label: 'Aktif Abonelik', val: saticilar.filter(s=>s.paket!=='Ücretsiz').length, renk: '#E6F5F2', irenk: '#0D7A6B', icon: '✓' },
-                  { label: 'Ücretsiz Kullanıcı', val: saticilar.filter(s=>s.paket==='Ücretsiz').length, renk: '#FEF3DC', irenk: '#7A4F01', icon: '👥' },
-                ].map(s => (
-                  <div key={s.label} className={styles.statKart} style={{background:s.renk}}>
-                    <div className={styles.statIcon} style={{color:s.irenk}}>{s.icon}</div>
-                    <div className={styles.statVal} style={{color:s.irenk}}>{s.val}</div>
-                    <div className={styles.statLabel}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.tableWrap} style={{marginTop:24}}>
-                <table className={styles.tablo}>
-                  <thead><tr><th>Firma</th><th>Paket</th><th>Tutar</th><th>Tarih</th><th>Durum</th></tr></thead>
-                  <tbody>
-                    {saticilar.filter(s=>s.paket!=='Ücretsiz').map(s => (
-                      <tr key={s.id}>
-                        <td style={{fontWeight:500}}>{s.firma}</td>
-                        <td><span className={styles.paketBadge}>{s.paket}</span></td>
-                        <td style={{fontWeight:600,color:'#1A5C35'}}>{s.odeme}</td>
-                        <td style={{fontSize:12,color:'var(--text-3)'}}>{s.tarih}</td>
-                        <td><span className={`${styles.durumBadge} ${styles.durumAktif}`}>Ödendi</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* AYARLAR */}
-          {aktifTab === 'ayarlar' && (
-            <div>
-              <h1 className={styles.pageTitle}>Site Ayarları</h1>
-              <div className={styles.ayarGrid}>
-                {[
-                  { baslik: '🆓 Ücretsiz Hak Sayısı', aciklama: 'Satıcıya verilen ücretsiz ilan görüntüleme hakkı', deger: '3' },
-                  { baslik: '📩 Bildirim E-postası', aciklama: 'Sistem bildirimlerinin gönderileceği adres', deger: 'admin@almakistiyor.com' },
-                  { baslik: '⏰ İlan Geçerlilik Süresi', aciklama: 'İlanların otomatik pasife alınma süresi (gün)', deger: '30' },
-                  { baslik: '📱 SMS Servis Sağlayıcı', aciklama: 'Kullanılacak SMS API', deger: 'Netgsm' },
-                ].map((a,i) => (
-                  <div key={i} className={styles.ayarSatir}>
-                    <div>
-                      <div className={styles.ayarBaslik}>{a.baslik}</div>
-                      <div className={styles.ayarAcik}>{a.aciklama}</div>
+          {/* ONAY BEKLEYEN İLANLAR */}
+          {sekme === 'onaylar' && !yukleniyor && (
+            bekleyenIlanlar.length === 0 ? (
+              <div className={styles.bos}>✓ Onay bekleyen ilan yok</div>
+            ) : (
+              bekleyenIlanlar.map(ilan => (
+                <div key={ilan.id} className={styles.ilanKart}>
+                  <div className={styles.ilanBilgi}>
+                    <div className={styles.ilanBaslik}>
+                      {ilan.kategori} {ilan.alt_kategori ? `› ${ilan.alt_kategori}` : ''}
+                      {ilan.emlak_tip && ` › ${ilan.emlak_tip}`}
                     </div>
-                    <input className="form-input" defaultValue={a.deger} style={{width:200}} />
+                    <div className={styles.ilanDetay}>
+                      👤 {ilan.kullanici_ad} {ilan.kullanici_soyad} • 📍 {ilan.sehir} {ilan.ilce || ''}
+                      {ilan.fiyat_min && ` • ₺${Number(ilan.fiyat_min).toLocaleString('tr-TR')}-${Number(ilan.fiyat_max).toLocaleString('tr-TR')}`}
+                    </div>
+                    {ilan.aciklama && <div className={styles.ilanAciklama}>{ilan.aciklama}</div>}
+                    <div className={styles.ilanTarih}>{new Date(ilan.created_at).toLocaleString('tr-TR')}</div>
                   </div>
-                ))}
-                <button className="btn-primary" style={{padding:'10px 28px',marginTop:8}}>Kaydet</button>
-              </div>
-            </div>
+                  <div className={styles.ilanAksiyon}>
+                    <button className={styles.btnOnay} onClick={() => ilanOnayla(ilan.id)}>✓ Onayla</button>
+                    <button className={styles.btnRed} onClick={() => ilanReddet(ilan.id)}>✕ Reddet</button>
+                  </div>
+                </div>
+              ))
+            )
           )}
 
-        </main>
+          {/* TÜM İLANLAR */}
+          {sekme === 'ilanlar' && !yukleniyor && (
+            tumIlanlar.length === 0 ? (
+              <div className={styles.bos}>İlan yok</div>
+            ) : (
+              tumIlanlar.map(ilan => (
+                <div key={ilan.id} className={styles.ilanKart}>
+                  <div className={styles.ilanBilgi}>
+                    <div className={styles.ilanBaslik}>
+                      {ilan.kategori} {ilan.alt_kategori ? `› ${ilan.alt_kategori}` : ''}
+                      <span className={`${styles.durum} ${ilan.durum==='aktif'?styles.durumAktif:styles.durumPasif}`}>
+                        {ilan.durum === 'aktif' ? 'Yayında' : 'Pasif'}
+                      </span>
+                      {ilan.onay_durumu === 'beklemede' && <span className={styles.durumBekle}>Beklemede</span>}
+                    </div>
+                    <div className={styles.ilanDetay}>
+                      👤 {ilan.kullanici_ad} • 📍 {ilan.sehir} • 👁 {ilan.goruntuleme || 0}
+                    </div>
+                  </div>
+                  <div className={styles.ilanAksiyon}>
+                    {ilan.durum === 'aktif' ? (
+                      <button className={styles.btnDurdur} onClick={() => ilanDurdur(ilan.id)}>⏸ Durdur</button>
+                    ) : (
+                      <button className={styles.btnOnay} onClick={() => ilanYayinla(ilan.id)}>▶ Yayınla</button>
+                    )}
+                    <button className={styles.btnSil} onClick={() => ilanSilKalici(ilan.id)}>🗑 Sil</button>
+                  </div>
+                </div>
+              ))
+            )
+          )}
+
+          {/* KATEGORİ YÖNETİMİ */}
+          {sekme === 'kategoriler' && !yukleniyor && (
+            <KategoriYonetimi kategoriler={kategoriler} onDegisim={veriYukle} />
+          )}
+        </div>
       </div>
     </>
+  )
+}
+
+// ============ KATEGORİ YÖNETİM BİLEŞENİ ============
+function KategoriYonetimi({ kategoriler, onDegisim }) {
+  const [ekleModal, setEkleModal] = useState(null) // {parentId, seviye}
+  const [yeniLabel, setYeniLabel] = useState('')
+  const [yeniSlug, setYeniSlug] = useState('')
+  const [yeniIcon, setYeniIcon] = useState('')
+  const [yeniFiltreTip, setYeniFiltreTip] = useState('')
+  const [yeniFiltreDeger, setYeniFiltreDeger] = useState('')
+
+  async function ekle() {
+    if (!yeniLabel || !yeniSlug) { alert('İsim ve slug zorunlu'); return }
+    await kategoriEkle({
+      parentId: ekleModal.parentId,
+      label: yeniLabel, slug: yeniSlug, icon: yeniIcon,
+      seviye: ekleModal.seviye,
+      sira: 99,
+      filtreTip: yeniFiltreTip || null,
+      filtreDeger: yeniFiltreDeger || null,
+    })
+    setEkleModal(null); setYeniLabel(''); setYeniSlug(''); setYeniIcon(''); setYeniFiltreTip(''); setYeniFiltreDeger('')
+    onDegisim()
+  }
+
+  async function aktiflikDegistir(kat) {
+    await kategoriGuncelle(kat.id, { aktif: !kat.aktif })
+    onDegisim()
+  }
+
+  async function sil(kat) {
+    if (!confirm(`"${kat.label}" ve tüm alt kategorileri silinecek. Emin misiniz?`)) return
+    await kategoriSil(kat.id)
+    onDegisim()
+  }
+
+  // Recursive kategori satırı
+  function KatSatir({ kat, derinlik }) {
+    return (
+      <div>
+        <div className={styles.katSatir} style={{ paddingLeft: 12 + derinlik * 24 }}>
+          <div className={styles.katBilgi}>
+            <span style={{ opacity: kat.aktif ? 1 : 0.4 }}>
+              {kat.icon} {kat.label}
+              <span className={styles.katSlug}>({kat.slug})</span>
+              {kat.filtre_tip && <span className={styles.katFiltre}>{kat.filtre_tip}={kat.filtre_deger}</span>}
+            </span>
+          </div>
+          <div className={styles.katAksiyon}>
+            {derinlik < 3 && (
+              <button className={styles.miniBtn} title="Alt ekle"
+                onClick={() => setEkleModal({ parentId: kat.id, seviye: kat.seviye + 1 })}>+ Alt</button>
+            )}
+            <button className={`${styles.miniBtn} ${kat.aktif ? styles.acik : styles.kapali}`}
+              onClick={() => aktiflikDegistir(kat)}>
+              {kat.aktif ? '👁 Açık' : '🚫 Kapalı'}
+            </button>
+            <button className={styles.miniBtnSil} onClick={() => sil(kat)}>🗑</button>
+          </div>
+        </div>
+        {kat.altKategoriler?.map(alt => (
+          <KatSatir key={alt.id} kat={alt} derinlik={derinlik + 1} />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <button className={styles.btnYeniAna} onClick={() => setEkleModal({ parentId: null, seviye: 1 })}>
+        + Yeni Ana Kategori
+      </button>
+
+      <div className={styles.katListe}>
+        {kategoriler.map(kat => <KatSatir key={kat.id} kat={kat} derinlik={0} />)}
+      </div>
+
+      {/* EKLEME MODAL */}
+      {ekleModal && (
+        <div className={styles.modalArka} onClick={e => e.target === e.currentTarget && setEkleModal(null)}>
+          <div className={styles.modal}>
+            <h3>{ekleModal.seviye}. Seviye Kategori Ekle</h3>
+            <label>İsim *</label>
+            <input value={yeniLabel} onChange={e => {
+              setYeniLabel(e.target.value)
+              setYeniSlug(e.target.value.toLowerCase().replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))
+            }} placeholder="Örn: Daire" />
+            <label>Slug (otomatik)</label>
+            <input value={yeniSlug} onChange={e => setYeniSlug(e.target.value)} placeholder="daire" />
+            <label>İkon (emoji, opsiyonel)</label>
+            <input value={yeniIcon} onChange={e => setYeniIcon(e.target.value)} placeholder="🏠" />
+            {ekleModal.seviye >= 3 && (
+              <>
+                <label>Filtre Tipi (3. seviye için)</label>
+                <select value={yeniFiltreTip} onChange={e => setYeniFiltreTip(e.target.value)}>
+                  <option value="">Yok (alt_kategori ile filtrele)</option>
+                  <option value="emlak_tip">emlak_tip</option>
+                  <option value="marka">marka</option>
+                </select>
+                {yeniFiltreTip && (
+                  <>
+                    <label>Filtre Değeri</label>
+                    <input value={yeniFiltreDeger} onChange={e => setYeniFiltreDeger(e.target.value)} placeholder="Daire / BMW" />
+                  </>
+                )}
+              </>
+            )}
+            <div className={styles.modalBtnler}>
+              <button className={styles.btnIptal} onClick={() => setEkleModal(null)}>İptal</button>
+              <button className={styles.btnEkle} onClick={ekle}>Ekle</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
