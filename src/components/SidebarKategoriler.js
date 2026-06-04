@@ -1,79 +1,129 @@
 // src/components/SidebarKategoriler.js
-// 3 seviyeli kategori accordion — sidebar için ayrı bileşen
+// 3 seviyeli kategori accordion — kendi stilleriyle (CSS bağımsız)
 import { useState } from 'react'
-import styles from '../pages/index.module.css'
+
+const S = {
+  ana: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%', padding: '9px 10px', borderRadius: 8,
+    border: '1px solid transparent', background: 'none',
+    fontSize: 13, color: '#4a5568', cursor: 'pointer',
+    fontFamily: 'inherit', textAlign: 'left', marginBottom: 2,
+    transition: 'all 0.12s',
+  },
+  anaAktif: {
+    background: '#E6F5F2', color: '#085549', fontWeight: 600,
+    borderColor: '#B2DDD7',
+  },
+  alt2Wrap: {
+    paddingLeft: 12, borderLeft: '2px solid #B2DDD7',
+    marginLeft: 8, marginBottom: 4,
+  },
+  alt: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%', padding: '7px 10px', borderRadius: 6,
+    border: 'none', background: 'none',
+    fontSize: 12.5, color: '#4a5568', cursor: 'pointer',
+    fontFamily: 'inherit', textAlign: 'left', marginBottom: 1,
+    transition: 'all 0.12s',
+  },
+  altAktif: {
+    background: '#0D7A6B', color: 'white', fontWeight: 500,
+  },
+  alt3Wrap: {
+    paddingLeft: 12, borderLeft: '2px solid #e2e8f0',
+    marginLeft: 8, marginTop: 2, marginBottom: 4,
+  },
+  alt3: {
+    display: 'block', width: '100%', padding: '6px 10px', borderRadius: 5,
+    border: 'none', background: 'none',
+    fontSize: 12, color: '#8a95a3', cursor: 'pointer',
+    fontFamily: 'inherit', textAlign: 'left', marginBottom: 1,
+    transition: 'all 0.12s',
+  },
+  alt3Aktif: {
+    background: '#085549', color: 'white', fontWeight: 500,
+  },
+  ok: { fontSize: 9, opacity: 0.6, marginLeft: 4 },
+}
 
 export default function SidebarKategoriler({ KATEGORILER, activeCategory, onKatChange }) {
   const [acik1, setAcik1] = useState(null)
   const [acik2, setAcik2] = useState(null)
 
-  const handleAna = (slug) => {
-    const yeni = acik1 === slug ? null : slug
-    setAcik1(yeni)
+  const handleAna = (k) => {
+    setAcik1(prev => prev === k.slug ? null : k.slug)
     setAcik2(null)
-    onKatChange(slug)
+    onKatChange(k.slug)
   }
 
-  const handleAlt = (slug) => {
-    const yeni = acik2 === slug ? null : slug
-    setAcik2(yeni)
-    onKatChange(slug)
-  }
-
-  const handleAlt2 = (slug) => {
-    onKatChange(slug)
+  const handleAlt = (alt) => {
+    const hasChildren = alt.altKategoriler?.length > 0
+    if (hasChildren) {
+      setAcik2(prev => prev === alt.slug ? null : alt.slug)
+    }
+    onKatChange(alt.slug)
   }
 
   return (
     <div>
       <button
-        className={`${styles.akkordBtn} ${activeCategory === '' ? styles.akkordAktif : ''}`}
+        style={{ ...S.ana, ...(activeCategory === '' ? S.anaAktif : {}) }}
         onClick={() => { onKatChange(''); setAcik1(null); setAcik2(null) }}>
-        ✓ Tümü
+        <span>✓ Tümü</span>
       </button>
 
-      {KATEGORILER.map(k => (
-        <div key={k.slug}>
-          {/* 1. SEVİYE */}
-          <button
-            className={`${styles.akkordBtn} ${activeCategory === k.slug ? styles.akkordAktif : ''}`}
-            onClick={() => handleAna(k.slug)}>
-            <span>{k.icon} {k.label}</span>
-            {k.altKategoriler?.length > 0 && (
-              <span style={{ fontSize: 10, color: '#8a95a3' }}>
-                {acik1 === k.slug ? '▲' : '▼'}
-              </span>
+      {KATEGORILER.map(k => {
+        const acikMi1 = acik1 === k.slug
+        return (
+          <div key={k.slug}>
+            {/* 1. SEVİYE — Ana kategori */}
+            <button
+              style={{ ...S.ana, ...(activeCategory === k.slug ? S.anaAktif : {}) }}
+              onClick={() => handleAna(k)}>
+              <span>{k.icon} {k.label}</span>
+              {k.altKategoriler?.length > 0 && (
+                <span style={S.ok}>{acikMi1 ? '▲' : '▼'}</span>
+              )}
+            </button>
+
+            {/* 2. SEVİYE — Alt kategoriler */}
+            {acikMi1 && k.altKategoriler?.length > 0 && (
+              <div style={S.alt2Wrap}>
+                {k.altKategoriler.map(alt => {
+                  const acikMi2 = acik2 === alt.slug
+                  return (
+                    <div key={alt.slug}>
+                      <button
+                        style={{ ...S.alt, ...(activeCategory === alt.slug ? S.altAktif : {}) }}
+                        onClick={() => handleAlt(alt)}>
+                        <span>{alt.icon} {alt.label}</span>
+                        {alt.altKategoriler?.length > 0 && (
+                          <span style={S.ok}>{acikMi2 ? '▲' : '▼'}</span>
+                        )}
+                      </button>
+
+                      {/* 3. SEVİYE — Alt-alt kategoriler */}
+                      {acikMi2 && alt.altKategoriler?.length > 0 && (
+                        <div style={S.alt3Wrap}>
+                          {alt.altKategoriler.map(alt2 => (
+                            <button
+                              key={alt2.slug}
+                              style={{ ...S.alt3, ...(activeCategory === alt2.slug ? S.alt3Aktif : {}) }}
+                              onClick={() => onKatChange(alt2.slug)}>
+                              {alt2.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             )}
-          </button>
-
-          {/* 2. SEVİYE */}
-          {acik1 === k.slug && k.altKategoriler?.map(alt => (
-            <div key={alt.slug} className={styles.akkordAlt}>
-              <button
-                className={`${styles.akkordAltItem} ${activeCategory === alt.slug ? styles.akkordAltAktif : ''}`}
-                onClick={() => handleAlt(alt.slug)}>
-                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>{alt.icon} {alt.label}</span>
-                  {alt.altKategoriler?.length > 0 && (
-                    <span style={{ fontSize: 9, opacity: 0.6 }}>{acik2 === alt.slug ? '▲' : '▼'}</span>
-                  )}
-                </span>
-              </button>
-
-              {/* 3. SEVİYE */}
-              {acik2 === alt.slug && alt.altKategoriler?.map(alt2 => (
-                <div key={alt2.slug} className={styles.akkordAlt2}>
-                  <button
-                    className={`${styles.akkordAlt2Item} ${activeCategory === alt2.slug ? styles.akkordAlt2Aktif : ''}`}
-                    onClick={() => handleAlt2(alt2.slug)}>
-                    {alt2.label}
-                  </button>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      ))}
+          </div>
+        )
+      })}
     </div>
   )
 }
