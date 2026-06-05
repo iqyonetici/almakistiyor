@@ -74,6 +74,21 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
+  // Kullanıcı giriş yapınca mesaj hakkını yükle (user değişince tekrar çalışır)
+  useEffect(() => {
+    if (!user?.email) { setKalanGenel(0); setTelefonYetkisi(false); return }
+    let iptal = false
+    ;(async () => {
+      const h = await kullaniciHaklari(user.email)
+      const kullanilan = await bugunkuMesajSayisi(user.email)
+      if (!iptal) {
+        setKalanGenel(Math.max(0, h.gunlukMesaj - kullanilan))
+        setTelefonYetkisi(h.telefonGoster)
+      }
+    })()
+    return () => { iptal = true }
+  }, [user])
+
   useEffect(() => {
     async function loadStats() {
       if (supabase) {
@@ -84,14 +99,6 @@ export default function Home() {
     }
     loadStats()
     kategorileriGetir().then(setKategoriAgaci)
-    // Kullanıcının mesaj hakkını yükle
-    if (user?.email) {
-      kullaniciHaklari(user.email).then(async (h) => {
-        const kullanilan = await bugunkuMesajSayisi(user.email)
-        setKalanGenel(Math.max(0, h.gunlukMesaj - kullanilan))
-        setTelefonYetkisi(h.telefonGoster)
-      })
-    }
 
     async function yukle() {
       const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
