@@ -2,14 +2,21 @@ import { supabase } from './supabase'
 
 // ==================== İLAN FONKSİYONLARI ====================
 
-export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip, marka, limit = 50 } = {}) {
+export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip, marka, kullaniciEmail, limit = 50 } = {}) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
   let q = supabase
     .from('ilanlar')
     .select('*')
-    .eq('durum', 'aktif')
     .order('created_at', { ascending: false })
     .limit(limit)
+
+  // Aktif ilanlar herkese görünür.
+  // Giriş yapan kullanıcı, kendi onay bekleyen ilanlarını da görür.
+  if (kullaniciEmail) {
+    q = q.or(`durum.eq.aktif,and(kullanici_email.eq.${kullaniciEmail},onay_durumu.eq.beklemede)`)
+  } else {
+    q = q.eq('durum', 'aktif')
+  }
 
   // 3. seviye filtreler (en spesifik)
   if (emlakTip) {

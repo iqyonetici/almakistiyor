@@ -110,6 +110,7 @@ export default function Home() {
         marka: aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined,
         sehir: filterSehir || undefined,
         ilce: filterIlce || undefined,
+        kullaniciEmail: user?.email || undefined,
       })
       if (data && data.length > 0) {
         setIlanlar(data.map(d => ({
@@ -135,13 +136,14 @@ export default function Home() {
           goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
           email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
           created_at: d.created_at, emlak_tip: d.emlak_tip,
+          onayDurumu: d.onay_durumu || 'onaylandi', durum: d.durum || 'aktif',
         })))
       } else {
         setIlanlar([])
       }
     }
     yukle()
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce])
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user])
 
   const filtered = ilanlar
     .filter(i => !filterSehir || i.sehir === filterSehir)

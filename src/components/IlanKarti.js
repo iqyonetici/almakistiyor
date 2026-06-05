@@ -107,9 +107,17 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
   const azKaldi = typeof kalanGenel === 'number' && kalanGenel <= 5
   const kalanRenk = kalanGenel===1?'#E53E3E':kalanGenel<=3?'#D97706':'#0D7A6B'
 
+  const beklemede = ilan?.onayDurumu === 'beklemede'
+
   return (
-    <div className={styles.card} style={{background:renk.bg, borderColor:renk.border}}>
-      <a href={`/ilan/${ilan?.id}`} className={styles.cardLink} aria-label="İlan detayını gör" />
+    <div className={styles.card} style={{background: beklemede ? '#FEF2F2' : renk.bg, borderColor: beklemede ? '#FCA5A5' : renk.border}}>
+      {beklemede && (
+        <div style={{display:'flex',alignItems:'center',gap:8,background:'#DC2626',color:'white',padding:'8px 14px',borderRadius:'10px',marginBottom:12,fontSize:13,fontWeight:600}}>
+          <span style={{fontSize:16}}>⏳</span>
+          Yönetici onayı bekliyor — yalnızca siz görüyorsunuz
+        </div>
+      )}
+      {!beklemede && <a href={`/ilan/${ilan?.id}`} className={styles.cardLink} aria-label="İlan detayını gör" />}
 
       <div className={styles.top}>
         <div className={styles.left}>
@@ -174,17 +182,23 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
       <div className={styles.footer}>
         <div className={styles.views}>👁 {ilan.goruntuleme||0} satıcı baktı</div>
         <div className={styles.butonlar}>
-          {telefonGoster && (
-            telefonAcik
-              ? <span className={styles.telefonAcik}>📞 {ilanTelefon||'Bilgi yok'}</span>
-              : <button className={styles.btnTelefon} onClick={handleTelefon}>
-                  📞 {maskedPhone(ilanTelefon)} <span className={styles.kilidAc}>Göster</span>
+          {beklemede ? (
+            <span style={{fontSize:13,color:'#DC2626',fontWeight:600}}>Onay sonrası satıcılar görecek</span>
+          ) : (
+            <>
+              {telefonGoster && (
+                telefonAcik
+                  ? <span className={styles.telefonAcik}>📞 {ilanTelefon||'Bilgi yok'}</span>
+                  : <button className={styles.btnTelefon} onClick={handleTelefon}>
+                      📞 {maskedPhone(ilanTelefon)} <span className={styles.kilidAc}>Göster</span>
+                    </button>
+              )}
+              {!mesajAcik && (
+                <button className={styles.btnMesaj} style={{background:renk.badge}} onClick={handleMesajAc}>
+                  💬 Mesaj Gönder
                 </button>
-          )}
-          {!mesajAcik && (
-            <button className={styles.btnMesaj} style={{background:renk.badge}} onClick={handleMesajAc}>
-              💬 Mesaj Gönder
-            </button>
+              )}
+            </>
           )}
         </div>
       </div>
