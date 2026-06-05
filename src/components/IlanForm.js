@@ -260,13 +260,6 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                       </button>
                     </div>
                   )}
-
-                  {/* Alt kategori VARSA: "burada da ilan verebilirsin" seçeneği (opsiyonel ara seçim) */}
-                  {katYol.length > 0 && aktifKatListesi.length > 0 && (
-                    <button className={styles.katDevamAra} onClick={() => { kategoriOnayla(); ileri() }}>
-                      Alt kategori seçmeden "{katYol[katYol.length-1].label}" için devam et →
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -548,10 +541,10 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
           )}
         </div>
 
-        {/* FOOTER */}
-        {!done && (
+        {/* FOOTER — kategori adımında (step 1) gizli, kullanıcı kart seçerek ilerler */}
+        {!done && step > 1 && (
           <div className={styles.boxFooter}>
-            {step > 1 ? <button className="btn-ghost" onClick={geri}>← Geri</button> : <div />}
+            <button className="btn-ghost" onClick={geri}>← Geri</button>
             {onayAdimi ? (
               <button className="btn-primary" style={{flex:1,justifyContent:'center'}} onClick={handleSubmit}>
                 ✓ İlanı Yayınla
