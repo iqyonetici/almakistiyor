@@ -392,7 +392,7 @@ export default function Home() {
         </div>
       )}
 
-      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} user={user} />
+      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} user={user} kategoriAgaci={kategoriAgaci} />
     </>
   )
 }
