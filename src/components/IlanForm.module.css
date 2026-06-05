@@ -169,3 +169,132 @@
 .markaBtn { padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: white; font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; font-family: inherit; text-align: center; transition: all 0.1s; }
 .markaBtn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
 .markaBtnAktif { border-color: var(--teal) !important; color: var(--teal-dark) !important; background: var(--teal-light) !important; font-weight: 600; }
+
+/* ============================================
+   YENÄ° KATEGORÄ° ADIMI (akÄ±cÄ±, DB-driven)
+   Bu bloÄŸu IlanForm.module.css'in SONUNA ekle
+   ============================================ */
+.katWizard2 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Breadcrumb â€” yumuÅŸak yeÅŸil hap */
+.katBreadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #F0FBF9 0%, #E6F5F2 100%);
+  border: 1px solid #D4EDE7;
+  border-radius: 12px;
+}
+.katBcRoot {
+  background: white; border: 1px solid #B2DDD7; cursor: pointer;
+  color: #0D7A6B; font-weight: 600; font-family: inherit; font-size: 12.5px;
+  padding: 5px 11px; border-radius: 8px; transition: all 0.12s;
+}
+.katBcRoot:hover { background: #0D7A6B; color: white; border-color: #0D7A6B; }
+.katBcItem { display: inline-flex; align-items: center; }
+.katBcSep { color: #5DCAA5; margin: 0 3px; font-weight: 700; }
+.katBcItem button {
+  background: white; border: 1px solid #D4EDE7; cursor: pointer;
+  color: #085549; font-family: inherit; font-size: 12.5px; padding: 5px 11px;
+  border-radius: 8px; font-weight: 500; transition: all 0.12s;
+}
+.katBcItem button:hover { background: #E6F5F2; border-color: #0D7A6B; }
+
+.katBaslik2 {
+  font-family: 'Sora', sans-serif;
+  font-size: 18px; font-weight: 600; color: #1a1d23;
+  padding: 0 2px;
+}
+
+/* Kategori kartlarÄ± Ä±zgarasÄ± */
+.katGrid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.katKart2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  background: white;
+  border: 1.5px solid #e8edf2;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+.katKart2:hover {
+  border-color: #0D7A6B;
+  background: linear-gradient(135deg, #F0FBF9 0%, #ffffff 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(13,122,107,0.14);
+}
+.katKart2Icon { font-size: 26px; flex-shrink: 0; line-height: 1; }
+.katKart2Label {
+  flex: 1; font-size: 15px; font-weight: 500; color: #1a1d23;
+}
+.katKart2Ok {
+  color: #0D7A6B; font-size: 22px; font-weight: 300;
+  background: #E6F5F2; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.katKart2Sec {
+  color: #F5A623; font-size: 12px; font-weight: 700;
+  background: #FFF6E9; padding: 4px 10px; border-radius: 8px;
+}
+
+/* En dip seviye â€” seÃ§im onayÄ± */
+.katSonSeviye {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 8px;
+  padding: 36px 20px;
+  background: linear-gradient(135deg, #F0FBF9 0%, #E6F5F2 100%);
+  border: 1.5px solid #B2DDD7; border-radius: 16px;
+}
+.katSonIkon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #0D7A6B; color: white; font-size: 28px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 18px rgba(13,122,107,0.3);
+}
+.katSonBaslik { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #085549; }
+.katSonAlt { font-size: 13.5px; color: #4a5568; margin-bottom: 8px; }
+
+/* Devam butonlarÄ± */
+.katDevamBurada {
+  padding: 13px 28px;
+  background: #0D7A6B;
+  color: white; border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: background 0.15s;
+}
+.katDevamBurada:hover { background: #085549; }
+
+.katDevamAra {
+  padding: 12px;
+  background: white;
+  color: #0D7A6B; border: 1.5px dashed #B2DDD7; border-radius: 11px;
+  font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: all 0.15s;
+}
+.katDevamAra:hover { background: #F0FBF9; border-color: #0D7A6B; }
+
+@media (max-width: 600px) {
+  .katGrid2 { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .katKart2 { flex-direction: column; text-align: center; gap: 8px; padding: 16px 10px; }
+  .katKart2Label { font-size: 13.5px; }
+  .katKart2Ok, .katKart2Sec { display: none; }
+  .katBaslik2 { font-size: 16px; }
+  .katBreadcrumb { font-size: 12px; padding: 10px; }
+}
+

@@ -101,9 +101,9 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     const yeniYol = [...katYol, k]
     setKatYol(yeniYol)
     kategoriYazByol(yeniYol)
-    // Çocuğu yoksa (en alt) → otomatik 2. adıma geç
+    // Çocuğu yoksa (en alt seviye) → kısa gecikmeyle otomatik 2. adıma geç
     if (!cocukVar) {
-      setTimeout(() => { if (validate(1, { ...data, kategori: yeniYol[0]?.slug }, giris)) setStep(2) }, 180)
+      setTimeout(() => setStep(2), 350)
     }
   }
 
@@ -232,27 +232,39 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                     {katYol.length === 0 ? 'Ne almak istiyorsunuz?' : `${katYol[katYol.length-1].label} içinde seçin`}
                   </div>
 
-                  <div className={styles.katGrid2}>
-                    {aktifKatListesi.map(k => {
-                      const cocukVar = k.altKategoriler && k.altKategoriler.length > 0
-                      return (
-                        <button key={k.id || k.slug}
-                          className={styles.katKart2}
-                          onClick={() => katSec(k)}>
-                          {k.icon && <span className={styles.katKart2Icon}>{k.icon}</span>}
-                          <span className={styles.katKart2Label}>{k.label}</span>
-                          {cocukVar
-                            ? <span className={styles.katKart2Ok}>›</span>
-                            : <span className={styles.katKart2Sec}>Seç →</span>}
-                        </button>
-                      )
-                    })}
-                  </div>
+                  {aktifKatListesi.length > 0 ? (
+                    <div className={styles.katGrid2}>
+                      {aktifKatListesi.map(k => {
+                        const cocukVar = k.altKategoriler && k.altKategoriler.length > 0
+                        return (
+                          <button key={k.id || k.slug}
+                            className={styles.katKart2}
+                            onClick={() => katSec(k)}>
+                            {k.icon && <span className={styles.katKart2Icon}>{k.icon}</span>}
+                            <span className={styles.katKart2Label}>{k.label}</span>
+                            {cocukVar
+                              ? <span className={styles.katKart2Ok}>›</span>
+                              : <span className={styles.katKart2Sec}>Seç →</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    /* Alt kategori yok = en dip seviye → bu kategoriyle devam */
+                    <div className={styles.katSonSeviye}>
+                      <div className={styles.katSonIkon}>✓</div>
+                      <div className={styles.katSonBaslik}>{katYol[katYol.length-1]?.label} seçildi</div>
+                      <div className={styles.katSonAlt}>Bu kategori için ilan vermeye devam edin</div>
+                      <button className={styles.katDevamBurada} onClick={() => { kategoriOnayla(); ileri() }}>
+                        Devam et →
+                      </button>
+                    </div>
+                  )}
 
-                  {/* Ara kademede "burada devam et" (Tümü mantığı) */}
-                  {katYol.length > 0 && (
-                    <button className={styles.katDevamBurada} onClick={() => { kategoriOnayla(); ileri() }}>
-                      ✓ "{katYol[katYol.length-1].label}" için ilan ver →
+                  {/* Alt kategori VARSA: "burada da ilan verebilirsin" seçeneği (opsiyonel ara seçim) */}
+                  {katYol.length > 0 && aktifKatListesi.length > 0 && (
+                    <button className={styles.katDevamAra} onClick={() => { kategoriOnayla(); ileri() }}>
+                      Alt kategori seçmeden "{katYol[katYol.length-1].label}" için devam et →
                     </button>
                   )}
                 </div>
