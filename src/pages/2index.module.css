@@ -153,6 +153,7 @@
   font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;
 }
 
+/* HERO GÖRSELİ */
 .heroGorsel {
   flex-shrink: 0;
   width: 42%;
@@ -168,6 +169,7 @@
   box-shadow: 0 12px 40px rgba(0,0,0,0.25);
 }
 
+/* Artık kullanılmıyor ama silmeyelim hata çıkmasın */
 .heroRight { display: none; }
 .heroLeft {}
 .heroCard {}
@@ -239,7 +241,7 @@
    ===================== */
 .sidebar {
   width: 230px; flex-shrink: 0;
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 12px;
   position: sticky; top: 70px;
   max-height: calc(100vh - 90px);
   overflow-y: auto; overflow-x: hidden;
@@ -247,83 +249,54 @@
 }
 .sidebar::-webkit-scrollbar { width: 5px; }
 .sidebar::-webkit-scrollbar-thumb { background: #B2DDD7; border-radius: 3px; }
-
-/* CTA butonu */
-.ctaBtn {
-  display: block; width: 100%;
-  padding: 12px 16px;
-  background: #0D7A6B; color: white;
-  border: none; border-radius: 10px;
-  font-size: 14px; font-weight: 600;
-  font-family: 'Sora', sans-serif;
-  cursor: pointer; text-align: center;
-  transition: background 0.15s, transform 0.1s;
-  letter-spacing: 0.2px;
+.ctaCard {
+  background: #0D7A6B; border-radius: 10px; padding: 16px;
 }
-.ctaBtn:hover { background: #085549; transform: translateY(-1px); }
+.ctaCard h4 {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px; font-weight: 600; color: white;
+  margin-bottom: 10px; line-height: 1.4;
+}
+.ctaWhite {
+  display: block; width: 100%; padding: 9px 14px;
+  border-radius: 8px; background: white; color: #0D7A6B;
+  border: none; font-size: 13px; font-weight: 600;
+  font-family: 'Sora', sans-serif; cursor: pointer;
+  text-align: center; transition: all 0.15s;
+}
+.ctaWhite:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
-/* Filtre kartı */
 .filterCard {
   background: white; border: 1px solid #e2e8f0;
-  border-radius: 10px; padding: 14px 14px 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: 10px; padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-
-.filterHeader {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
 .filterTitle {
   font-family: 'Sora', sans-serif; font-size: 11px;
-  font-weight: 600; color: #1a1d23;
+  font-weight: 600; color: #1a1d23; margin-bottom: 14px;
   text-transform: uppercase; letter-spacing: 0.5px;
 }
-
-.filterLabel {
-  display: block;
-  font-size: 11px; font-weight: 600;
-  color: #8a95a3; text-transform: uppercase;
-  letter-spacing: 0.5px; margin-bottom: 7px;
-}
-
-.filterGroup { margin-bottom: 12px; }
-.filterGroup:last-child { margin-bottom: 0; }
-
-.filterSelect {
-  width: 100%; padding: 8px 10px;
-  border-radius: 8px; border: 1px solid #e2e8f0;
-  background: #f7f8fa; color: #1a1d23;
-  font-size: 13px; font-family: inherit;
-  cursor: pointer; outline: none;
-  transition: border-color 0.15s;
-}
-.filterSelect:focus { border-color: #0D7A6B; background: white; }
-
-.filterDivider {
-  height: 1px; background: #f0f2f5;
-  margin: 4px 0 14px;
-}
-
-.clearBtn {
-  background: none; border: none;
-  font-size: 11px; color: #b0b8c4;
-  cursor: pointer; font-family: inherit;
-  padding: 0; transition: color 0.15s;
-}
-.clearBtn:hover { color: #e57373; }
-
-/* Chip'ler (tarih filtresi) */
+.filterGroup { margin-bottom: 14px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .chip {
   padding: 4px 10px; border-radius: 20px; font-size: 12px;
   border: 1px solid #e2e8f0; color: #4a5568;
   background: none; transition: all 0.12s; cursor: pointer;
-  font-family: inherit;
 }
 .chip:hover { border-color: #0D7A6B; color: #0D7A6B; }
 .chipActive { background: #0D7A6B !important; color: white !important; border-color: #0D7A6B !important; }
+
+.sellerCard {
+  background: white; border: 1px solid #e2e8f0;
+  border-radius: 10px; padding: 14px;
+}
+.freeBadge {
+  display: inline-block; padding: 2px 9px; border-radius: 10px;
+  background: #FEF3DC; color: #7A4F01; font-size: 11px;
+  font-weight: 600; border: 1px solid #F5CC80; margin-bottom: 7px;
+}
+.sellerCard h5 { font-size: 13px; font-weight: 600; color: #1a1d23; margin-bottom: 4px; }
+.sellerCard p { font-size: 12px; color: #8a95a3; line-height: 1.5; margin-bottom: 10px; }
 
 /* =====================
    LİSTİNGS
@@ -422,7 +395,7 @@
 .akkordAlt2Item:hover { background: #f0f9f5; color: #085549; }
 .akkordAlt2Aktif { background: #085549 !important; color: white !important; }
 
-/* Mobil şehir filtresi */
+/* Mobil şehir filtresi — sadece mobilde görünür */
 .mobilFiltre { display: none; }
 .mobilFiltreSelect {
   width: 100%; padding: 12px 14px; border-radius: 10px;

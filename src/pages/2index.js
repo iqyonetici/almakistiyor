@@ -38,7 +38,9 @@ export default function Home() {
   const [limitUyari, setLimitUyari] = useState(null)
   const [misafirIlanSayisi, setMisafirIlanSayisi] = useState(0)
 
+  // İlan formunu açmadan önce hak kontrolü
   async function formAc() {
+    // Misafir (üye değil): localStorage'da kaç ilan verdiğini say
     if (!user?.email) {
       const verilen = Number(localStorage.getItem('misafir_ilan') || 0)
       if (verilen >= 1) {
@@ -51,6 +53,7 @@ export default function Home() {
       setFormOpen(true)
       return
     }
+    // Üye: DB'den hak kontrolü
     const sonuc = await ilanHakkiVarMi(user)
     if (!sonuc.izin) {
       setLimitUyari({ tip: sonuc.sebep, mesaj: sonuc.mesaj, paket: sonuc.paket })
@@ -58,7 +61,6 @@ export default function Home() {
     }
     setFormOpen(true)
   }
-
   const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
   const [kategoriAgaci, setKategoriAgaci] = useState([])
   const [kelimeIndex, setKelimeIndex] = useState(0)
@@ -72,6 +74,7 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
+  // Kullanıcı giriş yapınca mesaj hakkını yükle (user değişince tekrar çalışır)
   useEffect(() => {
     if (!user?.email) { setKalanGenel(0); setTelefonYetkisi(false); return }
     let iptal = false
@@ -86,6 +89,7 @@ export default function Home() {
     return () => { iptal = true }
   }, [user])
 
+  // İlanları yükle — hem effect hem ilan oluşturma sonrası çağrılır
   const yukle = useCallback(async () => {
     const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
@@ -163,29 +167,21 @@ export default function Home() {
     setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }, [])
 
-  const filtreleriTemizle = useCallback(() => {
-    setActiveCategory('')
-    setAktifFiltre(null)
-    setFilterSehir('')
-    setFilterIlce('')
-    setFilterTarih('')
-  }, [])
-
   async function handleSubmit(data) {
     const sonuc = await ilanOlustur(data, user)
+    // Misafir ilan sayacını artır
     if (!user?.email) {
       const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
       localStorage.setItem('misafir_ilan', String(v))
     }
+    // İlan DB'ye yazıldı — listeyi taze çek (sayfa yenilemeden, garantili)
     await yukle()
   }
-
-  const aktifFiltreVarMi = activeCategory || filterSehir || filterTarih
 
   return (
     <>
       <Head>
-        <title>AlmakIstiyor.com – Ne Arıyorsunuz? Söyleyin, Satıcılar Bulsun</title>
+        <title>AlmakIstiyor.com — Ne Arıyorsunuz? Söyleyin, Satıcılar Bulsun</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
@@ -244,7 +240,7 @@ export default function Home() {
             { icon: '🔒', text: 'Kişisel bilgileriniz korunur' },
             { icon: '✅', text: 'Doğrulanmış satıcılar' },
             { icon: '🎯', text: 'Size özel teklifler' },
-            { icon: '🛡️', text: 'Güvenli alışveriş deneyimi' },
+            { icon: '🤝', text: 'Güvenli alışveriş deneyimi' },
           ].map(t => (
             <div key={t.text} className={styles.trustItem}><span>{t.icon}</span> {t.text}</div>
           ))}
@@ -264,83 +260,56 @@ export default function Home() {
       )}
 
       <div className={`container ${styles.main}`}>
-
-        {/* ========== SIDEBAR ========== */}
         <aside className={styles.sidebar}>
-
-          <button className={styles.ctaBtn} onClick={formAc}>
-            + Talep Oluştur
-          </button>
+          <div className={styles.ctaCard}>
+            <h4>Talep ver, satıcılar seni bulsun</h4>
+            <button className={styles.ctaWhite} onClick={formAc}>Hemen başla →</button>
+          </div>
 
           <div className={styles.filterCard}>
-            <div className={styles.filterHeader}>
-              <span className={styles.filterTitle}>Filtrele</span>
-              {aktifFiltreVarMi && (
-                <button className={styles.clearBtn} onClick={filtreleriTemizle}>Temizle ×</button>
-              )}
-            </div>
-
+            <div className={styles.filterTitle}>🔍 Filtrele</div>
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Kategori</label>
-              <SidebarKategoriler
-                KATEGORILER={kategoriAgaci}
-                activeCategory={activeCategory}
-                onKatChange={handleKatChange}
-              />
-            </div>
-
-            <div className={styles.filterDivider} />
-
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Şehir</label>
-              <select
-                className={styles.filterSelect}
-                value={filterSehir}
-                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}
-              >
+              <label className="form-label">📍 Şehir</label>
+              <select className="form-select" value={filterSehir}
+                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
                 <option value="">Tüm şehirler</option>
                 {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
               </select>
             </div>
-
             {filterSehir && (
               <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>İlçe</label>
-                <select
-                  className={styles.filterSelect}
-                  value={filterIlce}
-                  onChange={e => setFilterIlce(e.target.value)}
-                >
+                <label className="form-label">📎 İlçe</label>
+                <select className="form-select" value={filterIlce} onChange={e => setFilterIlce(e.target.value)}>
                   <option value="">Tüm ilçeler</option>
-                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => (
-                    <option key={i} value={i}>{i}</option>
-                  ))}
+                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
             )}
-
-            <div className={styles.filterDivider} />
-
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Tarih</label>
+              <label className="form-label">🗂️ Kategori</label>
+              <SidebarKategoriler KATEGORILER={kategoriAgaci} activeCategory={activeCategory} onKatChange={handleKatChange} />
+            </div>
+            <div className={styles.filterGroup}>
+              <label className="form-label">📅 Tarih</label>
               <div className={styles.chips}>
                 {[{ v: '', l: 'Tümü' }, { v: 'bugun', l: 'Bugün' }, { v: 'hafta', l: 'Bu hafta' }].map(d => (
-                  <button
-                    key={d.v}
-                    className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
-                    onClick={() => setFilterTarih(d.v)}
-                  >
-                    {d.l}
-                  </button>
+                  <button key={d.v} className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
+                    onClick={() => setFilterTarih(d.v)}>{d.l}</button>
                 ))}
               </div>
             </div>
           </div>
 
+          <div className={styles.sellerCard}>
+            <div className={styles.freeBadge}>3 ücretsiz hak</div>
+            <h5>Emlakçı veya Galericiler</h5>
+            <p>Talep ilanlarına erişin.</p>
+            <a href="/satici" className="btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>Satıcı girişi →</a>
+          </div>
         </aside>
-        {/* ========== /SIDEBAR ========== */}
 
         <main className={styles.listings} id="ilan-listesi">
+          {/* Mobil şehir filtresi (masaüstünde sidebar'da var) */}
           <div className={styles.mobilFiltre}>
             <select className={styles.mobilFiltreSelect} value={filterSehir}
               onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
@@ -366,6 +335,7 @@ export default function Home() {
                 <IlanKarti key={ilan.id} ilan={ilan} user={user}
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
+                    // Mesaj göndermeden önce paket limit kontrolü
                     const kontrol = await mesajHakkiVarMi(user)
                     if (!kontrol.izin) {
                       setLimitUyari({ tip: kontrol.sebep === 'limit' ? 'mesaj-limit' : kontrol.sebep, mesaj: kontrol.mesaj, paket: kontrol.paket })
@@ -399,7 +369,7 @@ export default function Home() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => e.target === e.currentTarget && setLimitUyari(null)}>
           <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 380, maxWidth: '100%', textAlign: 'center' }}>
-            <div style={{ fontSize: 44, marginBottom: 10 }}>{limitUyari.tip === 'misafir' ? '👤' : '⚠️'}</div>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>{limitUyari.tip === 'misafir' ? '📧' : '⏳'}</div>
             <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
               {limitUyari.tip === 'misafir' ? 'Üye Olun' : limitUyari.tip === 'engelli' ? 'Hesap Askıda' : limitUyari.tip === 'mesaj-limit' ? 'Mesaj Hakkınız Doldu' : 'Günlük Limit Doldu'}
             </h3>
@@ -410,7 +380,7 @@ export default function Home() {
                 <a href="/giris" style={{ display: 'block', padding: '10px', borderRadius: 9, border: '1.5px solid #e2e8f0', color: '#4a5568', fontWeight: 500, fontSize: 14, textDecoration: 'none' }}>Zaten üyeyim, Giriş yap</a>
               </>
             ) : limitUyari.paket === 'ucretsiz' && (limitUyari.tip === 'limit' || limitUyari.tip === 'mesaj-limit') ? (
-              <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>⭐ Pro Üyeliğe Geç →</a>
+              <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>💎 Pro Üyeliğe Geç →</a>
             ) : null}
             <button onClick={() => setLimitUyari(null)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>Kapat</button>
           </div>
