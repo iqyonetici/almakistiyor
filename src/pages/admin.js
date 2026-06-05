@@ -206,8 +206,9 @@ function Kullanicilar() {
   const [liste, setListe] = useState([])
   const [arama, setArama] = useState('')
   const [yukleniyor, setYukleniyor] = useState(true)
+  const [paketler, setPaketler] = useState([])
   async function yukle() { setYukleniyor(true); setListe(await kullanicilariGetir(arama)); setYukleniyor(false) }
-  useEffect(() => { yukle() }, [])
+  useEffect(() => { yukle(); paketleriGetir().then(setPaketler) }, [])
   async function engelleDegistir(k) { await kullaniciEngelle(k.id, !k.engelli); yukle() }
   async function paketYap(k, paket) { await kullaniciPaketDegistir(k.id, paket); yukle() }
 
@@ -232,10 +233,13 @@ function Kullanicilar() {
             </div>
             <div className={styles.ilanAksiyon}>
               <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>paketYap(k, e.target.value)}>
-                <option value="ucretsiz">Ücretsiz (3)</option>
-                <option value="pro1">Pro1 (10)</option>
-                <option value="pro2">Pro2 (30)</option>
-                <option value="pro3">Pro3 (∞)</option>
+                {paketler.length > 0 ? paketler.map(p => (
+                  <option key={p.kod} value={p.kod}>
+                    {p.ad} ({p.gunluk_ilan >= 999 ? '∞' : p.gunluk_ilan} ilan / {p.gunluk_mesaj >= 999 ? '∞' : p.gunluk_mesaj} mesaj)
+                  </option>
+                )) : (
+                  <option value="ucretsiz">Yükleniyor...</option>
+                )}
               </select>
               <button className={k.engelli?styles.btnOnay:styles.btnSil} onClick={()=>engelleDegistir(k)}>
                 {k.engelli?'✓ Aç':'🚫 Engelle'}
