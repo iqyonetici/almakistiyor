@@ -371,3 +371,49 @@
   border-top: 1px solid #f0f2f5;
 }
 .drawerCikis:active { background: #FEF2F2; }
+
+/* ===== PAKET DETAY MODALI ===== */
+.paketModalArka {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.paketModalKutu {
+  background: white; border-radius: 18px; padding: 26px; width: 440px; max-width: 100%;
+  max-height: 88vh; overflow-y: auto; position: relative;
+}
+.paketModalKapat {
+  position: absolute; top: 16px; right: 16px; background: #f0f2f5; border: none;
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 15px; color: #4a5568;
+}
+.paketModalKapat:hover { background: #e2e8f0; }
+.paketModalBaslik { font-family: 'Sora',sans-serif; font-size: 22px; font-weight: 700; color: #1a1d23; margin-bottom: 20px; }
+.paketModalAltBaslik { font-size: 13px; font-weight: 700; color: #8a95a3; text-transform: uppercase; letter-spacing: 0.4px; margin: 20px 0 10px; }
+
+.haklarGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hakKart { background: linear-gradient(135deg,#F0FBF9,#E6F5F2); border: 1px solid #B2DDD7; border-radius: 13px; padding: 16px; text-align: center; }
+.hakSayi { font-family: 'Sora',sans-serif; font-size: 32px; font-weight: 700; color: #0D7A6B; line-height: 1; }
+.hakLabel { font-size: 13px; font-weight: 600; color: #085549; margin-top: 4px; }
+.hakAlt { font-size: 11px; color: #4a5568; margin-top: 6px; line-height: 1.4; }
+
+.modalOzellikListe { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.modalOzellikListe li { font-size: 13.5px; color: #4a5568; }
+
+.digerPaketler { display: flex; flex-direction: column; gap: 8px; }
+.digerPaketKart {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border: 1px solid #e8edf2; border-radius: 11px;
+}
+.digerPaketAd { font-weight: 600; font-size: 14px; }
+.digerPaketLimit { font-size: 12px; color: #8a95a3; margin-top: 2px; }
+.digerPaketFiyat { font-weight: 700; font-size: 14px; color: #1a1d23; white-space: nowrap; }
+
+.modalProBtn {
+  display: block; text-align: center; margin-top: 20px; padding: 13px;
+  background: #0D7A6B; color: white; border-radius: 11px; font-weight: 600;
+  font-size: 14.5px; text-decoration: none; transition: background 0.15s;
+}
+.modalProBtn:hover { background: #085549; }
+
+@media (max-width: 480px) {
+  .haklarGrid { grid-template-columns: 1fr; }
+}

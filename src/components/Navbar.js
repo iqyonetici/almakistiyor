@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 import { adminMi } from "../lib/kategoriDB";
+import { paketleriGetir } from "../lib/adminDB";
+import { kullaniciHaklari, bugunkuIlanSayisi, bugunkuMesajSayisi } from "../lib/limitDB";
 import styles from "./Navbar.module.css";
 
 // DB'deki gerçek kategorilerle uyumlu
@@ -52,11 +54,35 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
   const [mobilMenuAcik, setMobilMenuAcik] = useState(false);
   const [profilAcik, setProfilAcik] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [paketModal, setPaketModal] = useState(false);
+  const [paketBilgi, setPaketBilgi] = useState(null);
+  const [tumPaketler, setTumPaketler] = useState([]);
 
   useEffect(() => {
     if (user?.email) adminMi(user.email).then(setAdmin);
     else setAdmin(false);
   }, [user]);
+
+  // Paket detay modalını aç — kalan hakları hesapla
+  async function paketDetayAc() {
+    setProfilAcik(false);
+    setPaketModal(true);
+    const [haklar, ilanKul, mesajKul, paketler] = await Promise.all([
+      kullaniciHaklari(user.email),
+      bugunkuIlanSayisi(user.email),
+      bugunkuMesajSayisi(user.email),
+      paketleriGetir(),
+    ]);
+    setPaketBilgi({
+      paket: haklar.paket,
+      gunlukIlan: haklar.gunlukIlan,
+      gunlukMesaj: haklar.gunlukMesaj,
+      kalanIlan: Math.max(0, haklar.gunlukIlan - ilanKul),
+      kalanMesaj: Math.max(0, haklar.gunlukMesaj - mesajKul),
+      telefonGoster: haklar.telefonGoster,
+    });
+    setTumPaketler((paketler || []).filter(p => p.aktif !== false));
+  }
 
   async function handleCikis() {
     setProfilAcik(false);
@@ -132,9 +158,11 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                           </div>
                         </div>
                         {user.paket && user.paket !== 'ucretsiz' ? (
-                          <div className={styles.profilPaket}>💎 {user.paket.toUpperCase()} üye</div>
+                          <button className={styles.profilPaket} onClick={paketDetayAc} style={{cursor:'pointer',border:'none',width:'calc(100% - 24px)'}}>
+                            💎 {user.paket.toUpperCase()} üye — detaylar ›
+                          </button>
                         ) : (
-                          <Link href="/pro" className={styles.profilProCta} onClick={() => setProfilAcik(false)}>⭐ Pro üyeliğe geç</Link>
+                          <button className={styles.profilProCta} onClick={paketDetayAc} style={{cursor:'pointer',border:'1px solid #FDE68A',width:'calc(100% - 24px)'}}>⭐ Pro üyeliğe geç</button>
                         )}
                         <div className={styles.profilGrup}>
                           <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
@@ -260,6 +288,69 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
           </Link>
         )}
       </nav>
+
+      {/* PAKET DETAY MODALI */}
+      {paketModal && (
+        <div className={styles.paketModalArka} onClick={(e) => e.target === e.currentTarget && setPaketModal(false)}>
+          <div className={styles.paketModalKutu}>
+            <button className={styles.paketModalKapat} onClick={() => setPaketModal(false)}>✕</button>
+            {!paketBilgi ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#8a95a3' }}>Yükleniyor...</div>
+            ) : (
+              <>
+                <div className={styles.paketModalBaslik}>
+                  {paketBilgi.paket === 'ucretsiz' ? '🆓' : '💎'} {paketBilgi.paket.toUpperCase()} Üyelik
+                </div>
+
+                {/* Kalan haklar */}
+                <div className={styles.paketModalAltBaslik}>Bugünkü kalan haklarınız</div>
+                <div className={styles.haklarGrid}>
+                  <div className={styles.hakKart}>
+                    <div className={styles.hakSayi}>{paketBilgi.gunlukIlan >= 999 ? '∞' : paketBilgi.kalanIlan}</div>
+                    <div className={styles.hakLabel}>İlan hakkı</div>
+                    <div className={styles.hakAlt}>{paketBilgi.gunlukIlan >= 999 ? 'Sınırsız' : `Günlük ${paketBilgi.gunlukIlan} hakkın ${paketBilgi.kalanIlan} tanesi kaldı`}</div>
+                  </div>
+                  <div className={styles.hakKart}>
+                    <div className={styles.hakSayi}>{paketBilgi.gunlukMesaj >= 999 ? '∞' : paketBilgi.kalanMesaj}</div>
+                    <div className={styles.hakLabel}>Mesaj hakkı</div>
+                    <div className={styles.hakAlt}>{paketBilgi.gunlukMesaj >= 999 ? 'Sınırsız' : `Günlük ${paketBilgi.gunlukMesaj} hakkın ${paketBilgi.kalanMesaj} tanesi kaldı`}</div>
+                  </div>
+                </div>
+
+                {/* Bu paketin özellikleri */}
+                <div className={styles.paketModalAltBaslik}>Üyelik özellikleriniz</div>
+                <ul className={styles.modalOzellikListe}>
+                  <li>✅ Günde {paketBilgi.gunlukIlan >= 999 ? 'sınırsız' : paketBilgi.gunlukIlan} ilan</li>
+                  <li>✅ Günde {paketBilgi.gunlukMesaj >= 999 ? 'sınırsız' : paketBilgi.gunlukMesaj} mesaj</li>
+                  <li>{paketBilgi.telefonGoster ? '✅ Telefon numarası görüntüleme' : '❌ Telefon görüntüleme (Pro\'da var)'}</li>
+                </ul>
+
+                {/* Diğer paketler */}
+                <div className={styles.paketModalAltBaslik}>Diğer üyelikler</div>
+                <div className={styles.digerPaketler}>
+                  {tumPaketler.filter(p => p.kod !== paketBilgi.paket).map(p => (
+                    <div key={p.kod} className={styles.digerPaketKart}>
+                      <div>
+                        <div className={styles.digerPaketAd} style={{color: p.renk || '#0D7A6B'}}>{p.ad}</div>
+                        <div className={styles.digerPaketLimit}>
+                          {p.gunluk_ilan >= 999 ? '∞' : p.gunluk_ilan} ilan • {p.gunluk_mesaj >= 999 ? '∞' : p.gunluk_mesaj} mesaj / gün
+                        </div>
+                      </div>
+                      <div className={styles.digerPaketFiyat}>
+                        {Number(p.fiyat) === 0 ? 'Ücretsiz' : `${Number(p.fiyat).toLocaleString('tr-TR')} ₺/ay`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Link href="/pro" className={styles.modalProBtn} onClick={() => setPaketModal(false)}>
+                  Tüm paketleri karşılaştır →
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

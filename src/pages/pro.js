@@ -19,15 +19,22 @@ export default function Pro() {
     })
   }, [])
 
-  // Yıllık ödemede %20 indirim (2 ay bedava mantığı)
+  // Fiyatlar DB'den (admin elle girer)
   function fiyatHesapla(p) {
-    const aylik = Number(p.fiyat) || 0
-    if (periyot === 'yil') return Math.round(aylik * 12 * 0.8)  // yıllık %20 indirim
-    return aylik
+    if (periyot === 'yil') return Number(p.yillik_fiyat) || 0
+    return Number(p.fiyat) || 0
   }
   function eskiFiyatHesapla(p) {
-    if (periyot === 'yil') return Math.round((Number(p.fiyat) || 0) * 12)
+    if (periyot === 'yil') return p.yillik_eski_fiyat ? Number(p.yillik_eski_fiyat) : null
     return p.eski_fiyat ? Number(p.eski_fiyat) : null
+  }
+  // Yıllık alırsa aylık bazda ne kadar tasarruf eder?
+  function yillikTasarruf(p) {
+    const aylik = Number(p.fiyat) || 0
+    const yillik = Number(p.yillik_fiyat) || 0
+    if (!aylik || !yillik) return 0
+    const tamYil = aylik * 12
+    return tamYil - yillik
   }
 
   return (
@@ -49,7 +56,7 @@ export default function Pro() {
               Aylık
             </button>
             <button className={`${styles.periyotBtn} ${periyot==='yil'?styles.periyotAktif:''}`} onClick={()=>setPeriyot('yil')}>
-              Yıllık <span className={styles.indirimEtiket}>%20 indirim</span>
+              Yıllık <span className={styles.indirimEtiket}>avantajlı</span>
             </button>
           </div>
         </div>
@@ -77,6 +84,9 @@ export default function Pro() {
                     <div className={styles.fiyat}>
                       {ucretsiz ? 'Ücretsiz' : <>{fiyat.toLocaleString('tr-TR')} <span className={styles.fiyatBirim}>₺/{periyot==='yil'?'yıl':'ay'}</span></>}
                     </div>
+                    {periyot === 'yil' && !ucretsiz && yillikTasarruf(p) > 0 && (
+                      <span className={styles.tasarrufEtiket}>Yılda {yillikTasarruf(p).toLocaleString('tr-TR')} ₺ tasarruf</span>
+                    )}
                   </div>
 
                   <div className={styles.limitler}>

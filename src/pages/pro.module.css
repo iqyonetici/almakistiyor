@@ -112,3 +112,8 @@
 /* Kullanıcının mevcut paketi */
 .kartMevcut { border-width: 2px !important; }
 .kartMevcut .mevcutPlan { background: #DCFCE7; color: #15803D; }
+
+.tasarrufEtiket {
+  display: inline-block; margin-top: 6px; background: #DCFCE7; color: #15803D;
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 7px;
+}
