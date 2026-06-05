@@ -281,17 +281,6 @@ export default function Home() {
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Kategori</label>
-              <SidebarKategoriler
-                KATEGORILER={kategoriAgaci}
-                activeCategory={activeCategory}
-                onKatChange={handleKatChange}
-              />
-            </div>
-
-            <div className={styles.filterDivider} />
-
-            <div className={styles.filterGroup}>
               <label className={styles.filterLabel}>Şehir</label>
               <select
                 className={styles.filterSelect}
@@ -318,6 +307,17 @@ export default function Home() {
                 </select>
               </div>
             )}
+
+            <div className={styles.filterDivider} />
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Kategori</label>
+              <SidebarKategoriler
+                KATEGORILER={kategoriAgaci}
+                activeCategory={activeCategory}
+                onKatChange={handleKatChange}
+              />
+            </div>
 
             <div className={styles.filterDivider} />
 
