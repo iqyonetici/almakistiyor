@@ -8,14 +8,11 @@ export function AuthProvider({ children }) {
   const [yuklendi, setYuklendi] = useState(false)
 
   useEffect(() => {
-    // Supabase Auth varsa onu kullan, yoksa localStorage fallback
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          // Supabase oturumu var — users tablosundan profil al
           fetchProfile(session.user.id, session.user.email)
         } else {
-          // localStorage fallback
           try {
             const k = localStorage.getItem('ait_user')
             if (k) setUser(JSON.parse(k))
@@ -23,7 +20,6 @@ export function AuthProvider({ children }) {
           setYuklendi(true)
         }
       })
-
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           fetchProfile(session.user.id, session.user.email)
@@ -34,7 +30,6 @@ export function AuthProvider({ children }) {
       })
       return () => subscription.unsubscribe()
     } else {
-      // Supabase yok — sadece localStorage
       try {
         const k = localStorage.getItem('ait_user')
         if (k) setUser(JSON.parse(k))
@@ -45,15 +40,36 @@ export function AuthProvider({ children }) {
 
   async function fetchProfile(supabaseId, email) {
     if (!supabase) return
-    const { data } = await supabase
+    // 1. Önce supabase_id ile dene (limit 1 — çift kayıtta çökmez)
+    let { data: bySupaId } = await supabase
       .from('kullanicilar')
       .select('*')
       .eq('supabase_id', supabaseId)
-      .single()
-    if (data) {
-      setUser({ ...data, email })
+      .order('created_at', { ascending: true })
+      .limit(1)
+
+    let profil = bySupaId && bySupaId.length ? bySupaId[0] : null
+
+    // 2. Bulamazsa email ile dene (eski kayıtlarda supabase_id boş olabilir)
+    if (!profil && email) {
+      const { data: byEmail } = await supabase
+        .from('kullanicilar')
+        .select('*')
+        .eq('email', email)
+        .order('created_at', { ascending: true })
+        .limit(1)
+      profil = byEmail && byEmail.length ? byEmail[0] : null
+
+      // Email ile bulduysa ve supabase_id boşsa, bağla (gelecekte hızlı bulunur)
+      if (profil && !profil.supabase_id) {
+        await supabase.from('kullanicilar').update({ supabase_id: supabaseId }).eq('id', profil.id)
+      }
+    }
+
+    if (profil) {
+      setUser({ ...profil, email })
     } else {
-      setUser({ supabase_id: supabaseId, email })
+      setUser({ supabase_id: supabaseId, email, paket: 'ucretsiz' })
     }
     setYuklendi(true)
   }
@@ -64,7 +80,6 @@ export function AuthProvider({ children }) {
       if (error) return { error: error.message }
       return { data }
     } else {
-      // Demo fallback
       return { error: 'Supabase bağlı değil' }
     }
   }
@@ -76,7 +91,6 @@ export function AuthProvider({ children }) {
         options: { data: { ad, soyad } }
       })
       if (error) return { error: error.message }
-      // Kullanıcı profilini kaydet
       if (data.user) {
         await supabase.from('kullanicilar').insert([{
           supabase_id: data.user.id,
@@ -84,6 +98,7 @@ export function AuthProvider({ children }) {
           telefon: telefon || null,
           sehir: sehir || null,
           ilce: ilce || null,
+          paket: 'ucretsiz',
         }])
       }
       return { data }
@@ -97,14 +112,21 @@ export function AuthProvider({ children }) {
     try { localStorage.removeItem('ait_user') } catch(e) {}
   }
 
-  // Demo giriş — Supabase olmadan
   function demoGiris(userData) {
     setUser(userData)
     try { localStorage.setItem('ait_user', JSON.stringify(userData)) } catch(e) {}
   }
 
+  // Profili yeniden yükle (paket değişince çağrılabilir)
+  async function profilYenile() {
+    if (supabase && user?.email) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) await fetchProfile(session.user.id, session.user.email)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, girisYap, kayitOl, cikisYap, demoGiris, yuklendi }}>
+    <AuthContext.Provider value={{ user, girisYap, kayitOl, cikisYap, demoGiris, profilYenile, yuklendi }}>
       {children}
     </AuthContext.Provider>
   )

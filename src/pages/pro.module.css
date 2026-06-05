@@ -108,3 +108,7 @@
   .paketler { grid-template-columns: 1fr; }
   .nedenBaslik { font-size: 20px; }
 }
+
+/* Kullanıcının mevcut paketi */
+.kartMevcut { border-width: 2px !important; }
+.kartMevcut .mevcutPlan { background: #DCFCE7; color: #15803D; }

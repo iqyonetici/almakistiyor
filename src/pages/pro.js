@@ -64,9 +64,10 @@ export default function Pro() {
               const eski = eskiFiyatHesapla(p)
               const ozellikler = (p.ozellikler || '').split(',').map(x => x.trim()).filter(Boolean)
               const ucretsiz = p.kod === 'ucretsiz' || fiyat === 0
+              const mevcutPaket = (user?.paket || 'ucretsiz') === p.kod
               return (
-                <div key={p.id} className={`${styles.kart} ${p.populer?styles.kartPopuler:''}`}
-                  style={p.populer ? { borderColor: p.renk || '#7C3AED' } : {}}>
+                <div key={p.id} className={`${styles.kart} ${p.populer?styles.kartPopuler:''} ${mevcutPaket?styles.kartMevcut:''}`}
+                  style={p.populer ? { borderColor: p.renk || '#7C3AED' } : (mevcutPaket ? { borderColor: '#0D7A6B' } : {})}>
                   {p.populer && <div className={styles.populerBant} style={{background:p.renk||'#7C3AED'}}>⭐ EN POPÜLER</div>}
                   <div className={styles.kartBaslik} style={{color:p.renk||'#0D7A6B'}}>{p.ad}</div>
                   {p.aciklama && <div className={styles.kartAciklama}>{p.aciklama}</div>}
@@ -89,12 +90,12 @@ export default function Pro() {
                     ))}
                   </ul>
 
-                  {ucretsiz ? (
-                    <div className={styles.mevcutPlan}>Mevcut planınız</div>
+                  {mevcutPaket ? (
+                    <div className={styles.mevcutPlan}>✓ Mevcut planınız</div>
                   ) : (
                     <button className={styles.secBtn} style={{background:p.renk||'#0D7A6B'}}
                       onClick={() => alert('Ödeme sistemi yakında! Şimdilik destek ekibiyle iletişime geçin.')}>
-                      {user ? 'Pro\'ya Yükselt' : 'Üye Ol ve Başla'} →
+                      {user ? (ucretsiz ? 'Ücretsize Dön' : 'Pro\'ya Yükselt') : 'Üye Ol ve Başla'} →
                     </button>
                   )}
                 </div>
