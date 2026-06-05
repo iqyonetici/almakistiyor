@@ -96,8 +96,8 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) 
         <div className={styles.topBar}>
           <div className={styles.topBarInner}>
             <Link href="/" className={styles.logo}>
-              <span className={styles.logoIcon}>✓</span>
-              <span className={styles.logoText}><strong>almak</strong> istiyor</span>
+              <img src="/almakistiyor-icon.png" alt="almakistiyor.com" className={styles.logoIconImg} width="40" height="40" />
+              <span className={styles.logoText}><strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span></span>
             </Link>
             <div className={styles.topActions}>
               <button className={styles.btnIlan} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
@@ -142,7 +142,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) 
           <div className={styles.drawer} onClick={e => e.stopPropagation()}>
             <div className={styles.drawerHeader}>
               <div className={styles.logo}>
-                <span className={styles.logoIcon} style={{background:'#1a5c3a',color:'white'}}>✓</span>
+                <img src="/almakistiyor-icon.png" alt="almakistiyor.com" className={styles.logoIconImg} width="36" height="36" />
                 <span style={{fontSize:16,fontWeight:600,color:'#1a1d23'}}><strong>almak</strong> istiyor</span>
               </div>
               <button className={styles.drawerKapat} onClick={() => setMobilMenuAcik(false)}>✕</button>

@@ -275,3 +275,15 @@
   .profilAd { display: none; }
   .profilBtn { padding: 6px; }
 }
+
+/* Logo ikon görseli (PNG) */
+.logoIconImg {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  object-fit: contain;
+  display: block;
+}
+@media (max-width: 768px) {
+  .logoIconImg { width: 36px; height: 36px; }
+}

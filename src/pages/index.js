@@ -190,7 +190,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <div className={styles.heroLogo}>
-            <span className={styles.heroLogoIkon}>✓</span>
+            <img src="/almakistiyor-icon.png" alt="almakistiyor.com logo" className={styles.heroLogoImg} width="48" height="48" />
             <span className={styles.heroLogoText}>
               <strong>almak</strong>istiyor<span className={styles.heroLogoCom}>.com</span>
             </span>
