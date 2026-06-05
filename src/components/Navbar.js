@@ -125,12 +125,28 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                       <div className={styles.profilArka} onClick={() => setProfilAcik(false)} />
                       <div className={styles.profilMenu}>
                         <div className={styles.profilBaslik}>
-                          <div className={styles.profilBaslikAd}>{user.ad} {user.soyad || ""}</div>
-                          <div className={styles.profilBaslikMail}>{user.email}</div>
+                          <span className={styles.profilBaslikAvatar}>{(user.ad?.[0] || user.email?.[0] || "K").toUpperCase()}</span>
+                          <div>
+                            <div className={styles.profilBaslikAd}>{user.ad} {user.soyad || ""}</div>
+                            <div className={styles.profilBaslikMail}>{user.email}</div>
+                          </div>
                         </div>
-                        <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
-                        <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım</Link>
-                        {admin && <Link href="/admin" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Admin Panel</Link>}
+                        {user.paket && user.paket !== 'ucretsiz' ? (
+                          <div className={styles.profilPaket}>💎 {user.paket.toUpperCase()} üye</div>
+                        ) : (
+                          <Link href="/pro" className={styles.profilProCta} onClick={() => setProfilAcik(false)}>⭐ Pro üyeliğe geç</Link>
+                        )}
+                        <div className={styles.profilGrup}>
+                          <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
+                          <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım</Link>
+                          <Link href="/panel?tab=favoriler" className={styles.profilLink} onClick={() => setProfilAcik(false)}>❤️ Favorilerim</Link>
+                          <Link href="/panel?tab=teklifler" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📨 Aldığım Teklifler</Link>
+                        </div>
+                        <div className={styles.profilGrup}>
+                          <Link href="/panel?tab=ayarlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Hesap Ayarları</Link>
+                          <Link href="/yardim" className={styles.profilLink} onClick={() => setProfilAcik(false)}>❓ Yardım & Destek</Link>
+                          {admin && <Link href="/admin" className={styles.profilLink} onClick={() => setProfilAcik(false)}>🛠️ Admin Panel</Link>}
+                        </div>
                         <button className={styles.profilCikis} onClick={handleCikis}>🚪 Çıkış Yap</button>
                       </div>
                     </>
@@ -190,8 +206,28 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
               })}
             </div>
             <div className={styles.drawerFooter}>
-              <Link href="/giris" className={styles.drawerGiris} onClick={() => setMobilMenuAcik(false)}>Giriş Yap</Link>
-              <Link href="/kayit" className={styles.drawerKayit} onClick={() => setMobilMenuAcik(false)}>Üye Ol</Link>
+              {user ? (
+                <div className={styles.drawerProfil}>
+                  <div className={styles.drawerProfilUst}>
+                    <span className={styles.drawerProfilAvatar}>{(user.ad?.[0] || "K").toUpperCase()}</span>
+                    <div>
+                      <div className={styles.drawerProfilAd}>{user.ad} {user.soyad || ""}</div>
+                      <div className={styles.drawerProfilMail}>{user.email}</div>
+                    </div>
+                  </div>
+                  <Link href="/panel" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>📋 İlanlarım</Link>
+                  <Link href="/panel?tab=mesajlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>💬 Mesajlarım</Link>
+                  <Link href="/panel?tab=favoriler" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>❤️ Favorilerim</Link>
+                  <Link href="/panel?tab=ayarlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>⚙️ Hesap Ayarları</Link>
+                  {admin && <Link href="/admin" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>🛠️ Admin Panel</Link>}
+                  <button className={styles.drawerCikis} onClick={() => { setMobilMenuAcik(false); handleCikis(); }}>🚪 Çıkış Yap</button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/giris" className={styles.drawerGiris} onClick={() => setMobilMenuAcik(false)}>Giriş Yap</Link>
+                  <Link href="/kayit" className={styles.drawerKayit} onClick={() => setMobilMenuAcik(false)}>Üye Ol</Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -215,10 +251,17 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
           <span className={styles.navIcon}>💬</span>
           <span className={styles.navLabel}>Mesajlar</span>
         </Link>
-        <Link href="/panel" className={styles.navItem}>
-          <span className={styles.navIcon}>👤</span>
-          <span className={styles.navLabel}>Profil</span>
-        </Link>
+        {user ? (
+          <button className={styles.navItem} onClick={() => setMobilMenuAcik(true)}>
+            <span className={styles.navIcon}>👤</span>
+            <span className={styles.navLabel}>Profil</span>
+          </button>
+        ) : (
+          <Link href="/giris" className={styles.navItem}>
+            <span className={styles.navIcon}>👤</span>
+            <span className={styles.navLabel}>Giriş</span>
+          </Link>
+        )}
       </nav>
     </>
   );

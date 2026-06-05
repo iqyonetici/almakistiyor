@@ -309,6 +309,14 @@ export default function Home() {
         </aside>
 
         <main className={styles.listings} id="ilan-listesi">
+          {/* Mobil şehir filtresi (masaüstünde sidebar'da var) */}
+          <div className={styles.mobilFiltre}>
+            <select className={styles.mobilFiltreSelect} value={filterSehir}
+              onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
+              <option value="">📍 Tüm şehirler</option>
+              {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
+            </select>
+          </div>
           <div className={styles.listHeader}>
             <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
             <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>

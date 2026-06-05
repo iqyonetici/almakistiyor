@@ -394,3 +394,14 @@
 }
 .akkordAlt2Item:hover { background: #f0f9f5; color: #085549; }
 .akkordAlt2Aktif { background: #085549 !important; color: white !important; }
+
+/* Mobil şehir filtresi — sadece mobilde görünür */
+.mobilFiltre { display: none; }
+.mobilFiltreSelect {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  border: 1.5px solid #e2e8f0; font-size: 14px; font-family: inherit;
+  background: white; color: #1a1d23; margin-bottom: 12px;
+}
+@media (max-width: 768px) {
+  .mobilFiltre { display: block; }
+}

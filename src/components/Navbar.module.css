@@ -318,3 +318,56 @@
 @media (max-width: 1024px) {
   .katNav { display: none; }
 }
+
+/* ===== ZENGİNLEŞTİRİLMİŞ PROFİL MENÜSÜ ===== */
+.profilBaslik {
+  display: flex; align-items: center; gap: 11px;
+  padding: 16px; background: #f7f8fa; border-bottom: 1px solid #eee;
+}
+.profilBaslikAvatar {
+  width: 42px; height: 42px; border-radius: 11px; background: #F5A623;
+  color: white; font-weight: 700; font-size: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.profilPaket {
+  margin: 10px 12px 4px; padding: 8px 12px; border-radius: 9px;
+  background: linear-gradient(135deg, #EDE9FE, #F3E8FF); color: #6D28D9;
+  font-size: 13px; font-weight: 700; text-align: center;
+}
+.profilProCta {
+  display: block; margin: 10px 12px 4px; padding: 10px 12px; border-radius: 9px;
+  background: linear-gradient(135deg, #FFF6E9, #FEF3C7); color: #B45309;
+  font-size: 13px; font-weight: 700; text-align: center; text-decoration: none;
+  border: 1px solid #FDE68A; transition: all 0.13s;
+}
+.profilProCta:hover { background: #FDE68A; }
+.profilGrup {
+  padding: 6px 0; border-bottom: 1px solid #f0f2f5;
+}
+.profilGrup:last-of-type { border-bottom: none; }
+
+/* ===== MOBİL DRAWER PROFİL ===== */
+.drawerProfil { display: flex; flex-direction: column; gap: 2px; }
+.drawerProfilUst {
+  display: flex; align-items: center; gap: 11px;
+  padding: 12px; background: #f7f8fa; border-radius: 11px; margin-bottom: 8px;
+}
+.drawerProfilAvatar {
+  width: 42px; height: 42px; border-radius: 11px; background: #F5A623;
+  color: white; font-weight: 700; font-size: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.drawerProfilAd { font-weight: 600; font-size: 14.5px; color: #1a1d23; }
+.drawerProfilMail { font-size: 12px; color: #8a95a3; word-break: break-all; }
+.drawerProfilLink {
+  display: block; padding: 12px 14px; border-radius: 9px; font-size: 14.5px;
+  color: #1a1d23; text-decoration: none; transition: background 0.12s;
+}
+.drawerProfilLink:hover, .drawerProfilLink:active { background: #E6F5F2; color: #085549; }
+.drawerCikis {
+  display: block; width: 100%; text-align: left; padding: 12px 14px;
+  border-radius: 9px; font-size: 14.5px; color: #B91C1C; background: none;
+  border: none; cursor: pointer; font-family: inherit; margin-top: 4px;
+  border-top: 1px solid #f0f2f5;
+}
+.drawerCikis:active { background: #FEF2F2; }
