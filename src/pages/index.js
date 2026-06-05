@@ -89,6 +89,50 @@ export default function Home() {
     return () => { iptal = true }
   }, [user])
 
+  // İlanları yükle — hem effect hem ilan oluşturma sonrası çağrılır
+  const yukle = useCallback(async () => {
+    const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
+    const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
+    const { data } = await ilanListele({
+      kategori: isAltKat ? undefined : (activeCategory || undefined),
+      altKategori: (isAltKat && !aktifFiltre) ? activeCategory : undefined,
+      emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
+      marka: aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined,
+      sehir: filterSehir || undefined,
+      ilce: filterIlce || undefined,
+      kullaniciEmail: user?.email || undefined,
+    })
+    if (data && data.length > 0) {
+      setIlanlar(data.map(d => ({
+        id: d.id, kategori: d.kategori || 'alisveris', altKategori: d.alt_kategori || '',
+        ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
+        sehir: d.sehir || '', ilce: d.ilce || '',
+        baslik: (() => {
+          const s = [d.sehir, d.ilce].filter(Boolean).join(' ')
+          if (d.kategori === 'emlak') return `${s ? s + "'da " : ''}${d.emlak_tip || 'Emlak'} arıyorum`
+          if (d.kategori === 'vasita') return `${d.markalar || 'Araç'} arıyorum`
+          return (s ? s + ' — ' : '') + (d.aciklama?.slice(0, 50) || d.kategori + ' arıyorum')
+        })(),
+        fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
+        tags: [
+          d.oda ? { label: d.oda, variant: 'tag-gray' } : null,
+          d.m2_min && d.m2_max ? { label: d.m2_min + '–' + d.m2_max + ' m²', variant: 'tag-gray' } : null,
+          d.emlak_tip ? { label: d.emlak_tip, variant: 'tag-gray' } : null,
+          d.markalar && d.kategori === 'vasita' ? { label: d.markalar, variant: 'tag-gray' } : null,
+          d.yil_min && d.yil_max ? { label: d.yil_min + '–' + d.yil_max, variant: 'tag-gray' } : null,
+          d.km_max ? { label: 'Max ' + Number(d.km_max).toLocaleString('tr-TR') + ' km', variant: 'tag-gray' } : null,
+        ].filter(Boolean),
+        aciklama: d.aciklama || '', tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+        goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
+        email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
+        created_at: d.created_at, emlak_tip: d.emlak_tip,
+        onayDurumu: d.onay_durumu || 'onaylandi', durum: d.durum || 'aktif',
+      })))
+    } else {
+      setIlanlar([])
+    }
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user])
+
   useEffect(() => {
     async function loadStats() {
       if (supabase) {
@@ -99,51 +143,8 @@ export default function Home() {
     }
     loadStats()
     kategorileriGetir().then(setKategoriAgaci)
-
-    async function yukle() {
-      const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
-      const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
-      const { data } = await ilanListele({
-        kategori: isAltKat ? undefined : (activeCategory || undefined),
-        altKategori: (isAltKat && !aktifFiltre) ? activeCategory : undefined,
-        emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
-        marka: aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined,
-        sehir: filterSehir || undefined,
-        ilce: filterIlce || undefined,
-        kullaniciEmail: user?.email || undefined,
-      })
-      if (data && data.length > 0) {
-        setIlanlar(data.map(d => ({
-          id: d.id, kategori: d.kategori || 'alisveris', altKategori: d.alt_kategori || '',
-          ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
-          sehir: d.sehir || '', ilce: d.ilce || '',
-          baslik: (() => {
-            const s = [d.sehir, d.ilce].filter(Boolean).join(' ')
-            if (d.kategori === 'emlak') return `${s ? s + "'da " : ''}${d.emlak_tip || 'Emlak'} arıyorum`
-            if (d.kategori === 'vasita') return `${d.markalar || 'Araç'} arıyorum`
-            return (s ? s + ' — ' : '') + (d.aciklama?.slice(0, 50) || d.kategori + ' arıyorum')
-          })(),
-          fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
-          tags: [
-            d.oda ? { label: d.oda, variant: 'tag-gray' } : null,
-            d.m2_min && d.m2_max ? { label: d.m2_min + '–' + d.m2_max + ' m²', variant: 'tag-gray' } : null,
-            d.emlak_tip ? { label: d.emlak_tip, variant: 'tag-gray' } : null,
-            d.markalar && d.kategori === 'vasita' ? { label: d.markalar, variant: 'tag-gray' } : null,
-            d.yil_min && d.yil_max ? { label: d.yil_min + '–' + d.yil_max, variant: 'tag-gray' } : null,
-            d.km_max ? { label: 'Max ' + Number(d.km_max).toLocaleString('tr-TR') + ' km', variant: 'tag-gray' } : null,
-          ].filter(Boolean),
-          aciklama: d.aciklama || '', tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
-          goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
-          email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
-          created_at: d.created_at, emlak_tip: d.emlak_tip,
-          onayDurumu: d.onay_durumu || 'onaylandi', durum: d.durum || 'aktif',
-        })))
-      } else {
-        setIlanlar([])
-      }
-    }
     yukle()
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user])
+  }, [yukle])
 
   const filtered = ilanlar
     .filter(i => !filterSehir || i.sehir === filterSehir)
@@ -167,15 +168,14 @@ export default function Home() {
   }, [])
 
   async function handleSubmit(data) {
-    await ilanOlustur(data, user)
+    const sonuc = await ilanOlustur(data, user)
     // Misafir ilan sayacını artır
     if (!user?.email) {
       const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
       localStorage.setItem('misafir_ilan', String(v))
     }
-    // İlan kaydedildi — başarı ekranı görünsün, sonra sayfayı yenile ki
-    // kullanıcı kendi onay bekleyen ilanını (kırmızı rozetli) görsün
-    setTimeout(() => { window.location.reload() }, 2200)
+    // İlan DB'ye yazıldı — listeyi taze çek (sayfa yenilemeden, garantili)
+    await yukle()
   }
 
   return (
