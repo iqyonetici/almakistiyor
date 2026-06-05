@@ -185,7 +185,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
-      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} />
+      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} kategoriAgaci={kategoriAgaci} />
 
       <section className={styles.hero}>
         <div className={styles.heroInner}>
@@ -237,10 +237,10 @@ export default function Home() {
       <div className={styles.trustBar}>
         <div className={`container ${styles.trustInner}`}>
           {[
-            { icon: '🔒', text: 'Telefon numaranız gizli kalır' },
-            { icon: '⚡', text: '2 dakikada ilan ver' },
-            { icon: '✓', text: 'Alıcıya tamamen ücretsiz' },
-            { icon: '🛡️', text: 'Spam yok' },
+            { icon: '🔒', text: 'Kişisel bilgileriniz korunur' },
+            { icon: '✅', text: 'Doğrulanmış satıcılar' },
+            { icon: '🎯', text: 'Size özel teklifler' },
+            { icon: '🤝', text: 'Güvenli alışveriş deneyimi' },
           ].map(t => (
             <div key={t.text} className={styles.trustItem}><span>{t.icon}</span> {t.text}</div>
           ))}

@@ -287,3 +287,34 @@
 @media (max-width: 768px) {
   .logoIconImg { width: 36px; height: 36px; }
 }
+
+/* ===== NAVBAR KATEGORİ MENÜSÜ ===== */
+.katNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  justify-content: center;
+  margin: 0 20px;
+}
+.katNavItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.82);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.13s;
+}
+.katNavItem:hover { background: rgba(255,255,255,0.12); color: white; }
+.katNavAktif { background: rgba(255,255,255,0.18); color: white; font-weight: 600; }
+.katNavIcon { font-size: 15px; }
+
+/* Tablet ve altında kategori menüsünü gizle (mobil drawer'da zaten var) */
+@media (max-width: 1024px) {
+  .katNav { display: none; }
+}

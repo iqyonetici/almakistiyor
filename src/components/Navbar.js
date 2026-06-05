@@ -45,7 +45,7 @@ export const kategoriler = [
   { label: "İş İlanları", slug: "is-ilanlari", icon: "💼", altkategoriler: [] },
 ];
 
-export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) {
+export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, kategoriAgaci }) {
   const router = useRouter();
   const { user, cikisYap } = useAuth();
   const isAnasayfa = router.pathname === "/";
@@ -99,10 +99,20 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer }) 
               <img src="/almakistiyor-icon.png" alt="almakistiyor.com" className={styles.logoIconImg} width="40" height="40" />
               <span className={styles.logoText}><strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span></span>
             </Link>
+
+            {/* Kategori menüsü (masaüstü) */}
+            <nav className={styles.katNav}>
+              {(kategoriAgaci && kategoriAgaci.length ? kategoriAgaci : kategoriler).slice(0, 6).map(k => (
+                <a key={k.slug} href={`/?kategori=${k.slug}`}
+                  className={`${styles.katNavItem} ${activeCategory === k.slug ? styles.katNavAktif : ''}`}
+                  onClick={(e) => handleKatClick(e, k.slug)}>
+                  {k.icon && <span className={styles.katNavIcon}>{k.icon}</span>}
+                  {k.label}
+                </a>
+              ))}
+            </nav>
+
             <div className={styles.topActions}>
-              <button className={styles.btnIlan} onClick={() => onIlanVer ? onIlanVer() : router.push("/")}>
-                + Almak İstiyorum
-              </button>
               {user ? (
                 <div className={styles.profilWrap}>
                   <button className={styles.profilBtn} onClick={() => setProfilAcik(a => !a)}>
