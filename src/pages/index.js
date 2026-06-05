@@ -173,11 +173,9 @@ export default function Home() {
       const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
       localStorage.setItem('misafir_ilan', String(v))
     }
-    setIlanlar(prev => [{
-      id: Date.now(), kategori: data.kategori, ad: data.ad, sehir: data.sehir, ilce: data.ilce,
-      baslik: `${data.sehir}'de arıyorum`, fiyatMin: null, fiyatMax: null, tags: [],
-      aciklama: data.aciklama, tarih: 'Az önce', goruntuleme: 0,
-    }, ...prev])
+    // İlan kaydedildi — başarı ekranı görünsün, sonra sayfayı yenile ki
+    // kullanıcı kendi onay bekleyen ilanını (kırmızı rozetli) görsün
+    setTimeout(() => { window.location.reload() }, 2200)
   }
 
   return (
