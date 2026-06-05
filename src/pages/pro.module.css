@@ -1,62 +1,110 @@
-.hero { background: var(--teal-dark); padding: 56px 24px; }
-.heroInner { text-align: center; }
-.heroBadge { display: inline-block; background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.3); color: var(--accent); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-bottom: 20px; }
-.hero h1 { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 700; color: white; margin-bottom: 14px; letter-spacing: -0.5px; }
-.hero h1 em { font-style: normal; color: var(--accent); }
-.hero p { font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 36px; }
-.heroStats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
-.stat { text-align: center; }
-.statN { font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 700; color: white; }
-.statL { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
-.content { padding: 48px 24px; }
-.sectionTitle { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
+.sayfa { min-height: 100vh; background: #f4f6f8; padding-bottom: 60px; }
 
-/* NASIL ÇALIŞIR */
-.nasil { margin-bottom: 48px; }
-.nasilGrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-.nasilKart { background: white; border: 1px solid var(--border); border-radius: var(--r); padding: 20px; text-align: center; box-shadow: var(--shadow-sm); }
-.nasilNo { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); color: white; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-family: 'Sora', sans-serif; }
-.nasilIcon { font-size: 28px; margin-bottom: 10px; }
-.nasilKart h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-.nasilKart p { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #085549 0%, #0D7A6B 100%);
+  color: white; padding: 28px 16px 40px; text-align: center;
+}
+.geri { display: inline-block; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; margin-bottom: 16px; }
+.geri:hover { color: white; }
+.rozet {
+  display: inline-block; background: rgba(245,166,35,0.2); color: #F5A623;
+  padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.5px; margin-bottom: 14px;
+}
+.baslik { font-family: 'Sora',sans-serif; font-size: 30px; font-weight: 700; margin: 0 0 10px; }
+.altBaslik { color: rgba(255,255,255,0.78); font-size: 15px; line-height: 1.6; max-width: 540px; margin: 0 auto 24px; }
 
-/* UYARI */
-.uyariBox { display: flex; gap: 12px; align-items: flex-start; background: var(--accent-light); border: 1px solid #F5CC80; border-radius: 12px; padding: 18px 20px; margin-bottom: 48px; font-size: 14px; color: #7A4F01; line-height: 1.7; }
+.periyotSecici {
+  display: inline-flex; background: rgba(255,255,255,0.12); border-radius: 12px; padding: 4px; gap: 4px;
+}
+.periyotBtn {
+  padding: 9px 22px; border-radius: 9px; border: none; background: none;
+  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+}
+.periyotAktif { background: white; color: #085549; }
+.indirimEtiket {
+  background: #F5A623; color: white; font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+}
 
-/* PAKETLER */
-.paketGrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 16px; }
-.paket { border-radius: 14px; padding: 28px; cursor: pointer; transition: all 0.15s; position: relative; border: 2px solid transparent; }
-.paket:hover { transform: translateY(-2px); }
-.paketWhite { background: white; border-color: var(--border); box-shadow: var(--shadow-sm); }
-.paketTeal { background: var(--teal); box-shadow: 0 8px 32px rgba(13,122,107,0.3); }
-.paketDark { background: var(--text); box-shadow: var(--shadow-md); }
-.paketSec { border-color: var(--accent) !important; }
-.popularBadge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #7A4F01; font-size: 11px; font-weight: 700; padding: 3px 14px; border-radius: 20px; white-space: nowrap; }
-.paketAd { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.paketWhite .paketAd { color: var(--text-3); }
-.paketTeal .paketAd, .paketDark .paketAd { color: rgba(255,255,255,0.6); }
-.paketFiyat { font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 20px; }
-.paketWhite .paketFiyat { color: var(--text); }
-.paketTeal .paketFiyat, .paketDark .paketFiyat { color: white; }
-.paketFiyat span { font-size: 14px; font-weight: 400; opacity: 0.6; }
-.paketList { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 24px; font-size: 14px; }
-.paketWhite .paketList { color: var(--text-2); }
-.paketTeal .paketList, .paketDark .paketList { color: rgba(255,255,255,0.85); }
-.pasifOzellik { opacity: 0.3; }
-.ozellikIcon { margin-right: 6px; font-weight: 700; }
-.paketBtn { display: block; width: 100%; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 600; text-align: center; font-family: 'Sora', sans-serif; transition: all 0.15s; border: none; cursor: pointer; }
-.paketBtnDark { background: var(--teal); color: white; }
-.paketBtnDark:hover { background: var(--teal-dark); }
-.paketBtnLight { background: white; color: var(--teal); }
-.paketBtnLight:hover { opacity: 0.9; }
-.ücretszNot { text-align: center; font-size: 12px; color: var(--text-3); margin-bottom: 48px; }
+/* PAKET KARTLARI */
+.paketler {
+  max-width: 1080px; margin: -24px auto 0; padding: 0 16px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+}
+.kart {
+  background: white; border-radius: 18px; padding: 26px 22px;
+  border: 2px solid #eee; position: relative; display: flex; flex-direction: column;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.kart:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.kartPopuler { border-width: 2px; box-shadow: 0 8px 30px rgba(124,58,237,0.15); }
+.populerBant {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  color: white; font-size: 11px; font-weight: 700; padding: 5px 16px;
+  border-radius: 20px; white-space: nowrap; letter-spacing: 0.3px;
+}
+.kartBaslik { font-family: 'Sora',sans-serif; font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+.kartAciklama { font-size: 13px; color: #8a95a3; margin-bottom: 18px; }
+
+.fiyatAlan { margin-bottom: 20px; min-height: 56px; }
+.eskiFiyat { font-size: 14px; color: #cbd5e1; text-decoration: line-through; display: block; }
+.fiyat { font-family: 'Sora',sans-serif; font-size: 32px; font-weight: 700; color: #1a1d23; line-height: 1; }
+.fiyatBirim { font-size: 14px; font-weight: 500; color: #8a95a3; }
+
+.limitler { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid #f0f2f5; border-bottom: 1px solid #f0f2f5; margin-bottom: 16px; }
+.limitItem { font-size: 13.5px; color: #4a5568; }
+.limitItem strong { color: #1a1d23; }
+
+.ozellikListe { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.ozellikListe li { font-size: 13.5px; color: #4a5568; display: flex; align-items: flex-start; gap: 8px; line-height: 1.45; }
+.tik { font-weight: 700; flex-shrink: 0; }
+
+.secBtn {
+  padding: 13px; border-radius: 11px; border: none; color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: filter 0.15s; margin-top: auto;
+}
+.secBtn:hover { filter: brightness(0.92); }
+.mevcutPlan {
+  padding: 13px; border-radius: 11px; background: #f0f2f5; color: #8a95a3;
+  font-size: 14px; font-weight: 600; text-align: center; margin-top: auto;
+}
+
+.yukleniyor { grid-column: 1/-1; text-align: center; padding: 40px; color: #8a95a3; }
+
+/* NEDEN PRO */
+.nedenPro { max-width: 1080px; margin: 48px auto 0; padding: 0 16px; }
+.nedenBaslik { font-family: 'Sora',sans-serif; font-size: 24px; font-weight: 700; color: #1a1d23; text-align: center; margin-bottom: 24px; }
+.nedenGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.nedenKart { background: white; border-radius: 14px; padding: 22px; border: 1px solid #eee; text-align: center; }
+.nedenIkon { font-size: 34px; margin-bottom: 12px; }
+.nedenKartBaslik { font-family: 'Sora',sans-serif; font-size: 16px; font-weight: 600; color: #1a1d23; margin-bottom: 8px; }
+.nedenKartAciklama { font-size: 13px; color: #4a5568; line-height: 1.55; }
 
 /* SSS */
-.sss { }
-.sssListesi { display: flex; flex-direction: column; gap: 12px; }
-.sssItem { background: white; border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--shadow-sm); }
-.sssSoru { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-.sssCevap { font-size: 14px; color: var(--text-2); line-height: 1.7; }
+.sss { max-width: 720px; margin: 48px auto 0; padding: 0 16px; }
+.sssItem { background: white; border: 1px solid #e8edf2; border-radius: 11px; margin-bottom: 8px; overflow: hidden; }
+.sssSoru { padding: 15px 18px; font-size: 14.5px; font-weight: 500; color: #1a1d23; cursor: pointer; list-style: none; }
+.sssSoru::-webkit-details-marker { display: none; }
+.sssSoru::after { content: '+'; float: right; color: #0D7A6B; font-size: 18px; }
+.sssItem[open] .sssSoru::after { content: '−'; }
+.sssCevap { padding: 0 18px 16px; font-size: 13.5px; color: #4a5568; line-height: 1.6; }
 
-@media (max-width: 900px) { .nasilGrid { grid-template-columns: 1fr 1fr; } .paketGrid { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .nasilGrid { grid-template-columns: 1fr; } .hero h1 { font-size: 26px; } }
+/* ALT CTA */
+.altCta { text-align: center; margin: 48px auto 0; padding: 0 16px; }
+.altCta p { color: #4a5568; font-size: 15px; margin-bottom: 12px; }
+.altCtaBtn {
+  display: inline-block; padding: 12px 28px; border-radius: 11px;
+  background: white; border: 1.5px solid #0D7A6B; color: #0D7A6B;
+  font-size: 14.5px; font-weight: 600; text-decoration: none; transition: all 0.15s;
+}
+.altCtaBtn:hover { background: #0D7A6B; color: white; }
+
+@media (max-width: 600px) {
+  .baslik { font-size: 24px; }
+  .paketler { grid-template-columns: 1fr; }
+  .nedenBaslik { font-size: 20px; }
+}

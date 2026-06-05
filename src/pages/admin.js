@@ -281,6 +281,8 @@ function Sikayetler() {
 
 // ==================== PAKETLER ====================
 function Paketler() {
+  const lblS = { fontSize: 11, fontWeight: 600, color: '#8a95a3', display: 'flex', flexDirection: 'column', gap: 4 }
+  const inpFull = { width: '100%', marginLeft: 0 }
   const [liste, setListe] = useState([])
   const [yukleniyor, setYukleniyor] = useState(true)
   const [kayitDurum, setKayitDurum] = useState({})  // {paketId: 'kaydedildi'}
@@ -296,10 +298,17 @@ function Paketler() {
   // DB'ye kaydet
   async function kaydet(p) {
     await paketGuncelle(p.id, {
+      ad: p.ad,
       fiyat: Number(p.fiyat) || 0,
+      eski_fiyat: p.eski_fiyat ? Number(p.eski_fiyat) : null,
       gunluk_ilan: Number(p.gunluk_ilan) || 0,
       gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
       telefon_goster: !!p.telefon_goster,
+      aciklama: p.aciklama || null,
+      ozellikler: p.ozellikler || null,
+      populer: !!p.populer,
+      renk: p.renk || '#0D7A6B',
+      aktif: p.aktif !== false,
     })
     setKayitDurum(s => ({ ...s, [p.id]: 'kaydedildi' }))
     setTimeout(() => setKayitDurum(s => ({ ...s, [p.id]: null })), 2000)
@@ -308,16 +317,29 @@ function Paketler() {
   return (
     <div>
       <h1 className={styles.baslik}>💎 Pro Üyelik Paketleri</h1>
+      <p style={{color:'#8a95a3',fontSize:13,marginBottom:16}}>Buradaki değişiklikler /pro sayfasına anında yansır.</p>
       {yukleniyor ? <div className={styles.yukleniyor}>Yükleniyor...</div> :
         liste.map(p => (
-          <div key={p.id} className={styles.ilanKart}>
-            <div className={styles.ilanBilgi}>
-              <div className={styles.ilanBaslik}>{p.ad} <span className={styles.ilanTarih}>({p.kod})</span></div>
-              <div className={styles.ilanDetay} style={{display:'flex',gap:16,alignItems:'center',marginTop:8,flexWrap:'wrap'}}>
-                <label>Fiyat ₺: <input type="number" className={styles.miniInput} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} /></label>
-                <label>Günlük ilan: <input type="number" className={styles.miniInput} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} /></label>
-                <label>Günlük mesaj: <input type="number" className={styles.miniInput} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} /></label>
-                <label><input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon göster</label>
+          <div key={p.id} className={styles.ilanKart} style={{flexDirection:'column',alignItems:'stretch',gap:12}}>
+            <div className={styles.ilanBilgi} style={{width:'100%'}}>
+              <div className={styles.ilanBaslik} style={{marginBottom:12}}>
+                {p.ad} <span className={styles.ilanTarih}>({p.kod})</span>
+                {p.populer && <span className={styles.proRozet}>⭐ Popüler</span>}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
+                <label style={lblS}>Paket adı<input className={styles.miniInput} style={inpFull} value={p.ad ?? ''} onChange={e=>alanDegistir(p.id,'ad',e.target.value)} /></label>
+                <label style={lblS}>Fiyat ₺/ay<input type="number" className={styles.miniInput} style={inpFull} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} /></label>
+                <label style={lblS}>Eski fiyat (indirim)<input type="number" className={styles.miniInput} style={inpFull} value={p.eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'eski_fiyat',e.target.value)} placeholder="boş=indirim yok" /></label>
+                <label style={lblS}>Günlük ilan<input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} /></label>
+                <label style={lblS}>Günlük mesaj<input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} /></label>
+                <label style={lblS}>Kart rengi<input type="color" style={{width:'100%',height:34,borderRadius:6,border:'1.5px solid #e2e8f0',cursor:'pointer'}} value={p.renk || '#0D7A6B'} onChange={e=>alanDegistir(p.id,'renk',e.target.value)} /></label>
+              </div>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Açıklama<input className={styles.miniInput} style={inpFull} value={p.aciklama ?? ''} onChange={e=>alanDegistir(p.id,'aciklama',e.target.value)} placeholder="Örn: Profesyonel satıcılar için" /></label>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Özellikler (virgülle ayır)<textarea className={styles.miniInput} style={{...inpFull,minHeight:54,resize:'vertical'}} value={p.ozellikler ?? ''} onChange={e=>alanDegistir(p.id,'ozellikler',e.target.value)} placeholder="Telefon görüntüleme,Öncelikli sıralama,Onaylı rozet" /></label>
+              <div style={{display:'flex',gap:18,marginTop:12,flexWrap:'wrap'}}>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon göster</label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={!!p.populer} onChange={e=>alanDegistir(p.id,'populer',e.target.checked)} /> ⭐ En popüler</label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={p.aktif !== false} onChange={e=>alanDegistir(p.id,'aktif',e.target.checked)} /> Aktif (sitede görünsün)</label>
               </div>
             </div>
             <div className={styles.ilanAksiyon}>

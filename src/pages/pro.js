@@ -1,151 +1,148 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import IlanForm from '../components/IlanForm'
+import Link from 'next/link'
+import { useAuth } from '../context/AuthContext'
+import { paketleriGetir } from '../lib/adminDB'
 import styles from './pro.module.css'
 
-const paketler = [
-  {
-    id: 'starter', ad: 'Starter', fiyat: 499, renk: 'white',
-    ozellikler: [
-      { label: '10 iletişim bilgisi/ay', aktif: true },
-      { label: 'Telefon + e-posta görme', aktif: true },
-      { label: 'Günlük e-posta bildirimi', aktif: true },
-      { label: 'Anlık SMS bildirimi', aktif: false },
-      { label: 'Öne çıkan profil', aktif: false },
-      { label: 'API erişimi', aktif: false },
-    ]
-  },
-  {
-    id: 'pro', ad: 'Pro', fiyat: 1299, renk: 'teal', popular: true,
-    ozellikler: [
-      { label: 'Sınırsız iletişim bilgisi', aktif: true },
-      { label: 'Telefon + e-posta görme', aktif: true },
-      { label: 'Anlık SMS bildirimi', aktif: true },
-      { label: 'Öne çıkan profil sayfası', aktif: true },
-      { label: 'Öncelik sıralaması', aktif: true },
-      { label: 'API erişimi', aktif: false },
-    ]
-  },
-  {
-    id: 'kurumsal', ad: 'Kurumsal', fiyat: 3499, renk: 'dark',
-    ozellikler: [
-      { label: 'Sınırsız iletişim bilgisi', aktif: true },
-      { label: 'Telefon + e-posta görme', aktif: true },
-      { label: 'Anlık SMS bildirimi', aktif: true },
-      { label: 'Marka profil sayfası', aktif: true },
-      { label: 'Öncelik sıralaması', aktif: true },
-      { label: 'API erişimi', aktif: true },
-    ]
-  },
-]
-
 export default function Pro() {
-  const [formOpen, setFormOpen] = useState(false)
-  const [secili, setSecili] = useState('pro')
+  const { user } = useAuth()
+  const [paketler, setPaketler] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [periyot, setPeriyot] = useState('ay')  // ay / yil
+
+  useEffect(() => {
+    paketleriGetir().then(p => {
+      // Sadece aktif ve ücretsiz olmayan paketleri pro sayfasında göster
+      setPaketler((p || []).filter(x => x.aktif !== false))
+      setYukleniyor(false)
+    })
+  }, [])
+
+  // Yıllık ödemede %20 indirim (2 ay bedava mantığı)
+  function fiyatHesapla(p) {
+    const aylik = Number(p.fiyat) || 0
+    if (periyot === 'yil') return Math.round(aylik * 12 * 0.8)  // yıllık %20 indirim
+    return aylik
+  }
+  function eskiFiyatHesapla(p) {
+    if (periyot === 'yil') return Math.round((Number(p.fiyat) || 0) * 12)
+    return p.eski_fiyat ? Number(p.eski_fiyat) : null
+  }
 
   return (
     <>
-      <Head><title>Profesyonel Erişim — AlmakIstiyor.com</title></Head>
-      <Navbar onIlanVer={() => setFormOpen(true)} />
+      <Head><title>Pro Üyelik | AlmakIstiyor.com</title></Head>
+      <div className={styles.sayfa}>
+        {/* HERO */}
+        <div className={styles.hero}>
+          <Link href="/" className={styles.geri}>← Ana Sayfa</Link>
+          <div className={styles.rozet}>💎 PRO ÜYELİK</div>
+          <h1 className={styles.baslik}>Daha fazla satış, daha fazla teklif</h1>
+          <p className={styles.altBaslik}>
+            Pro üyelikle alıcılara öncelikli ulaşın, telefon numaralarını görün, daha fazla teklif gönderin.
+          </p>
 
-      <div className={styles.hero}>
-        <div className={`container ${styles.heroInner}`}>
-          <div className={styles.heroBadge}>🏢 Emlakçı & Galericiler İçin</div>
-          <h1>Alıcı taleplerine <em>doğrudan erişin</em></h1>
-          <p>14.000'den fazla aktif alıcı talebi. İletişim bilgisine ulaşmak için paket seçin.</p>
-          <div className={styles.heroStats}>
-            {[['14.320+','Aktif talep'],['3.800+','Kayıtlı satıcı'],['%94','Eşleşme oranı'],['3','Ücretsiz hak']].map(([n,l])=>(
-              <div key={l} className={styles.stat}><div className={styles.statN}>{n}</div><div className={styles.statL}>{l}</div></div>
-            ))}
+          {/* Periyot seçici */}
+          <div className={styles.periyotSecici}>
+            <button className={`${styles.periyotBtn} ${periyot==='ay'?styles.periyotAktif:''}`} onClick={()=>setPeriyot('ay')}>
+              Aylık
+            </button>
+            <button className={`${styles.periyotBtn} ${periyot==='yil'?styles.periyotAktif:''}`} onClick={()=>setPeriyot('yil')}>
+              Yıllık <span className={styles.indirimEtiket}>%20 indirim</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className={`container ${styles.content}`}>
+        {/* PAKET KARTLARI */}
+        <div className={styles.paketler}>
+          {yukleniyor ? (
+            <div className={styles.yukleniyor}>Paketler yükleniyor...</div>
+          ) : (
+            paketler.map(p => {
+              const fiyat = fiyatHesapla(p)
+              const eski = eskiFiyatHesapla(p)
+              const ozellikler = (p.ozellikler || '').split(',').map(x => x.trim()).filter(Boolean)
+              const ucretsiz = p.kod === 'ucretsiz' || fiyat === 0
+              return (
+                <div key={p.id} className={`${styles.kart} ${p.populer?styles.kartPopuler:''}`}
+                  style={p.populer ? { borderColor: p.renk || '#7C3AED' } : {}}>
+                  {p.populer && <div className={styles.populerBant} style={{background:p.renk||'#7C3AED'}}>⭐ EN POPÜLER</div>}
+                  <div className={styles.kartBaslik} style={{color:p.renk||'#0D7A6B'}}>{p.ad}</div>
+                  {p.aciklama && <div className={styles.kartAciklama}>{p.aciklama}</div>}
 
-        {/* NASIL ÇALIŞIR */}
-        <div className={styles.nasil}>
-          <h2 className={styles.sectionTitle}>Nasıl çalışır?</h2>
-          <div className={styles.nasilGrid}>
+                  <div className={styles.fiyatAlan}>
+                    {eski && eski > fiyat && <span className={styles.eskiFiyat}>{eski.toLocaleString('tr-TR')} ₺</span>}
+                    <div className={styles.fiyat}>
+                      {ucretsiz ? 'Ücretsiz' : <>{fiyat.toLocaleString('tr-TR')} <span className={styles.fiyatBirim}>₺/{periyot==='yil'?'yıl':'ay'}</span></>}
+                    </div>
+                  </div>
+
+                  <div className={styles.limitler}>
+                    <div className={styles.limitItem}>📋 <strong>{p.gunluk_ilan >= 999 ? 'Sınırsız' : p.gunluk_ilan}</strong> ilan/gün</div>
+                    <div className={styles.limitItem}>💬 <strong>{p.gunluk_mesaj >= 999 ? 'Sınırsız' : p.gunluk_mesaj}</strong> mesaj/gün</div>
+                  </div>
+
+                  <ul className={styles.ozellikListe}>
+                    {ozellikler.map((o, i) => (
+                      <li key={i}><span className={styles.tik} style={{color:p.renk||'#0D7A6B'}}>✓</span> {o}</li>
+                    ))}
+                  </ul>
+
+                  {ucretsiz ? (
+                    <div className={styles.mevcutPlan}>Mevcut planınız</div>
+                  ) : (
+                    <button className={styles.secBtn} style={{background:p.renk||'#0D7A6B'}}
+                      onClick={() => alert('Ödeme sistemi yakında! Şimdilik destek ekibiyle iletişime geçin.')}>
+                      {user ? 'Pro\'ya Yükselt' : 'Üye Ol ve Başla'} →
+                    </button>
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* NEDEN PRO */}
+        <div className={styles.nedenPro}>
+          <h2 className={styles.nedenBaslik}>Neden Pro Üye olmalısınız?</h2>
+          <div className={styles.nedenGrid}>
             {[
-              { n:'1', icon:'📝', baslik:'Kayıt olun', acik:'Ücretsiz hesap oluşturun. 3 iletişim bilgisini ücretsiz görün.' },
-              { n:'2', icon:'🔍', baslik:'Talepleri filtreleyin', acik:'Şehir, kategori, bütçe aralığına göre alıcı taleplerini listeleyin.' },
-              { n:'3', icon:'💬', baslik:'Mesaj gönderin', acik:'Her alıcıya ücretsiz 1 mesaj hakkınız var. Telefon için paket alın.' },
-              { n:'4', icon:'🤝', baslik:'İşi kapatın', acik:'Alıcıyla doğrudan iletişime geçin, anlaşmayı yapın.' },
-            ].map(s => (
-              <div key={s.n} className={styles.nasilKart}>
-                <div className={styles.nasilNo}>{s.n}</div>
-                <div className={styles.nasilIcon}>{s.icon}</div>
-                <h3>{s.baslik}</h3>
-                <p>{s.acik}</p>
+              { i: '📞', b: 'İletişim Avantajı', a: 'Alıcıların telefon numaralarını görün, doğrudan iletişim kurun.' },
+              { i: '🚀', b: 'Öncelikli Sıralama', a: 'Teklifleriniz listede üst sıralarda görünür, daha çok fark edilir.' },
+              { i: '✅', b: 'Onaylı Satıcı Rozeti', a: 'Güven veren rozet ile alıcıların gözünde öne çıkın.' },
+              { i: '💬', b: 'Daha Fazla Mesaj', a: 'Günlük mesaj limitiniz artar, daha çok alıcıya ulaşırsınız.' },
+            ].map(n => (
+              <div key={n.b} className={styles.nedenKart}>
+                <div className={styles.nedenIkon}>{n.i}</div>
+                <div className={styles.nedenKartBaslik}>{n.b}</div>
+                <div className={styles.nedenKartAciklama}>{n.a}</div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* ÜCRETSİZ MESAJ UYARISI */}
-        <div className={styles.uyariBox}>
-          <span style={{fontSize:20}}>💡</span>
-          <div>
-            <strong>Ücretsiz mesaj hakkı:</strong> Kayıt olan her satıcı, her alıcıya <strong>1 ücretsiz mesaj</strong> gönderebilir.
-            Alıcının telefon numarasını görmek ve daha fazla mesaj göndermek için paket satın almanız gerekir.
-            Alıcı <strong>3 mesaj veya 3 telefon görüşmesi</strong> hakkı tanır — bu hakkı kullanmak için paket gereklidir.
-          </div>
-        </div>
-
-        {/* PAKETLER */}
-        <h2 className={styles.sectionTitle} style={{textAlign:'center',marginBottom:32}}>Paket seçin</h2>
-        <div className={styles.paketGrid}>
-          {paketler.map(p => (
-            <div key={p.id}
-              className={`${styles.paket} ${p.renk === 'teal' ? styles.paketTeal : p.renk === 'dark' ? styles.paketDark : styles.paketWhite} ${secili === p.id ? styles.paketSec : ''}`}
-              onClick={() => setSecili(p.id)}>
-              {p.popular && <div className={styles.popularBadge}>En Popüler</div>}
-              <div className={styles.paketAd}>{p.ad}</div>
-              <div className={styles.paketFiyat}>₺{p.fiyat.toLocaleString('tr-TR')}<span>/ay</span></div>
-              <ul className={styles.paketList}>
-                {p.ozellikler.map((o,i) => (
-                  <li key={i} className={!o.aktif ? styles.pasifOzellik : ''}>
-                    <span className={styles.ozellikIcon}>{o.aktif ? '✓' : '✗'}</span>
-                    {o.label}
-                  </li>
-                ))}
-              </ul>
-              <a href="/kayit" className={`${styles.paketBtn} ${p.renk !== 'white' ? styles.paketBtnLight : styles.paketBtnDark}`}>
-                Başla →
-              </a>
-            </div>
-          ))}
-        </div>
-
-        <p className={styles.ücretszNot}>
-          * Tüm paketler aylık olup istediğiniz zaman iptal edilebilir. İlk 3 görüntüleme tamamen ücretsizdir.
-        </p>
 
         {/* SSS */}
         <div className={styles.sss}>
-          <h2 className={styles.sectionTitle}>Sık sorulan sorular</h2>
-          <div className={styles.sssListesi}>
-            {[
-              { s:'Ücretsiz mesaj hakkı nasıl çalışır?', c:'Her alıcıya platforma üye olduğunuzda 1 ücretsiz mesaj gönderme hakkınız vardır. Alıcı bunu seçmişse size yanıt verebilir.' },
-              { s:'Telefon numarasını ne zaman görebilirim?', c:'Starter ve üzeri paket satın aldıktan sonra alıcının telefon numarasına erişebilirsiniz. Alıcının iletişim tercihi "telefon" veya "ikisi" olmalıdır.' },
-              { s:'3 mesaj / 3 telefon hakkı ne anlama geliyor?', c:'Alıcı ilanı verirken satıcılara kaç kişinin kendisine ulaşabileceğini belirleyebilir. Bu hakkı aşamazsınız.' },
-              { s:'Paketimi istediğim zaman iptal edebilir miyim?', c:'Evet, tüm paketler aylık döngüseldir. Bir sonraki ödeme tarihinden önce iptal ederseniz ücret alınmaz.' },
-            ].map((f,i) => (
-              <div key={i} className={styles.sssItem}>
-                <div className={styles.sssSoru}>❓ {f.s}</div>
-                <div className={styles.sssCevap}>{f.c}</div>
-              </div>
-            ))}
-          </div>
+          <h2 className={styles.nedenBaslik}>Sıkça Sorulan Sorular</h2>
+          {[
+            { s: 'İstediğim zaman iptal edebilir miyim?', c: 'Evet, dilediğiniz zaman iptal edebilirsiniz. Ek ücret alınmaz.' },
+            { s: 'Yıllık ödemede ne kadar tasarruf ederim?', c: 'Yıllık ödemede %20 indirim ile yaklaşık 2 ay bedava kullanım kazanırsınız.' },
+            { s: 'Ödeme nasıl yapılır?', c: 'Kredi/banka kartı ile güvenli ödeme yakında aktif olacak. Şu an için destek ekibimizle iletişime geçebilirsiniz.' },
+            { s: 'Pro üyeliğim ne zaman başlar?', c: 'Ödeme onaylandığı anda tüm Pro özellikleri hesabınıza tanımlanır.' },
+          ].map((q, i) => (
+            <details key={i} className={styles.sssItem}>
+              <summary className={styles.sssSoru}>{q.s}</summary>
+              <div className={styles.sssCevap}>{q.c}</div>
+            </details>
+          ))}
         </div>
 
+        <div className={styles.altCta}>
+          <p>Sorularınız mı var?</p>
+          <Link href="/yardim" className={styles.altCtaBtn}>Destek ekibimize yazın →</Link>
+        </div>
       </div>
-
-      <Footer />
-      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} />
     </>
   )
 }
