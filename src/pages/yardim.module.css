@@ -1,0 +1,76 @@
+.sayfa { min-height: 100vh; background: #f4f6f8; padding-bottom: 60px; }
+.ust {
+  background: #085549; color: white; padding: 24px 16px 32px; text-align: center;
+}
+.geri {
+  display: inline-block; color: rgba(255,255,255,0.8); text-decoration: none;
+  font-size: 13px; margin-bottom: 12px;
+}
+.geri:hover { color: white; }
+.baslik { font-family: 'Sora',sans-serif; font-size: 28px; font-weight: 700; margin: 0 0 6px; }
+.altBaslik { color: rgba(255,255,255,0.72); font-size: 14px; margin: 0; }
+
+.icerik { max-width: 720px; margin: -16px auto 0; padding: 0 16px; display: flex; flex-direction: column; gap: 20px; }
+.bolum { background: white; border-radius: 16px; padding: 24px; border: 1px solid #eee; }
+.bolumBaslik { font-family: 'Sora',sans-serif; font-size: 18px; font-weight: 700; color: #1a1d23; margin: 0 0 16px; }
+
+/* SSS */
+.sssListe { display: flex; flex-direction: column; gap: 8px; }
+.sssItem { border: 1px solid #e8edf2; border-radius: 11px; overflow: hidden; }
+.sssSoru {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  padding: 14px 16px; background: white; border: none; cursor: pointer;
+  font-family: inherit; font-size: 14.5px; font-weight: 500; color: #1a1d23; text-align: left;
+}
+.sssSoru:hover { background: #f7f8fa; }
+.sssOk { color: #0D7A6B; font-size: 14px; transition: transform 0.2s; flex-shrink: 0; margin-left: 12px; }
+.sssCevap { padding: 0 16px 16px; font-size: 13.5px; color: #4a5568; line-height: 1.65; }
+
+/* FORM */
+.form { display: flex; flex-direction: column; }
+.label { font-size: 13px; font-weight: 600; color: #4a5568; margin: 14px 0 6px; }
+.input, .textarea {
+  width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0;
+  font-size: 14px; font-family: inherit; box-sizing: border-box;
+}
+.input:focus, .textarea:focus { outline: none; border-color: #0D7A6B; }
+.textarea { resize: vertical; }
+.ikiSutun { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.turGrid { display: flex; flex-wrap: wrap; gap: 8px; }
+.turBtn {
+  padding: 9px 14px; border-radius: 9px; border: 1.5px solid #e2e8f0;
+  background: white; font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: inherit; color: #4a5568; transition: all 0.13s;
+}
+.turBtn:hover { border-color: #cbd5e1; }
+.turAktif { font-weight: 600; }
+
+.gonderBtn {
+  margin-top: 20px; padding: 13px; border-radius: 11px; background: #0D7A6B;
+  color: white; border: none; font-size: 15px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: background 0.15s;
+}
+.gonderBtn:hover { background: #085549; }
+.gonderBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.basariKutu {
+  background: #DCFCE7; color: #15803D; padding: 12px 16px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; margin-bottom: 8px;
+}
+
+/* GEÇMİŞ TALEPLER */
+.talepListe { display: flex; flex-direction: column; gap: 10px; }
+.talepKart { border: 1px solid #e8edf2; border-radius: 12px; padding: 14px 16px; }
+.talepUst { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.talepKonu { font-weight: 600; font-size: 14px; color: #1a1d23; }
+.talepDurum { font-size: 12px; font-weight: 600; color: #4a5568; background: #f0f2f5; padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+.talepMesaj { font-size: 13px; color: #4a5568; line-height: 1.55; }
+.talepYanit { margin-top: 10px; padding: 10px 12px; background: #E6F5F2; border-radius: 9px; font-size: 13px; color: #085549; line-height: 1.55; }
+.talepTarih { font-size: 11px; color: #8a95a3; margin-top: 8px; }
+
+@media (max-width: 600px) {
+  .ikiSutun { grid-template-columns: 1fr; }
+  .baslik { font-size: 23px; }
+  .bolum { padding: 18px; }
+}

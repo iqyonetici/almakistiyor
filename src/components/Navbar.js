@@ -139,11 +139,9 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                         <div className={styles.profilGrup}>
                           <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
                           <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım</Link>
-                          <Link href="/panel?tab=favoriler" className={styles.profilLink} onClick={() => setProfilAcik(false)}>❤️ Favorilerim</Link>
-                          <Link href="/panel?tab=teklifler" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📨 Aldığım Teklifler</Link>
                         </div>
                         <div className={styles.profilGrup}>
-                          <Link href="/panel?tab=ayarlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Hesap Ayarları</Link>
+                          <Link href="/ayarlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Hesap Ayarları</Link>
                           <Link href="/yardim" className={styles.profilLink} onClick={() => setProfilAcik(false)}>❓ Yardım & Destek</Link>
                           {admin && <Link href="/admin" className={styles.profilLink} onClick={() => setProfilAcik(false)}>🛠️ Admin Panel</Link>}
                         </div>
@@ -217,8 +215,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                   </div>
                   <Link href="/panel" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>📋 İlanlarım</Link>
                   <Link href="/panel?tab=mesajlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>💬 Mesajlarım</Link>
-                  <Link href="/panel?tab=favoriler" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>❤️ Favorilerim</Link>
-                  <Link href="/panel?tab=ayarlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>⚙️ Hesap Ayarları</Link>
+                  <Link href="/ayarlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>⚙️ Hesap Ayarları</Link>
                   {admin && <Link href="/admin" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>🛠️ Admin Panel</Link>}
                   <button className={styles.drawerCikis} onClick={() => { setMobilMenuAcik(false); handleCikis(); }}>🚪 Çıkış Yap</button>
                 </div>

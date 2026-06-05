@@ -103,3 +103,20 @@ export async function bugunkuIlanSayisi(email) {
     .gte('created_at', bugun.toISOString())
   return count || 0
 }
+
+// ===== DESTEK TALEPLERİ (admin) =====
+export async function adminDestekTalepleri() {
+  if (!supabase) return []
+  const { data } = await supabase.from('destek_talepleri').select('*').order('created_at',{ascending:false})
+  return data || []
+}
+export async function adminDestekYanitla(id, yanit, durum) {
+  if (!supabase) return
+  return await supabase.from('destek_talepleri').update({
+    admin_yanit: yanit, durum: durum || 'cozuldu', yanit_tarihi: new Date().toISOString(),
+  }).eq('id', id)
+}
+export async function adminDestekDurum(id, durum) {
+  if (!supabase) return
+  return await supabase.from('destek_talepleri').update({ durum }).eq('id', id)
+}

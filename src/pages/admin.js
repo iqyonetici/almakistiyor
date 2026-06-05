@@ -4,7 +4,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import { adminMi, tumKategorileriGetir, kategoriEkle, kategoriGuncelle, kategoriSil } from '../lib/kategoriDB'
-import { dashboardStats, son7GunIlan, kullanicilariGetir, kullaniciEngelle, kullaniciPaketDegistir, sikayetleriGetir, sikayetDurumGuncelle, paketleriGetir, paketGuncelle } from '../lib/adminDB'
+import { dashboardStats, son7GunIlan, kullanicilariGetir, kullaniciEngelle, kullaniciPaketDegistir, sikayetleriGetir, sikayetDurumGuncelle, paketleriGetir, paketGuncelle, adminDestekTalepleri, adminDestekYanitla, adminDestekDurum } from '../lib/adminDB'
 import styles from './admin.module.css'
 
 const SEKMELER = [
@@ -13,6 +13,7 @@ const SEKMELER = [
   { id: 'ilanlar', label: '📋 Tüm İlanlar' },
   { id: 'kullanicilar', label: '👥 Kullanıcılar' },
   { id: 'sikayetler', label: '🚩 Şikayetler' },
+  { id: 'destek', label: '📨 Destek Talepleri' },
   { id: 'paketler', label: '💎 Pro Üyelikler' },
   { id: 'kategoriler', label: '🗂️ Kategoriler' },
 ]
@@ -63,6 +64,7 @@ export default function AdminPanel() {
           {sekme === 'ilanlar' && <TumIlanlar />}
           {sekme === 'kullanicilar' && <Kullanicilar />}
           {sekme === 'sikayetler' && <Sikayetler />}
+          {sekme === 'destek' && <DestekTalepleri />}
           {sekme === 'paketler' && <Paketler />}
           {sekme === 'kategoriler' && <Kategoriler />}
         </main>
@@ -407,6 +409,79 @@ function Kategoriler() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ==================== DESTEK TALEPLERİ ====================
+function DestekTalepleri() {
+  const [liste, setListe] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [yanitlar, setYanitlar] = useState({})
+  const [filtre, setFiltre] = useState('hepsi')
+
+  async function yukle() { setYukleniyor(true); setListe(await adminDestekTalepleri()); setYukleniyor(false) }
+  useEffect(() => { yukle() }, [])
+
+  async function yanitla(t) {
+    const y = yanitlar[t.id]
+    if (!y || !y.trim()) { alert('Yanıt yazın'); return }
+    await adminDestekYanitla(t.id, y, 'cozuldu')
+    setYanitlar(s => ({ ...s, [t.id]: '' }))
+    yukle()
+  }
+  async function durumDegistir(id, durum) { await adminDestekDurum(id, durum); yukle() }
+
+  const turEtiket = { soru:'❓ Soru', sikayet:'🚩 Şikayet', oneri:'💡 Öneri', istek:'✨ İstek', teknik:'🛠️ Teknik' }
+  const durumEtiket = { yeni:'🕐 Yeni', inceleniyor:'👀 İnceleniyor', cozuldu:'✓ Çözüldü', kapatildi:'🔒 Kapatıldı' }
+
+  const filtreli = filtre === 'hepsi' ? liste : liste.filter(t => filtre === 'acik' ? (t.durum === 'yeni' || t.durum === 'inceleniyor') : t.durum === filtre)
+  const yeniSayisi = liste.filter(t => t.durum === 'yeni').length
+
+  return (
+    <div>
+      <h1 className={styles.baslik}>📨 Destek Talepleri {yeniSayisi > 0 && <span className={styles.rozet}>{yeniSayisi}</span>}</h1>
+      <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+        {[{v:'hepsi',l:'Hepsi'},{v:'acik',l:'Açık'},{v:'cozuldu',l:'Çözüldü'}].map(f => (
+          <button key={f.v} onClick={()=>setFiltre(f.v)}
+            className={styles.miniBtn} style={filtre===f.v?{background:'#0D7A6B',color:'white',borderColor:'#0D7A6B'}:{}}>
+            {f.l}
+          </button>
+        ))}
+      </div>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yükleniyor...</div> :
+        filtreli.length === 0 ? <div className={styles.bos}>✓ Talep yok</div> :
+        filtreli.map(t => (
+          <div key={t.id} className={styles.ilanKart} style={{flexDirection:'column',alignItems:'stretch',gap:10}}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>
+                {turEtiket[t.tur] || t.tur} — {t.konu}
+                <span className={`${styles.durum} ${t.durum==='cozuldu'?styles.durumAktif:t.durum==='yeni'?styles.durumBekle:styles.durumPasif}`}>{durumEtiket[t.durum]||t.durum}</span>
+              </div>
+              <div className={styles.ilanDetay}>👤 {t.kullanici_ad || 'Anonim'} • 📧 {t.kullanici_email || '-'}</div>
+              <div className={styles.ilanAciklama}>{t.mesaj}</div>
+              {t.admin_yanit && (
+                <div style={{background:'#E6F5F2',padding:'8px 12px',borderRadius:8,fontSize:13,color:'#085549',marginTop:6}}>
+                  <strong>📩 Yanıtınız:</strong> {t.admin_yanit}
+                </div>
+              )}
+              <div className={styles.ilanTarih}>{new Date(t.created_at).toLocaleString('tr-TR')}</div>
+            </div>
+            {t.durum !== 'cozuldu' && t.durum !== 'kapatildi' && (
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap'}}>
+                <textarea
+                  placeholder="Yanıtınızı yazın..." rows={2}
+                  value={yanitlar[t.id] || ''}
+                  onChange={e=>setYanitlar(s=>({...s,[t.id]:e.target.value}))}
+                  style={{flex:1,minWidth:200,padding:'8px 12px',borderRadius:8,border:'1.5px solid #e2e8f0',fontSize:13,fontFamily:'inherit',resize:'vertical'}} />
+                <button className={styles.btnOnay} onClick={()=>yanitla(t)}>📩 Yanıtla & Çöz</button>
+                <button className={styles.btnDurdur} onClick={()=>durumDegistir(t.id,'inceleniyor')}>👀 İnceleniyor</button>
+                <button className={styles.btnSil} onClick={()=>durumDegistir(t.id,'kapatildi')}>Kapat</button>
+              </div>
+            )}
+          </div>
+        ))
+      }
     </div>
   )
 }

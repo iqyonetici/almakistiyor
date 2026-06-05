@@ -1,0 +1,160 @@
+import { useState, useEffect } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import { useAuth } from '../context/AuthContext'
+import { destekTalepGonder, kullaniciTalepleri } from '../lib/destekDB'
+import styles from './yardim.module.css'
+
+const SSS = [
+  { s: 'AlmakIstiyor.com nasıl çalışır?', c: 'Ne almak istediğinizi yazarsınız, satıcılar size özel teklif gönderir. Çarşı pazar gezmeden, en uygun teklifi seçersiniz.' },
+  { s: 'İlan vermek ücretli mi?', c: 'Hayır, alıcı olarak talep oluşturmak tamamen ücretsizdir. Pro üyelik yalnızca satıcılar için daha fazla mesaj ve özellik sunar.' },
+  { s: 'Telefon numaram görünür mü?', c: 'Hayır, kişisel bilgileriniz korunur. Satıcılar sizinle yalnızca site üzerinden mesajla iletişim kurar. İletişim tercihinizi siz belirlersiniz.' },
+  { s: 'İlanım neden hemen yayınlanmıyor?', c: 'Tüm ilanlar spam ve sahtekarlığı önlemek için yönetici onayından geçer. Onay genellikle birkaç saat içinde tamamlanır.' },
+  { s: 'Pro üyelik ne işe yarar?', c: 'Pro üyeler günde daha fazla ilan verebilir, daha fazla mesaj gönderebilir ve telefon numarası görüntüleme gibi ek özelliklerden yararlanır.' },
+  { s: 'Günlük ilan/mesaj limitim doldu, ne yapmalıyım?', c: 'Ertesi gün limitiniz sıfırlanır. Daha yüksek limitler için Pro üyeliğe geçebilirsiniz.' },
+  { s: 'Hesabımı nasıl silerim?', c: 'Hesap Ayarları sayfasından hesap silme talebinde bulunabilir veya bu sayfadan destek ekibimize yazabilirsiniz.' },
+]
+
+const TURLER = [
+  { v: 'soru', l: '❓ Soru', renk: '#0D7A6B' },
+  { v: 'sikayet', l: '🚩 Şikayet', renk: '#DC2626' },
+  { v: 'oneri', l: '💡 Öneri', renk: '#F5A623' },
+  { v: 'istek', l: '✨ İstek', renk: '#7C3AED' },
+  { v: 'teknik', l: '🛠️ Teknik Sorun', renk: '#2563EB' },
+]
+
+export default function Yardim() {
+  const { user } = useAuth()
+  const [acikSss, setAcikSss] = useState(null)
+  const [tur, setTur] = useState('soru')
+  const [konu, setKonu] = useState('')
+  const [mesaj, setMesaj] = useState('')
+  const [ad, setAd] = useState('')
+  const [email, setEmail] = useState('')
+  const [gonderiliyor, setGonderiliyor] = useState(false)
+  const [basarili, setBasarili] = useState(false)
+  const [talepler, setTalepler] = useState([])
+
+  useEffect(() => {
+    if (user) {
+      setAd(`${user.ad || ''} ${user.soyad || ''}`.trim())
+      setEmail(user.email || '')
+      kullaniciTalepleri(user.email).then(setTalepler)
+    }
+  }, [user])
+
+  async function gonder() {
+    if (!konu.trim() || !mesaj.trim()) { alert('Konu ve mesaj zorunludur.'); return }
+    if (!user && (!ad.trim() || !email.trim())) { alert('Ad ve e-posta zorunludur.'); return }
+    setGonderiliyor(true)
+    await destekTalepGonder({ email, ad, tur, konu, mesaj })
+    setGonderiliyor(false)
+    setBasarili(true)
+    setKonu(''); setMesaj('')
+    if (user) kullaniciTalepleri(user.email).then(setTalepler)
+    setTimeout(() => setBasarili(false), 5000)
+  }
+
+  const durumEtiket = { yeni: '🕐 Yeni', inceleniyor: '👀 İnceleniyor', cozuldu: '✓ Çözüldü', kapatildi: '🔒 Kapatıldı' }
+
+  return (
+    <>
+      <Head><title>Yardım & Destek | AlmakIstiyor.com</title></Head>
+      <div className={styles.sayfa}>
+        <div className={styles.ust}>
+          <Link href="/" className={styles.geri}>← Ana Sayfa</Link>
+          <h1 className={styles.baslik}>Yardım & Destek</h1>
+          <p className={styles.altBaslik}>Sorularınızın cevabını bulun veya bize ulaşın</p>
+        </div>
+
+        <div className={styles.icerik}>
+          {/* SSS */}
+          <section className={styles.bolum}>
+            <h2 className={styles.bolumBaslik}>Sıkça Sorulan Sorular</h2>
+            <div className={styles.sssListe}>
+              {SSS.map((item, i) => (
+                <div key={i} className={styles.sssItem}>
+                  <button className={styles.sssSoru} onClick={() => setAcikSss(acikSss === i ? null : i)}>
+                    <span>{item.s}</span>
+                    <span className={styles.sssOk} style={{transform: acikSss===i?'rotate(180deg)':'none'}}>▾</span>
+                  </button>
+                  {acikSss === i && <div className={styles.sssCevap}>{item.c}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* İLETİŞİM FORMU */}
+          <section className={styles.bolum}>
+            <h2 className={styles.bolumBaslik}>Bize Ulaşın</h2>
+            <div className={styles.form}>
+              {basarili && (
+                <div className={styles.basariKutu}>
+                  ✓ Talebiniz alındı! Ekibimiz en kısa sürede size dönüş yapacak.
+                </div>
+              )}
+              <label className={styles.label}>Talep türü</label>
+              <div className={styles.turGrid}>
+                {TURLER.map(t => (
+                  <button key={t.v}
+                    className={`${styles.turBtn} ${tur===t.v?styles.turAktif:''}`}
+                    style={tur===t.v?{borderColor:t.renk,background:t.renk+'15',color:t.renk}:{}}
+                    onClick={() => setTur(t.v)}>
+                    {t.l}
+                  </button>
+                ))}
+              </div>
+
+              {!user && (
+                <div className={styles.ikiSutun}>
+                  <div>
+                    <label className={styles.label}>Adınız *</label>
+                    <input className={styles.input} value={ad} onChange={e=>setAd(e.target.value)} placeholder="Ad Soyad" />
+                  </div>
+                  <div>
+                    <label className={styles.label}>E-posta *</label>
+                    <input className={styles.input} value={email} onChange={e=>setEmail(e.target.value)} placeholder="ornek@mail.com" />
+                  </div>
+                </div>
+              )}
+
+              <label className={styles.label}>Konu *</label>
+              <input className={styles.input} value={konu} onChange={e=>setKonu(e.target.value)} placeholder="Talebinizin konusu" />
+
+              <label className={styles.label}>Mesajınız *</label>
+              <textarea className={styles.textarea} rows={5} value={mesaj} onChange={e=>setMesaj(e.target.value)} placeholder="Lütfen detaylı açıklayın..." />
+
+              <button className={styles.gonderBtn} onClick={gonder} disabled={gonderiliyor}>
+                {gonderiliyor ? 'Gönderiliyor...' : 'Talebi Gönder →'}
+              </button>
+            </div>
+          </section>
+
+          {/* GEÇMİŞ TALEPLER (giriş yapmışsa) */}
+          {user && talepler.length > 0 && (
+            <section className={styles.bolum}>
+              <h2 className={styles.bolumBaslik}>Geçmiş Taleplerim</h2>
+              <div className={styles.talepListe}>
+                {talepler.map(t => (
+                  <div key={t.id} className={styles.talepKart}>
+                    <div className={styles.talepUst}>
+                      <span className={styles.talepKonu}>{t.konu}</span>
+                      <span className={styles.talepDurum}>{durumEtiket[t.durum] || t.durum}</span>
+                    </div>
+                    <div className={styles.talepMesaj}>{t.mesaj}</div>
+                    {t.admin_yanit && (
+                      <div className={styles.talepYanit}>
+                        <strong>📩 Destek ekibi:</strong> {t.admin_yanit}
+                      </div>
+                    )}
+                    <div className={styles.talepTarih}>{new Date(t.created_at).toLocaleString('tr-TR')}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
