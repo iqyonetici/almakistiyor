@@ -35,6 +35,16 @@ export default function Yardim() {
   const [basarili, setBasarili] = useState(false)
   const [talepler, setTalepler] = useState([])
 
+  // Spam koruması — basit matematik sorusu
+  const [soru, setSoru] = useState({ a: 0, b: 0 })
+  const [cevap, setCevap] = useState('')
+  const [cevapHata, setCevapHata] = useState(false)
+
+  useEffect(() => {
+    // Sayfa açılınca rastgele soru üret
+    setSoru({ a: Math.floor(Math.random() * 9) + 1, b: Math.floor(Math.random() * 9) + 1 })
+  }, [])
+
   useEffect(() => {
     if (user) {
       setAd(`${user.ad || ''} ${user.soyad || ''}`.trim())
@@ -46,11 +56,19 @@ export default function Yardim() {
   async function gonder() {
     if (!konu.trim() || !mesaj.trim()) { alert('Konu ve mesaj zorunludur.'); return }
     if (!user && (!ad.trim() || !email.trim())) { alert('Ad ve e-posta zorunludur.'); return }
+    // Spam koruması — güvenlik sorusu kontrolü
+    if (Number(cevap) !== soru.a + soru.b) {
+      setCevapHata(true)
+      return
+    }
+    setCevapHata(false)
     setGonderiliyor(true)
     await destekTalepGonder({ email, ad, tur, konu, mesaj })
     setGonderiliyor(false)
     setBasarili(true)
-    setKonu(''); setMesaj('')
+    setKonu(''); setMesaj(''); setCevap('')
+    // Yeni soru üret
+    setSoru({ a: Math.floor(Math.random() * 9) + 1, b: Math.floor(Math.random() * 9) + 1 })
     if (user) kullaniciTalepleri(user.email).then(setTalepler)
     setTimeout(() => setBasarili(false), 5000)
   }
@@ -123,6 +141,17 @@ export default function Yardim() {
 
               <label className={styles.label}>Mesajınız *</label>
               <textarea className={styles.textarea} rows={5} value={mesaj} onChange={e=>setMesaj(e.target.value)} placeholder="Lütfen detaylı açıklayın..." />
+
+              {/* Güvenlik sorusu — spam koruması */}
+              <label className={styles.label}>Güvenlik sorusu: <strong>{soru.a} + {soru.b} = ?</strong></label>
+              <input
+                className={styles.input}
+                style={cevapHata ? { borderColor: '#DC2626' } : {}}
+                value={cevap}
+                onChange={e => { setCevap(e.target.value.replace(/\D/g, '')); setCevapHata(false) }}
+                placeholder="Sonucu yazın"
+                inputMode="numeric" />
+              {cevapHata && <span style={{ color: '#DC2626', fontSize: 12.5, marginTop: 4 }}>Yanlış cevap, tekrar deneyin.</span>}
 
               <button className={styles.gonderBtn} onClick={gonder} disabled={gonderiliyor}>
                 {gonderiliyor ? 'Gönderiliyor...' : 'Talebi Gönder →'}
