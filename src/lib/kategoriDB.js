@@ -58,11 +58,22 @@ export async function kategorileriGetir() {
 // Admin için: aktif/pasif tüm kategoriler
 export async function tumKategorileriGetir() {
   if (!supabase) return []
-  const { data } = await supabase
-    .from('kategoriler')
-    .select('*')
-    .order('sira', { ascending: true })
-  return data ? agacYap(data) : []
+  let tumKayitlar = []
+  let sayfa = 0
+  const boyut = 1000
+  while (true) {
+    const { data, error } = await supabase
+      .from('kategoriler')
+      .select('*')
+      .order('sira', { ascending: true })
+      .order('label', { ascending: true })
+      .range(sayfa * boyut, sayfa * boyut + boyut - 1)
+    if (error || !data || data.length === 0) break
+    tumKayitlar = tumKayitlar.concat(data)
+    if (data.length < boyut) break
+    sayfa++
+  }
+  return agacYap(tumKayitlar)
 }
 
 // Kategori ekle
