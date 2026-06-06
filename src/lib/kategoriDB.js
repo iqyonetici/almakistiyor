@@ -33,18 +33,26 @@ function agacYap(duzListe) {
 // Tüm aktif kategorileri ağaç olarak getir
 export async function kategorileriGetir() {
   if (!supabase) return []
-  const { data, error } = await supabase
-    .from('kategoriler')
-    .select('*')
-    .eq('aktif', true)
-    .order('sira', { ascending: true })
-
-  if (error || !data) {
-    console.error('Kategori çekme hatası:', error?.message)
-    return []
+  // Supabase tek sorguda max 1000 satır döndürür.
+  // Kategoriler 1000'i aştığı için sayfalama ile hepsini çekiyoruz.
+  let tumKayitlar = []
+  let sayfa = 0
+  const boyut = 1000
+  while (true) {
+    const { data, error } = await supabase
+      .from('kategoriler')
+      .select('*')
+      .eq('aktif', true)
+      .order('sira', { ascending: true })
+      .order('label', { ascending: true })
+      .range(sayfa * boyut, sayfa * boyut + boyut - 1)
+    if (error) { console.error('Kategori çekme hatası:', error?.message); break }
+    if (!data || data.length === 0) break
+    tumKayitlar = tumKayitlar.concat(data)
+    if (data.length < boyut) break  // son sayfa
+    sayfa++
   }
-
-  return agacYap(data)
+  return agacYap(tumKayitlar)
 }
 
 // Admin için: aktif/pasif tüm kategoriler

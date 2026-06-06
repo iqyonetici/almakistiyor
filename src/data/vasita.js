@@ -1,6 +1,39 @@
 // Türkiye'de satılan araç markaları, modeller ve versiyonlar
 export const VASITA_TREE = {
   otomobil: [
+    { marka:'Abarth', modeller:[
+      { model:'595', versiyonlar:['1.4 T-Jet 145','1.4 T-Jet 165 Turismo','Competizione'] },
+      { model:'695', versiyonlar:['1.4 T-Jet 180','Rivale','Edizione Limitata'] },
+    ]},
+    { marka:'Acura', modeller:[
+      { model:'TLX', versiyonlar:['2.0T','Type S 3.0T'] },
+    ]},
+    { marka:'Aion', modeller:[
+      { model:'S', versiyonlar:['Plus 70','Max 80'] },
+      { model:'Y', versiyonlar:['Standard','Plus'] },
+    ]},
+    { marka:'Alfa Romeo', modeller:[
+      { model:'Giulia', versiyonlar:['2.0 Turbo','2.2 Diesel','Quadrifoglio 2.9 V6'] },
+      { model:'Stelvio', versiyonlar:['2.0 Turbo','2.2 Diesel','Quadrifoglio 2.9 V6'] },
+      { model:'Tonale', versiyonlar:['1.5 Hybrid','1.6 Diesel','Plug-in Hybrid Q4'] },
+      { model:'GiuliettA', versiyonlar:['1.4 TB','1.6 JTDM','1.8 TB Veloce'] },
+    ]},
+    { marka:'Alpine', modeller:[
+      { model:'A110', versiyonlar:['1.8 Turbo Pure','GT','S','R'] },
+    ]},
+    { marka:'Anadol', modeller:[
+      { model:'STC-16', versiyonlar:['1.3'] },
+      { model:'A1', versiyonlar:['1.2'] },
+    ]},
+    { marka:'Arora', modeller:[
+      { model:'AR1', versiyonlar:['Electric'] },
+      { model:'AR3', versiyonlar:['Electric'] },
+    ]},
+    { marka:'Aston Martin', modeller:[
+      { model:'DB11', versiyonlar:['4.0 V8','5.2 V12'] },
+      { model:'Vantage', versiyonlar:['4.0 V8','AMR'] },
+      { model:'DBX', versiyonlar:['4.0 V8','707'] },
+    ]},
     { marka:'Audi', modeller:[
       { model:'A1', versiyonlar:['1.0 TFSI','1.4 TFSI','1.6 TDI'] },
       { model:'A3', versiyonlar:['1.0 TFSI','1.5 TFSI','2.0 TDI','35 TFSI','40 TFSI'] },
@@ -9,6 +42,14 @@ export const VASITA_TREE = {
       { model:'Q3', versiyonlar:['1.5 TFSI','35 TFSI','45 TFSI'] },
       { model:'Q5', versiyonlar:['2.0 TFSI','2.0 TDI','40 TDI','45 TFSI'] },
       { model:'Q7', versiyonlar:['3.0 TDI','55 TFSI'] },
+    ]},
+    { marka:'Bajaj', modeller:[
+      { model:'Qute', versiyonlar:['0.2 RE60'] },
+    ]},
+    { marka:'Bentley', modeller:[
+      { model:'Continental GT', versiyonlar:['4.0 V8','6.0 W12','Speed'] },
+      { model:'Bentayga', versiyonlar:['3.0 V6 Hybrid','4.0 V8','Speed 6.0 W12'] },
+      { model:'Flying Spur', versiyonlar:['4.0 V8','6.0 W12'] },
     ]},
     { marka:'BMW', modeller:[
       { model:'1 Serisi', versiyonlar:['116i','118i','120i','116d','118d','M135i'] },
@@ -20,11 +61,80 @@ export const VASITA_TREE = {
       { model:'X3', versiyonlar:['xDrive20i','xDrive30i','xDrive20d','xDrive30d','M40i'] },
       { model:'X5', versiyonlar:['xDrive40i','xDrive30d','xDrive45e','M50i'] },
     ]},
+    { marka:'Buick', modeller:[
+      { model:'Envision', versiyonlar:['2.0 Turbo','Avenir 2.0 Turbo'] },
+    ]},
+    { marka:'BYD', modeller:[
+      { model:'Atto 3', versiyonlar:['Standard Range','Extended Range'] },
+      { model:'Han', versiyonlar:['EV Long Range','EV AWD'] },
+      { model:'Seal', versiyonlar:['Standard Range','Long Range AWD'] },
+      { model:'Dolphin', versiyonlar:['Standard Range','Extended Range'] },
+    ]},
+    { marka:'Cadillac', modeller:[
+      { model:'Escalade', versiyonlar:['6.2 V8','6.2 V8 ESV'] },
+      { model:'CT5', versiyonlar:['2.0 Turbo','3.0TT V-Series'] },
+      { model:'XT5', versiyonlar:['2.0 Turbo AWD'] },
+    ]},
+    { marka:'Chery', modeller:[
+      { model:'Tiggo 4', versiyonlar:['1.5 Turbo'] },
+      { model:'Tiggo 7', versiyonlar:['1.5 TGDI','2.0 TGDI'] },
+      { model:'Tiggo 8', versiyonlar:['1.5 TGDI','2.0 TGDI','Plug-in Hybrid'] },
+    ]},
+    { marka:'Chevrolet', modeller:[
+      { model:'Cruze', versiyonlar:['1.4 Turbo','1.6','1.7 TD'] },
+      { model:'Captiva', versiyonlar:['2.0 TD','2.4'] },
+      { model:'Aveo', versiyonlar:['1.2','1.4'] },
+      { model:'Spark', versiyonlar:['1.0','1.2'] },
+      { model:'Camaro', versiyonlar:['2.0 Turbo','6.2 V8'] },
+    ]},
+    { marka:'Chrysler', modeller:[
+      { model:'300C', versiyonlar:['3.6 V6','5.7 HEMI'] },
+      { model:'Pacifica', versiyonlar:['3.6 V6','Plug-in Hybrid'] },
+    ]},
     { marka:'Citroen', modeller:[
       { model:'C3', versiyonlar:['1.2 PureTech','1.5 BlueHDi'] },
       { model:'C3 Aircross', versiyonlar:['1.2 PureTech','1.5 BlueHDi'] },
       { model:'C4', versiyonlar:['1.2 PureTech','1.5 BlueHDi','e-C4 Electric'] },
       { model:'C5 Aircross', versiyonlar:['1.2 PureTech','1.5 BlueHDi','Plug-in Hybrid'] },
+    ]},
+    { marka:'Cupra', modeller:[
+      { model:'Born', versiyonlar:['170 PS 58 kWh','231 PS 77 kWh'] },
+      { model:'Formentor', versiyonlar:['1.5 TSI','2.0 TSI 4Drive','e-Hybrid'] },
+      { model:'Leon', versiyonlar:['2.0 TSI','e-Hybrid','VZ 2.0 TSI'] },
+    ]},
+    { marka:'Dacia', modeller:[
+      { model:'Sandero', versiyonlar:['1.0 SCe','1.0 TCe','1.5 Blue dCi','Stepway 1.0 TCe'] },
+      { model:'Duster', versiyonlar:['1.0 TCe','1.3 TCe 4WD','1.5 Blue dCi','Blue dCi 4WD'] },
+      { model:'Logan', versiyonlar:['1.0 SCe','1.5 Blue dCi'] },
+      { model:'Jogger', versiyonlar:['1.0 TCe','Hybrid 140'] },
+      { model:'Spring', versiyonlar:['Electric 27.4 kWh'] },
+    ]},
+    { marka:'Daewoo', modeller:[
+      { model:'Matiz', versiyonlar:['0.8','1.0'] },
+      { model:'Nubira', versiyonlar:['1.6','2.0'] },
+      { model:'Lanos', versiyonlar:['1.4','1.5','1.6'] },
+      { model:'Nexia', versiyonlar:['1.5','1.6 DOHC'] },
+    ]},
+    { marka:'Daihatsu', modeller:[
+      { model:'Terios', versiyonlar:['1.3','1.5 4WD'] },
+      { model:'Sirion', versiyonlar:['1.0','1.3'] },
+      { model:'Cuore', versiyonlar:['0.8','1.0'] },
+    ]},
+    { marka:'Dodge', modeller:[
+      { model:'Charger', versiyonlar:['3.6 V6','5.7 HEMI','6.2 SRT Hellcat'] },
+      { model:'Challenger', versiyonlar:['3.6 V6','5.7 HEMI','6.2 SRT Hellcat'] },
+      { model:'Durango', versiyonlar:['3.6 V6','5.7 HEMI'] },
+    ]},
+    { marka:'DS Automobiles', modeller:[
+      { model:'DS 3', versiyonlar:['1.2 PureTech','E-Tense Electric'] },
+      { model:'DS 4', versiyonlar:['1.2 PureTech','1.5 BlueHDi','E-Tense Plug-in Hybrid'] },
+      { model:'DS 7', versiyonlar:['1.5 BlueHDi','E-Tense 225','E-Tense 4x4 300'] },
+    ]},
+    { marka:'Ferrari', modeller:[
+      { model:'Roma', versiyonlar:['3.9 V8 Turbo'] },
+      { model:'SF90', versiyonlar:['Stradale Plug-in Hybrid','Spider'] },
+      { model:'F8', versiyonlar:['Tributo 3.9 V8','Spider'] },
+      { model:'Portofino', versiyonlar:['3.9 V8 M'] },
     ]},
     { marka:'Fiat', modeller:[
       { model:'Egea', versiyonlar:['1.4','1.6 Multijet','1.3 Multijet','Cross 1.0','Cross 1.6'] },
@@ -41,6 +151,11 @@ export const VASITA_TREE = {
       { model:'Puma', versiyonlar:['1.0 EcoBoost','1.0 EcoBoost Hybrid','1.5 TDCi'] },
       { model:'Mondeo', versiyonlar:['2.0 EcoBlue','2.0 Hybrid'] },
     ]},
+    { marka:'Geely', modeller:[
+      { model:'Emgrand', versiyonlar:['1.5','1.8'] },
+      { model:'Coolray', versiyonlar:['1.5 Turbo'] },
+      { model:'Tugella', versiyonlar:['2.0 Turbo AWD'] },
+    ]},
     { marka:'Honda', modeller:[
       { model:'Civic', versiyonlar:['1.0 VTEC Turbo','1.5 VTEC Turbo','1.6 i-DTEC','e:HEV Hybrid'] },
       { model:'CR-V', versiyonlar:['1.5 VTEC Turbo','2.0 i-MMD Hybrid','e:HEV AWD'] },
@@ -56,6 +171,22 @@ export const VASITA_TREE = {
       { model:'Santa Fe', versiyonlar:['2.2 CRDi','1.6 T-GDI Hybrid','Plug-in Hybrid'] },
       { model:'Kona', versiyonlar:['1.0 T-GDI','Electric 64 kWh'] },
     ]},
+    { marka:'Ikco', modeller:[
+      { model:'Dena', versiyonlar:['1.7'] },
+      { model:'Samand', versiyonlar:['1.8'] },
+    ]},
+    { marka:'Infiniti', modeller:[
+      { model:'Q50', versiyonlar:['2.0t','3.0t V6','3.0t Sport'] },
+      { model:'QX50', versiyonlar:['2.0t VC-Turbo AWD'] },
+      { model:'QX80', versiyonlar:['5.6 V8 AWD'] },
+    ]},
+    { marka:'Jaguar', modeller:[
+      { model:'XE', versiyonlar:['2.0 P200','2.0 D200'] },
+      { model:'XF', versiyonlar:['2.0 P250','2.0 D200','3.0 P380'] },
+      { model:'F-Pace', versiyonlar:['2.0 P250','2.0 D200','P400e Plug-in','SVR 5.0 V8'] },
+      { model:'E-Pace', versiyonlar:['1.5 P160','2.0 P200','2.0 D165'] },
+      { model:'I-Pace', versiyonlar:['EV400 AWD 90 kWh'] },
+    ]},
     { marka:'Kia', modeller:[
       { model:'Picanto', versiyonlar:['1.0 MPI','1.2 MPI'] },
       { model:'Rio', versiyonlar:['1.0 T-GDI','1.4 MPI','1.4 CRDi'] },
@@ -65,6 +196,59 @@ export const VASITA_TREE = {
       { model:'Niro', versiyonlar:['Hybrid 1.6','Plug-in Hybrid','EV 64.8 kWh'] },
       { model:'EV6', versiyonlar:['Standard Range','Long Range AWD','GT AWD'] },
     ]},
+    { marka:'Kuba', modeller:[
+      { model:'City', versiyonlar:['Electric'] },
+    ]},
+    { marka:'Lada', modeller:[
+      { model:'Vesta', versiyonlar:['1.6 MT','1.8 AT','CNG'] },
+      { model:'Granta', versiyonlar:['1.6 MT','1.6 AT'] },
+      { model:'Niva', versiyonlar:['1.7 4WD','Travel 1.7 4WD'] },
+      { model:'Largus', versiyonlar:['1.6'] },
+    ]},
+    { marka:'Lamborghini', modeller:[
+      { model:'Huracán', versiyonlar:['5.2 V10','EVO AWD','STO'] },
+      { model:'Urus', versiyonlar:['4.0 V8 Biturbo','S','Performante'] },
+      { model:'Revuelto', versiyonlar:['6.5 V12 Hybrid'] },
+    ]},
+    { marka:'Lancia', modeller:[
+      { model:'Ypsilon', versiyonlar:['1.0 Hybrid','1.2','0.9 Twinair'] },
+    ]},
+    { marka:'Leapmotor', modeller:[
+      { model:'C10', versiyonlar:['Electric Standard','Electric Long Range'] },
+    ]},
+    { marka:'Lexus', modeller:[
+      { model:'UX', versiyonlar:['250h Hybrid','300e Electric'] },
+      { model:'NX', versiyonlar:['250h Hybrid','350h AWD','450h+ Plug-in'] },
+      { model:'RX', versiyonlar:['350h Hybrid','500h F Sport','450h+ Plug-in'] },
+      { model:'IS', versiyonlar:['300h Hybrid','350 V6'] },
+      { model:'ES', versiyonlar:['300h Hybrid'] },
+    ]},
+    { marka:'Lincoln', modeller:[
+      { model:'Navigator', versiyonlar:['3.5 EcoBoost V6 AWD'] },
+      { model:'Aviator', versiyonlar:['3.0 V6','Grand Touring Plug-in Hybrid'] },
+    ]},
+    { marka:'Lotus', modeller:[
+      { model:'Emira', versiyonlar:['2.0 Turbo','3.5 V6'] },
+      { model:'Eletre', versiyonlar:['Electric AWD','R Electric AWD'] },
+    ]},
+    { marka:'Maserati', modeller:[
+      { model:'Ghibli', versiyonlar:['2.0 Hybrid','3.0 V6','3.8 V8 Trofeo'] },
+      { model:'Levante', versiyonlar:['2.0 Hybrid','3.0 V6','Trofeo 3.8 V8'] },
+      { model:'Grecale', versiyonlar:['2.0 MHEV','Modena 2.0','Trofeo 3.0','Folgore Electric'] },
+      { model:'MC20', versiyonlar:['3.0 V6 Nettuno','Cielo','Folgore Electric'] },
+    ]},
+    { marka:'Mazda', modeller:[
+      { model:'Mazda2', versiyonlar:['1.5 Skyactiv-G','1.5 Hybrid'] },
+      { model:'Mazda3', versiyonlar:['2.0 Skyactiv-G','2.0 e-Skyactiv','2.5 Turbo'] },
+      { model:'Mazda6', versiyonlar:['2.0 Skyactiv-G','2.2 Skyactiv-D'] },
+      { model:'CX-5', versiyonlar:['2.0 Skyactiv-G','2.5 Skyactiv-G AWD','2.2 Skyactiv-D AWD'] },
+      { model:'CX-30', versiyonlar:['2.0 Skyactiv-G','2.0 e-Skyactiv','2.5 Turbo AWD'] },
+      { model:'MX-30', versiyonlar:['Electric 35.5 kWh','R-EV Plug-in Hybrid'] },
+    ]},
+    { marka:'McLaren', modeller:[
+      { model:'720S', versiyonlar:['4.0 V8 Biturbo'] },
+      { model:'Artura', versiyonlar:['3.0 V6 Plug-in Hybrid'] },
+    ]},
     { marka:'Mercedes', modeller:[
       { model:'A Serisi', versiyonlar:['A 180','A 200','A 220','A 180d','A 200d','AMG A 35'] },
       { model:'B Serisi', versiyonlar:['B 180','B 200','B 220','B 180d'] },
@@ -73,6 +257,24 @@ export const VASITA_TREE = {
       { model:'GLA', versiyonlar:['GLA 200','GLA 220d','GLA 250 4MATIC','AMG GLA 35'] },
       { model:'GLC', versiyonlar:['GLC 200','GLC 220d','GLC 300 4MATIC','Plug-in Hybrid','AMG GLC 43'] },
       { model:'GLE', versiyonlar:['GLE 300d','GLE 350d 4MATIC','GLE 450 4MATIC'] },
+    ]},
+    { marka:'MG', modeller:[
+      { model:'ZS', versiyonlar:['1.5 VTi-TECH','EV 51 kWh','EV 72 kWh'] },
+      { model:'HS', versiyonlar:['1.5T','Plug-in Hybrid'] },
+      { model:'4', versiyonlar:['Electric 51 kWh','Electric 64 kWh'] },
+      { model:'5', versiyonlar:['Electric Long Range'] },
+    ]},
+    { marka:'Mini', modeller:[
+      { model:'Cooper', versiyonlar:['1.5 One','2.0 S','SE Electric','JCW 2.0'] },
+      { model:'Countryman', versiyonlar:['1.5 One D','2.0 Cooper S','SE ALL4 Plug-in','JCW ALL4'] },
+      { model:'Clubman', versiyonlar:['1.5 One','2.0 Cooper S ALL4','JCW ALL4'] },
+      { model:'Paceman', versiyonlar:['1.6','2.0 Cooper S ALL4'] },
+    ]},
+    { marka:'Mitsubishi', modeller:[
+      { model:'Colt', versiyonlar:['1.0 Turbo','1.6 Hybrid'] },
+      { model:'ASX', versiyonlar:['1.0 Turbo','Full Hybrid','Plug-in Hybrid'] },
+      { model:'Eclipse Cross', versiyonlar:['1.5 Turbo','Plug-in Hybrid 4WD'] },
+      { model:'Outlander', versiyonlar:['2.5 2WD','Plug-in Hybrid AWD'] },
     ]},
     { marka:'Nissan', modeller:[
       { model:'Micra', versiyonlar:['1.0 IG-T','Dig-T 92'] },
@@ -96,6 +298,22 @@ export const VASITA_TREE = {
       { model:'3008', versiyonlar:['1.2 PureTech','1.5 BlueHDi','Plug-in Hybrid'] },
       { model:'508', versiyonlar:['1.5 BlueHDi','2.0 BlueHDi','Plug-in Hybrid'] },
     ]},
+    { marka:'Polestar', modeller:[
+      { model:'2', versiyonlar:['Single Motor','Long Range Single Motor','Long Range Dual Motor'] },
+      { model:'4', versiyonlar:['Long Range Single Motor','Long Range Dual Motor'] },
+    ]},
+    { marka:'Porsche', modeller:[
+      { model:'911', versiyonlar:['Carrera','Carrera S','Carrera 4S','Targa 4','GT3','Turbo S'] },
+      { model:'Taycan', versiyonlar:['RWD','4S AWD','GTS AWD','Turbo S AWD'] },
+      { model:'Macan', versiyonlar:['2.0 Turbo','GTS','Electric'] },
+      { model:'Cayenne', versiyonlar:['3.0 V6','E-Hybrid','Turbo 4.0 V8'] },
+      { model:'Panamera', versiyonlar:['2.9 V6','4S E-Hybrid','Turbo S E-Hybrid'] },
+    ]},
+    { marka:'Proton', modeller:[
+      { model:'Saga', versiyonlar:['1.3 MT','1.3 AT'] },
+      { model:'X50', versiyonlar:['1.5 Turbo'] },
+      { model:'X70', versiyonlar:['1.8 Turbo AWD'] },
+    ]},
     { marka:'Renault', modeller:[
       { model:'Clio', versiyonlar:['1.0 SCe','1.0 TCe','1.5 dCi','E-Tech Hybrid'] },
       { model:'Megane', versiyonlar:['1.3 TCe','1.5 dCi','E-Tech Plug-in Hybrid','Megane E-Tech Electric'] },
@@ -104,6 +322,19 @@ export const VASITA_TREE = {
       { model:'Arkana', versiyonlar:['1.3 TCe','E-Tech Hybrid 145'] },
       { model:'Taliant', versiyonlar:['1.0 SCe','1.0 TCe','1.5 Blue dCi'] },
       { model:'Symbol', versiyonlar:['1.0 SCe','1.5 dCi'] },
+    ]},
+    { marka:'Rolls-Royce', modeller:[
+      { model:'Ghost', versiyonlar:['6.75 V12 EWB'] },
+      { model:'Cullinan', versiyonlar:['6.75 V12 Black Badge'] },
+      { model:'Spectre', versiyonlar:['Electric AWD'] },
+    ]},
+    { marka:'Rover', modeller:[
+      { model:'75', versiyonlar:['1.8 Turbo','2.5 V6','2.0 CDTi'] },
+      { model:'45', versiyonlar:['1.4','1.6','2.0 TD'] },
+    ]},
+    { marka:'Saab', modeller:[
+      { model:'9-3', versiyonlar:['1.8t','2.0t','2.2 TiD'] },
+      { model:'9-5', versiyonlar:['2.0T','2.3T','2.2 TiD'] },
     ]},
     { marka:'Seat', modeller:[
       { model:'Ibiza', versiyonlar:['1.0 MPI','1.0 TSI','1.5 TSI','1.6 TDI'] },
@@ -119,6 +350,47 @@ export const VASITA_TREE = {
       { model:'Superb', versiyonlar:['1.5 TSI','2.0 TDI','2.0 TSI 4x4','iV Plug-in Hybrid'] },
       { model:'Karoq', versiyonlar:['1.0 TSI','1.5 TSI','2.0 TDI 4x4'] },
       { model:'Kodiaq', versiyonlar:['1.5 TSI','2.0 TDI','2.0 TSI 4x4','RS 2.0 TSI 4x4'] },
+    ]},
+    { marka:'Smart', modeller:[
+      { model:'#1', versiyonlar:['Electric Pro','Electric Brabus AWD'] },
+      { model:'#3', versiyonlar:['Electric Pro','Electric Brabus AWD'] },
+      { model:'ForTwo', versiyonlar:['1.0','Electric Drive'] },
+    ]},
+    { marka:'Subaru', modeller:[
+      { model:'Impreza', versiyonlar:['1.6i','2.0i AWD','e-Boxer Hybrid AWD'] },
+      { model:'Forester', versiyonlar:['2.0i AWD','e-Boxer Hybrid AWD','2.5i Turbo AWD'] },
+      { model:'Outback', versiyonlar:['2.5i AWD','2.5i Premium AWD'] },
+      { model:'XV', versiyonlar:['1.6i AWD','2.0i AWD','e-Boxer Hybrid AWD'] },
+      { model:'BRZ', versiyonlar:['2.4 Turbo'] },
+    ]},
+    { marka:'Suzuki', modeller:[
+      { model:'Swift', versiyonlar:['1.2 Hybrid','1.2 SHVS Allgrip','1.4 Boosterjet'] },
+      { model:'Vitara', versiyonlar:['1.4 Boosterjet','1.5 Hybrid AWD'] },
+      { model:'S-Cross', versiyonlar:['1.4 Boosterjet Hybrid','1.4 Boosterjet AWD'] },
+      { model:'Jimny', versiyonlar:['1.5 VVT 4WD'] },
+      { model:'Baleno', versiyonlar:['1.2 Dualjet Hybrid'] },
+    ]},
+    { marka:'Tata', modeller:[
+      { model:'Tiago', versiyonlar:['1.2 Revotron','EV'] },
+      { model:'Nexon', versiyonlar:['1.5 Diesel','EV Max'] },
+      { model:'Harrier', versiyonlar:['2.0 Diesel'] },
+    ]},
+    { marka:'Tesla', modeller:[
+      { model:'Model 3', versiyonlar:['Standard Range RWD','Long Range AWD','Performance AWD'] },
+      { model:'Model Y', versiyonlar:['Standard Range RWD','Long Range AWD','Performance AWD'] },
+      { model:'Model S', versiyonlar:['Long Range AWD','Plaid AWD'] },
+      { model:'Model X', versiyonlar:['Long Range AWD','Plaid AWD'] },
+    ]},
+    { marka:'Tofaş', modeller:[
+      { model:'Şahin', versiyonlar:['1.6'] },
+      { model:'Doğan', versiyonlar:['1.6 SLX'] },
+      { model:'Kartal', versiyonlar:['1.6'] },
+      { model:'Tempra', versiyonlar:['1.6 SX','1.9 TD'] },
+      { model:'Tipo', versiyonlar:['1.4','1.6'] },
+    ]},
+    { marka:'TOGG', modeller:[
+      { model:'T10X', versiyonlar:['Single Motor Standard Range','Single Motor Long Range','Dual Motor Long Range'] },
+      { model:'T10F', versiyonlar:['Standard Range','Long Range'] },
     ]},
     { marka:'Toyota', modeller:[
       { model:'Yaris', versiyonlar:['1.0 VVT-i','1.5 Hybrid','GR Yaris'] },
@@ -139,6 +411,9 @@ export const VASITA_TREE = {
       { model:'ID.3', versiyonlar:['Pure Performance 45 kWh','Pro 58 kWh','Pro S 77 kWh'] },
       { model:'ID.4', versiyonlar:['Pro 77 kWh','GTX 4MOTION 77 kWh'] },
     ]},
+    { marka:'Volta', modeller:[
+      { model:'Zero', versiyonlar:['Electric Urban Truck'] },
+    ]},
     { marka:'Volvo', modeller:[
       { model:'S60', versiyonlar:['B3','B4','B5','Recharge T6','Recharge T8'] },
       { model:'S90', versiyonlar:['B4','B5','Recharge T8'] },
@@ -146,9 +421,11 @@ export const VASITA_TREE = {
       { model:'XC60', versiyonlar:['B4','B5','Recharge T6','Recharge T8 Ultimate'] },
       { model:'XC90', versiyonlar:['B5','B6','Recharge T8 Ultimate'] },
     ]},
-    { marka:'Togg', modeller:[
-      { model:'T10X', versiyonlar:['Single Motor Standard Range','Single Motor Long Range','Dual Motor Long Range'] },
-      { model:'T10F', versiyonlar:['Standard Range','Long Range'] },
+    { marka:'XEV', modeller:[
+      { model:'Yoyo', versiyonlar:['Electric 5.4 kWh'] },
+    ]},
+    { marka:'Yuki', modeller:[
+      { model:'YK 125', versiyonlar:['125cc'] },
     ]},
   ],
   suv_arazi: [
