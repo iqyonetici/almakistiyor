@@ -32,6 +32,7 @@ function validate(step, data, giris) {
       if (data.kategori === 'emlak') {
         if (!data.emlakTip) return false
         if (!data.m2Min || !data.m2Max) return false
+        if (Number(data.m2Min) >= Number(data.m2Max)) return false
         if (data.oda.length === 0) return false
       }
       if (data.kategori === 'vasita') {
@@ -99,6 +100,10 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     }
     if (son?.filtre_tip === 'emlak_tip' && son?.filtre_deger) {
       set('emlakTip', son.filtre_deger)
+    } else if (yol[0]?.slug === 'emlak' && yol.length >= 2) {
+      // Emlak: alt kategori (Konut/İş Yeri/Arsa...) veya en dip seçim emlak tipi olur
+      // Son seçilen kategorinin etiketini emlak tipi olarak kullan
+      set('emlakTip', son.label || '')
     }
   }
 
@@ -188,6 +193,20 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     else if (n < 10000000) adim = 50000
     else adim = 100000
     return String(Math.round(n / adim) * adim)
+  }
+
+  // Metrekare: 5'in katına yuvarla
+  function m2Yuvarla(deger) {
+    let n = Number(String(deger).replace(/[^\d]/g, ''))
+    if (!n || n <= 0) return ''
+    return String(Math.round(n / 5) * 5)
+  }
+
+  // KM: 1000'e yuvarla
+  function kmYuvarla(deger) {
+    let n = Number(String(deger).replace(/[^\d]/g, ''))
+    if (!n || n <= 0) return ''
+    return String(Math.round(n / 1000) * 1000)
   }
 
   return (
@@ -360,28 +379,57 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
 
                   {/* EMLAK */}
                   {data.kategori === 'emlak' && <>
-                    <div className={styles.fieldGroup}>
-                      <label className="form-label">Emlak tipi *</label>
-                      <div className={styles.chipGroup}>
-                        {emlakTipler.map(t => (
-                          <button key={t} className={`${styles.chip} ${data.emlakTip===t?styles.chipSel:''}`}
-                            onClick={() => set('emlakTip',t)}>{t}</button>
-                        ))}
+                    {/* Emlak tipi önceki adımda seçildi — burada gösteriyoruz */}
+                    {(katYol.length > 1 || data.emlakTip) ? (
+                      <div className={styles.fieldGroup}>
+                        <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'10px 14px'}}>
+                          <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:2}}>✓ Seçtiğiniz kategori</div>
+                          <div style={{fontSize:14,fontWeight:700,color:'#085549'}}>
+                            {katYol.length > 1 ? katYol.map(k => k.label).join(' › ') : data.emlakTip}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <label className="form-label">Metrekare aralığı *</label>
-                      <div className={styles.rangeRow}>
-                        <select className="form-select" style={{flex:1}} value={data.m2Min} onChange={e => set('m2Min',e.target.value)}>
-                          <option value="">En az m²</option>
-                          {M2_SECENEKLER.map(m => <option key={m} value={m}>{m} m²</option>)}
-                        </select>
-                        <span className={styles.rangeSep}>—</span>
-                        <select className="form-select" style={{flex:1}} value={data.m2Max} onChange={e => set('m2Max',e.target.value)}>
-                          <option value="">En fazla m²</option>
-                          {M2_SECENEKLER.filter(m => !data.m2Min || m > Number(data.m2Min)).map(m => <option key={m} value={m}>{m} m²</option>)}
-                        </select>
+                    ) : (
+                      <div className={styles.fieldGroup}>
+                        <label className="form-label">Emlak tipi *</label>
+                        <div className={styles.chipGroup}>
+                          {emlakTipler.map(t => (
+                            <button key={t} className={`${styles.chip} ${data.emlakTip===t?styles.chipSel:''}`}
+                              onClick={() => set('emlakTip',t)}>{t}</button>
+                          ))}
+                        </div>
                       </div>
+                    )}
+                    <div className={styles.fieldGroup}>
+                      <label className="form-label">Metrekare aralığı (m²) *</label>
+                      {(() => {
+                        const mn = Number(data.m2Min) || 0
+                        const mx = Number(data.m2Max) || 0
+                        const hatali = mn > 0 && mx > 0 && mn >= mx
+                        const kirmizi = { borderColor: '#DC2626', background: '#FEF2F2' }
+                        return (
+                          <>
+                            <div className={styles.rangeRow}>
+                              <input className="form-select" style={{flex:1, minWidth:0, ...(hatali?kirmizi:{})}} type="text" inputMode="numeric"
+                                placeholder="En az m²"
+                                value={data.m2Min || ''}
+                                onChange={e => set('m2Min', e.target.value.replace(/[^\d]/g, ''))}
+                                onBlur={e => set('m2Min', m2Yuvarla(e.target.value))} />
+                              <span className={styles.rangeSep}>—</span>
+                              <input className="form-select" style={{flex:1, minWidth:0, ...(hatali?kirmizi:{})}} type="text" inputMode="numeric"
+                                placeholder="En fazla m²"
+                                value={data.m2Max || ''}
+                                onChange={e => set('m2Max', e.target.value.replace(/[^\d]/g, ''))}
+                                onBlur={e => set('m2Max', m2Yuvarla(e.target.value))} />
+                            </div>
+                            {hatali ? (
+                              <div style={{fontSize:12.5,color:'#DC2626',fontWeight:600,marginTop:6}}>⚠️ En fazla m², en az m²'den büyük olmalı</div>
+                            ) : (
+                              <div style={{fontSize:11.5,color:'#8a95a3',marginTop:6}}>💡 5'in katına yuvarlanır (örn. 123 → 125 m²)</div>
+                            )}
+                          </>
+                        )
+                      })()}
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Oda sayısı *</label>
@@ -432,10 +480,12 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Maksimum KM</label>
-                      <select className="form-select" value={data.kmMax} onChange={e => set('kmMax',e.target.value)}>
-                        <option value="">Fark etmez</option>
-                        {KM_SECENEKLER.filter(k=>k>0).map(k => <option key={k} value={k}>{k.toLocaleString('tr-TR')} km</option>)}
-                      </select>
+                      <input className="form-select" type="text" inputMode="numeric"
+                        placeholder="Fark etmez (boş bırakın)"
+                        value={data.kmMax ? Number(data.kmMax).toLocaleString('tr-TR') : ''}
+                        onChange={e => set('kmMax', e.target.value.replace(/[^\d]/g, ''))}
+                        onBlur={e => set('kmMax', kmYuvarla(e.target.value))} />
+                      <div style={{fontSize:11.5,color:'#8a95a3',marginTop:6}}>💡 1.000'e yuvarlanır (örn. 87.300 → 87.000 km)</div>
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className="form-label">Yakıt tipi</label>
@@ -454,8 +504,8 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                   {!gecerli && (
                     <div className={styles.zorunluUyari}>
                       {(!data.fiyatMin || !data.fiyatMax) && <span>• Bütçe aralığı seçin</span>}
-                      {data.kategori==='emlak' && !data.emlakTip && <span>• Emlak tipi seçin</span>}
-                      {data.kategori==='emlak' && (!data.m2Min||!data.m2Max) && <span>• Metrekare aralığı seçin</span>}
+                      {data.kategori==='emlak' && !data.emlakTip && <span>• Kategori seçin (1. adımdan)</span>}
+                      {data.kategori==='emlak' && (!data.m2Min||!data.m2Max) && <span>• Metrekare aralığı girin</span>}
                       {data.kategori==='emlak' && data.oda.length===0 && <span>• Oda sayısı seçin</span>}
                       {data.kategori==='vasita' && (!data.yilMin||!data.yilMax) && <span>• Model yılı seçin</span>}
                     </div>
