@@ -164,7 +164,6 @@ export default function Home() {
   const handleKatChange = useCallback((slug, filtre = null) => {
     setActiveCategory(slug)
     setAktifFiltre(filtre)
-    setTimeout(() => document.getElementById('ilan-listesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }, [])
 
   async function handleSubmit(data) {
