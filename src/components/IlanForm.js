@@ -84,9 +84,16 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     set('kategori', yol[0]?.slug || '')
     set('altKategori', yol[1]?.slug || '')
     set('altKategori2', yol[2]?.slug || '')
-    // 3.+ seviyede filtre (marka/emlak_tip) varsa data'ya işle
     const son = yol[yol.length - 1]
-    if (son?.filtre_tip === 'marka' && son?.filtre_deger) {
+    // Vasıta kategorisinde 3.+ seviye = marka/model. Yol etiketlerinden tam marka adı kur.
+    if (yol[0]?.slug === 'vasita' && yol.length >= 3) {
+      // yol: [Vasıta, Otomobil, Audi, A5] → marka = "Audi A5"
+      const markaParcalar = yol.slice(2).map(k => k.label)
+      const tamMarka = markaParcalar.join(' ')
+      set('vasitaMarka', markaParcalar[0] || '')
+      set('vasitaModel', markaParcalar[1] || '')
+      set('markalar', [tamMarka])
+    } else if (son?.filtre_tip === 'marka' && son?.filtre_deger) {
       set('vasitaMarka', son.filtre_deger)
       set('markalar', [son.filtre_deger])
     }
@@ -167,6 +174,21 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   const gecerli = validate(step, data, giris)
   const onayAdimi = step === TOPLAM
   const fiyatlar = getFiyatlar()
+
+  // Fiyatı anlamlı yuvarlak değere çevir (küsüratları temizle)
+  function fiyatYuvarla(deger) {
+    let n = Number(String(deger).replace(/[^\d]/g, ''))
+    if (!n || n <= 0) return ''
+    // Büyüklüğe göre yuvarlama adımı
+    let adim
+    if (n < 1000) adim = 50
+    else if (n < 10000) adim = 500
+    else if (n < 100000) adim = 5000
+    else if (n < 1000000) adim = 10000
+    else if (n < 10000000) adim = 50000
+    else adim = 100000
+    return String(Math.round(n / adim) * adim)
+  }
 
   return (
     <div className={styles.overlay}>
@@ -305,20 +327,19 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                   <div className={styles.fieldGroup}>
                     <label className="form-label">Bütçe aralığı (₺) *</label>
                     <div className={styles.rangeRow}>
-                      <select className="form-select" style={{flex:1}} value={data.fiyatMin}
-                        onChange={e => set('fiyatMin', e.target.value)}>
-                        <option value="">En az</option>
-                        {fiyatlar.map(f => <option key={f} value={f}>₺{f.toLocaleString('tr-TR')}</option>)}
-                      </select>
+                      <input className="form-select" style={{flex:1}} type="text" inputMode="numeric"
+                        placeholder="En az" 
+                        value={data.fiyatMin ? Number(data.fiyatMin).toLocaleString('tr-TR') : ''}
+                        onChange={e => set('fiyatMin', e.target.value.replace(/[^\d]/g, ''))}
+                        onBlur={e => set('fiyatMin', fiyatYuvarla(e.target.value))} />
                       <span className={styles.rangeSep}>—</span>
-                      <select className="form-select" style={{flex:1}} value={data.fiyatMax}
-                        onChange={e => set('fiyatMax', e.target.value)}>
-                        <option value="">En fazla</option>
-                        {fiyatlar.filter(f => !data.fiyatMin || f > Number(data.fiyatMin)).map(f => (
-                          <option key={f} value={f}>₺{f.toLocaleString('tr-TR')}</option>
-                        ))}
-                      </select>
+                      <input className="form-select" style={{flex:1}} type="text" inputMode="numeric"
+                        placeholder="En fazla"
+                        value={data.fiyatMax ? Number(data.fiyatMax).toLocaleString('tr-TR') : ''}
+                        onChange={e => set('fiyatMax', e.target.value.replace(/[^\d]/g, ''))}
+                        onBlur={e => set('fiyatMax', fiyatYuvarla(e.target.value))} />
                     </div>
+                    <div style={{fontSize:11.5,color:'#8a95a3',marginTop:6}}>💡 Değerler otomatik yuvarlanır (örn. 1.234.567 → 1.230.000)</div>
                   </div>
 
                   {/* EMLAK */}
@@ -368,29 +389,14 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
 
                   {/* VASITA */}
                   {data.kategori === 'vasita' && <>
-                    {data.vasitaMarka ? (
+                    {/* Marka önceki adımda seçildi — burada sadece gösteriyoruz, tekrar sormuyoruz */}
+                    {(katYol.length > 1 || data.vasitaMarka) && (
                       <div className={styles.fieldGroup}>
-                        <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                          <div>
-                            <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:2}}>✓ Araç Seçimi (Adım 1'den)</div>
-                            <div style={{fontSize:14,fontWeight:700,color:'#085549'}}>
-                              {data.vasitaMarka} {data.vasitaModel||''} {data.vasitaVersiyon||''}
-                            </div>
+                        <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'10px 14px'}}>
+                          <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:2}}>✓ Seçtiğiniz kategori</div>
+                          <div style={{fontSize:14,fontWeight:700,color:'#085549'}}>
+                            {katYol.length > 1 ? katYol.map(k => k.label).join(' › ') : (data.vasitaMarka + ' ' + (data.vasitaModel||''))}
                           </div>
-                          <button onClick={() => { set('vasitaMarka',''); set('vasitaModel',''); set('vasitaVersiyon','') }}
-                            style={{fontSize:11,color:'#8a95a3',background:'none',border:'1px solid #e2e8f0',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontFamily:'inherit'}}>
-                            Değiştir
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className={styles.fieldGroup}>
-                        <label className="form-label">Marka tercihleri</label>
-                        <div className={styles.chipGroup}>
-                          {vasitaMarkalar.map(m => (
-                            <button key={m} className={`${styles.chip} ${data.markalar.includes(m)?styles.chipSel:''}`}
-                              onClick={() => toggle('markalar',m)}>{m}</button>
-                          ))}
                         </div>
                       </div>
                     )}
