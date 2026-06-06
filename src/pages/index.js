@@ -26,7 +26,7 @@ export default function Home() {
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
-  const [katDerinlik, setKatDerinlik] = useState(0)
+  const [katSeviye, setKatSeviye] = useState(1)
   const [filterSehir, setFilterSehir] = useState('')
   const [filterIlce, setFilterIlce] = useState('')
   const [filterTarih, setFilterTarih] = useState('')
@@ -96,7 +96,7 @@ export default function Home() {
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
 
     // 3. seviye ve sonrası (marka/model) tıklandı AMA filtresi yok → eşleşecek ilan yok, boş göster
-    if (katDerinlik >= 2 && !aktifFiltre) {
+    if (katSeviye >= 3 && !aktifFiltre) {
       setIlanlar([])
       return
     }
@@ -139,7 +139,7 @@ export default function Home() {
     } else {
       setIlanlar([])
     }
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katDerinlik])
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katSeviye])
 
   useEffect(() => {
     async function loadStats() {
@@ -169,10 +169,10 @@ export default function Home() {
       return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
     })
 
-  const handleKatChange = useCallback((slug, filtre = null, derinlik = 0) => {
+  const handleKatChange = useCallback((slug, filtre = null, seviye = 1) => {
     setActiveCategory(slug)
     setAktifFiltre(filtre)
-    setKatDerinlik(derinlik)
+    setKatSeviye(seviye)
   }, [])
 
   async function handleSubmit(data) {

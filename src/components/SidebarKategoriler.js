@@ -30,8 +30,9 @@ function KatDugum({ kat, derinlik, acikSet, toggleAcik, activeCategory, onSec })
     if (cocukVar) toggleAcik(kat.id || kat.slug)
     // filtre bilgisi (3.+ seviye için)
     const filtre = kat.filtre_tip ? { tip: kat.filtre_tip, deger: kat.filtre_deger } : (kat.filtre || null)
-    // derinlik: 0=ana kategori, 1=alt, 2+=3.seviye ve sonrası (marka/model)
-    onSec(kat.slug, filtre, derinlik)
+    // DB'deki gerçek seviye (1=ana, 2=alt, 3=marka, 4=model). Yoksa derinlik+1 kullan.
+    const seviye = kat.seviye || (derinlik + 1)
+    onSec(kat.slug, filtre, seviye)
   }
 
   return (
