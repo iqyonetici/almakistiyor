@@ -26,6 +26,7 @@ export default function Home() {
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
+  const [katDerinlik, setKatDerinlik] = useState(0)
   const [filterSehir, setFilterSehir] = useState('')
   const [filterIlce, setFilterIlce] = useState('')
   const [filterTarih, setFilterTarih] = useState('')
@@ -93,6 +94,13 @@ export default function Home() {
   const yukle = useCallback(async () => {
     const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
+
+    // 3. seviye ve sonrası (marka/model) tıklandı AMA filtresi yok → eşleşecek ilan yok, boş göster
+    if (katDerinlik >= 2 && !aktifFiltre) {
+      setIlanlar([])
+      return
+    }
+
     const { data } = await ilanListele({
       kategori: isAltKat ? undefined : (activeCategory || undefined),
       altKategori: (isAltKat && !aktifFiltre) ? activeCategory : undefined,
@@ -131,7 +139,7 @@ export default function Home() {
     } else {
       setIlanlar([])
     }
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user])
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katDerinlik])
 
   useEffect(() => {
     async function loadStats() {
@@ -161,9 +169,10 @@ export default function Home() {
       return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
     })
 
-  const handleKatChange = useCallback((slug, filtre = null) => {
+  const handleKatChange = useCallback((slug, filtre = null, derinlik = 0) => {
     setActiveCategory(slug)
     setAktifFiltre(filtre)
+    setKatDerinlik(derinlik)
   }, [])
 
   async function handleSubmit(data) {

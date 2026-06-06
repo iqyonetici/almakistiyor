@@ -30,7 +30,8 @@ function KatDugum({ kat, derinlik, acikSet, toggleAcik, activeCategory, onSec })
     if (cocukVar) toggleAcik(kat.id || kat.slug)
     // filtre bilgisi (3.+ seviye için)
     const filtre = kat.filtre_tip ? { tip: kat.filtre_tip, deger: kat.filtre_deger } : (kat.filtre || null)
-    onSec(kat.slug, filtre)
+    // derinlik: 0=ana kategori, 1=alt, 2+=3.seviye ve sonrası (marka/model)
+    onSec(kat.slug, filtre, derinlik)
   }
 
   return (
@@ -64,8 +65,8 @@ function SidebarKategoriler({ KATEGORILER, activeCategory, onKatChange }) {
     })
   }, [])
 
-  const onSec = useCallback((slug, filtre) => {
-    onKatChange(slug, filtre)
+  const onSec = useCallback((slug, filtre, derinlik) => {
+    onKatChange(slug, filtre, derinlik)
   }, [onKatChange])
 
   return (
