@@ -27,6 +27,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
   const [katSeviye, setKatSeviye] = useState(1)
+  const [yenile, setYenile] = useState(0)
   const [filterSehir, setFilterSehir] = useState('')
   const [filterIlce, setFilterIlce] = useState('')
   const [filterTarih, setFilterTarih] = useState('')
@@ -144,7 +145,7 @@ export default function Home() {
     } else {
       setIlanlar([])
     }
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katSeviye])
+  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katSeviye, yenile])
 
   useEffect(() => {
     async function loadStats() {
@@ -187,8 +188,15 @@ export default function Home() {
       const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
       localStorage.setItem('misafir_ilan', String(v))
     }
-    // İlan DB'ye yazıldı — listeyi taze çek (sayfa yenilemeden, garantili)
-    await yukle()
+    // Filtreleri temizle ki yeni ilan (kategori/marka filtresine takılmadan) görünsün.
+    // Filtreler değişince yukle effect ile otomatik tetiklenir ve yeni ilan gelir.
+    setActiveCategory('')
+    setAktifFiltre(null)
+    setKatSeviye(1)
+    setFilterSehir('')
+    setFilterIlce('')
+    setFilterTarih('')
+    setYenile(y => y + 1)
   }
 
   return (
