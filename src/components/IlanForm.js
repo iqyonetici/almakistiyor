@@ -28,7 +28,7 @@ function validate(step, data, giris) {
     case 2: return !!data.sehir
     case 3: {
       if (!data.fiyatMin || !data.fiyatMax) return false
-      if (Number(data.fiyatMin) > Number(data.fiyatMax)) return false
+      if (Number(data.fiyatMin) >= Number(data.fiyatMax)) return false
       if (data.kategori === 'emlak') {
         if (!data.emlakTip) return false
         if (!data.m2Min || !data.m2Max) return false
@@ -326,20 +326,36 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                 <div>
                   <div className={styles.fieldGroup}>
                     <label className="form-label">Bütçe aralığı (₺) *</label>
-                    <div className={styles.rangeRow}>
-                      <input className="form-select" style={{flex:1}} type="text" inputMode="numeric"
-                        placeholder="En az" 
-                        value={data.fiyatMin ? Number(data.fiyatMin).toLocaleString('tr-TR') : ''}
-                        onChange={e => set('fiyatMin', e.target.value.replace(/[^\d]/g, ''))}
-                        onBlur={e => set('fiyatMin', fiyatYuvarla(e.target.value))} />
-                      <span className={styles.rangeSep}>—</span>
-                      <input className="form-select" style={{flex:1}} type="text" inputMode="numeric"
-                        placeholder="En fazla"
-                        value={data.fiyatMax ? Number(data.fiyatMax).toLocaleString('tr-TR') : ''}
-                        onChange={e => set('fiyatMax', e.target.value.replace(/[^\d]/g, ''))}
-                        onBlur={e => set('fiyatMax', fiyatYuvarla(e.target.value))} />
-                    </div>
-                    <div style={{fontSize:11.5,color:'#8a95a3',marginTop:6}}>💡 Değerler otomatik yuvarlanır (örn. 1.234.567 → 1.230.000)</div>
+                    {(() => {
+                      const min = Number(data.fiyatMin) || 0
+                      const max = Number(data.fiyatMax) || 0
+                      const hatali = min > 0 && max > 0 && min >= max
+                      const kirmizi = { borderColor: '#DC2626', background: '#FEF2F2' }
+                      return (
+                        <>
+                          <div className={styles.rangeRow}>
+                            <input className="form-select" style={{flex:1, minWidth:0, ...(hatali?kirmizi:{})}} type="text" inputMode="numeric"
+                              placeholder="En az"
+                              value={data.fiyatMin ? Number(data.fiyatMin).toLocaleString('tr-TR') : ''}
+                              onChange={e => set('fiyatMin', e.target.value.replace(/[^\d]/g, ''))}
+                              onBlur={e => set('fiyatMin', fiyatYuvarla(e.target.value))} />
+                            <span className={styles.rangeSep}>—</span>
+                            <input className="form-select" style={{flex:1, minWidth:0, ...(hatali?kirmizi:{})}} type="text" inputMode="numeric"
+                              placeholder="En fazla"
+                              value={data.fiyatMax ? Number(data.fiyatMax).toLocaleString('tr-TR') : ''}
+                              onChange={e => set('fiyatMax', e.target.value.replace(/[^\d]/g, ''))}
+                              onBlur={e => set('fiyatMax', fiyatYuvarla(e.target.value))} />
+                          </div>
+                          {hatali ? (
+                            <div style={{fontSize:12.5,color:'#DC2626',fontWeight:600,marginTop:6}}>
+                              ⚠️ En fazla değeri, en az değerinden büyük olmalı
+                            </div>
+                          ) : (
+                            <div style={{fontSize:11.5,color:'#8a95a3',marginTop:6}}>💡 Değerler otomatik yuvarlanır (örn. 1.234.567 → 1.230.000)</div>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
 
                   {/* EMLAK */}
