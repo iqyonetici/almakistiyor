@@ -243,12 +243,9 @@
   width: 230px; flex-shrink: 0;
   display: flex; flex-direction: column; gap: 12px;
   position: sticky; top: 70px;
-  max-height: calc(100vh - 90px);
-  overflow-y: auto; overflow-x: hidden;
-  padding-right: 4px;
+  align-self: flex-start;
 }
-.sidebar::-webkit-scrollbar { width: 5px; }
-.sidebar::-webkit-scrollbar-thumb { background: #B2DDD7; border-radius: 3px; }
+.kategoriDogal { margin-top: 4px; }
 .ctaCard {
   background: #0D7A6B; border-radius: 10px; padding: 16px;
 }
@@ -410,18 +407,6 @@
 .ctaCardAlt {
   font-size: 12.5px; color: rgba(255,255,255,0.78); margin: 4px 0 12px; line-height: 1.5;
 }
-/* Kategori listesi — düzgün scroll, taşma yok */
-.kategoriScroll {
-  max-height: 380px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-  margin-top: 4px;
-}
-.kategoriScroll::-webkit-scrollbar { width: 6px; }
-.kategoriScroll::-webkit-scrollbar-track { background: #f4f6f8; border-radius: 3px; }
-.kategoriScroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-.kategoriScroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 .filtreTemizle {
   display: inline-flex; align-items: center; gap: 4px;

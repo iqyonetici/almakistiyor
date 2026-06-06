@@ -417,3 +417,8 @@
 @media (max-width: 480px) {
   .haklarGrid { grid-template-columns: 1fr; }
 }
+
+/* Mobil drawer 3. seviye (markalar/modeller) */
+.drawerAlt2 {
+  border-left: 2px solid #e2e8f0; margin-left: 16px; padding-left: 4px;
+}

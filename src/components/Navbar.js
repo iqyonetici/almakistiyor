@@ -90,6 +90,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
     router.push("/");
   }
   const [mobilAltAcik, setMobilAltAcik] = useState(null);
+  const [mobilAltAcik2, setMobilAltAcik2] = useState(null);
 
   const handleKatClick = (e, slug) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -200,8 +201,9 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
               <button className={styles.drawerKapat} onClick={() => setMobilMenuAcik(false)}>✕</button>
             </div>
             <div className={styles.drawerKategoriler}>
-              {kategoriler.map((kat) => {
-                const hasDropdown = kat.altkategoriler?.length > 0;
+              {(kategoriAgaci && kategoriAgaci.length ? kategoriAgaci : kategoriler).map((kat) => {
+                const altlar = kat.altKategoriler || kat.altkategoriler || [];
+                const hasDropdown = altlar.length > 0;
                 const isAktif = (activeCategory ?? "") === kat.slug;
                 return (
                   <div key={kat.slug}>
@@ -209,7 +211,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                       className={`${styles.drawerKatBtn} ${isAktif ? styles.drawerKatAktif : ""}`}
                       onClick={() => {
                         if (hasDropdown) setMobilAltAcik(mobilAltAcik === kat.slug ? null : kat.slug);
-                        handleKatClick(null, kat.slug);
+                        else handleKatClick(null, kat.slug);
                       }}>
                       <span>{kat.icon} {kat.label}</span>
                       {hasDropdown && (
@@ -218,13 +220,37 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                     </button>
                     {hasDropdown && mobilAltAcik === kat.slug && (
                       <div className={styles.drawerAlt}>
-                        {kat.altkategoriler.map(alt => (
-                          <button key={alt.slug}
-                            className={`${styles.drawerAltBtn} ${activeCategory === alt.slug ? styles.drawerAltAktif : ""}`}
-                            onClick={() => handleKatClick(null, alt.slug)}>
-                            {alt.label}
-                          </button>
-                        ))}
+                        {altlar.map(alt => {
+                          const altAltlar = alt.altKategoriler || alt.altkategoriler || [];
+                          const altHasDropdown = altAltlar.length > 0;
+                          return (
+                            <div key={alt.slug}>
+                              <button
+                                className={`${styles.drawerAltBtn} ${activeCategory === alt.slug ? styles.drawerAltAktif : ""}`}
+                                onClick={() => {
+                                  if (altHasDropdown) setMobilAltAcik2(mobilAltAcik2 === alt.slug ? null : alt.slug);
+                                  else handleKatClick(null, alt.slug);
+                                }}>
+                                <span>{alt.label}</span>
+                                {altHasDropdown && (
+                                  <span style={{ fontSize: 10, color: "#8a95a3", transform: mobilAltAcik2 === alt.slug ? "rotate(180deg)" : "none", display: "inline-block", transition: "transform 0.2s", float: "right" }}>▼</span>
+                                )}
+                              </button>
+                              {altHasDropdown && mobilAltAcik2 === alt.slug && (
+                                <div className={styles.drawerAlt2}>
+                                  {altAltlar.map(alt2 => (
+                                    <button key={alt2.slug}
+                                      className={`${styles.drawerAltBtn} ${activeCategory === alt2.slug ? styles.drawerAltAktif : ""}`}
+                                      style={{ paddingLeft: 24, fontSize: 13 }}
+                                      onClick={() => handleKatClick(null, alt2.slug)}>
+                                      {alt2.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

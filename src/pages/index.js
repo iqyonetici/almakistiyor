@@ -305,7 +305,7 @@ export default function Home() {
                   ✕ Filtreyi temizle
                 </button>
               )}
-              <div className={styles.kategoriScroll}>
+              <div className={styles.kategoriDogal}>
                 <SidebarKategoriler KATEGORILER={kategoriAgaci} activeCategory={activeCategory} onKatChange={handleKatChange} />
               </div>
             </div>
