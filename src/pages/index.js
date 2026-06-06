@@ -95,17 +95,22 @@ export default function Home() {
     const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
 
-    // 3. seviye ve sonrası (marka/model) tıklandı AMA filtresi yok → eşleşecek ilan yok, boş göster
-    if (katSeviye >= 3 && !aktifFiltre) {
+    // 3. seviye ve sonrası (marka/model): filtre değeriyle markalar kolonunda ara.
+    // Eşleşen ilan yoksa boş döner. Filtre değeri yoksa direkt boş.
+    const markaFiltre = (katSeviye >= 3)
+      ? (aktifFiltre?.deger || null)
+      : (aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined)
+
+    if (katSeviye >= 3 && !markaFiltre) {
       setIlanlar([])
       return
     }
 
     const { data } = await ilanListele({
       kategori: isAltKat ? undefined : (activeCategory || undefined),
-      altKategori: (isAltKat && !aktifFiltre) ? activeCategory : undefined,
+      altKategori: (isAltKat && katSeviye < 3 && !aktifFiltre) ? activeCategory : undefined,
       emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
-      marka: aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined,
+      marka: markaFiltre || undefined,
       sehir: filterSehir || undefined,
       ilce: filterIlce || undefined,
       kullaniciEmail: user?.email || undefined,

@@ -10,20 +10,22 @@ export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  // Aktif ilanlar herkese görünür.
-  // Giriş yapan kullanıcı, kendi onay bekleyen ilanlarını da görür.
+  // GÖRÜNÜRLÜK KURALI:
+  // - Herkese: sadece onaylanmış VE aktif ilanlar
+  // - Giriş yapan kullanıcıya ek olarak: kendi onay bekleyen/reddedilen ilanları
   if (kullaniciEmail) {
-    q = q.or(`durum.eq.aktif,and(kullanici_email.eq.${kullaniciEmail},onay_durumu.eq.beklemede)`)
+    q = q.or(`and(durum.eq.aktif,onay_durumu.eq.onaylandi),kullanici_email.eq.${kullaniciEmail}`)
   } else {
-    q = q.eq('durum', 'aktif')
+    q = q.eq('durum', 'aktif').eq('onay_durumu', 'onaylandi')
   }
 
   // 3. seviye filtreler (en spesifik)
   if (emlakTip) {
     q = q.eq('emlak_tip', emlakTip)
   } else if (marka) {
-    // markalar kolonu "BMW 320i" gibi olabilir, başlangıç eşleşmesi
-    q = q.ilike('markalar', marka + '%')
+    // markalar kolonu "Audi A1", "BMW 320i" gibi olabilir.
+    // Filtre değeri içeride geçiyorsa eşleştir (büyük/küçük harf duyarsız).
+    q = q.ilike('markalar', '%' + marka + '%')
   } else if (altKategori) {
     q = q.eq('alt_kategori', altKategori)
   } else if (kategori) {
