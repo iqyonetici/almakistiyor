@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import styles from './IlanKarti.module.css'
 import { telefonHakkiVarMi } from '../lib/limitDB'
 import { supabase } from '../lib/supabase'
@@ -98,6 +98,7 @@ async function handleTelefon() {
   if (telefonAcik) return
   setTelefonYukleniyor(true)
   const kontrol = await telefonHakkiVarMi(user, ilan.id)
+  console.log('TELEFON KONTROL:', JSON.stringify(kontrol))
   setTelefonYukleniyor(false)
 
   if (!kontrol.izin) {
@@ -216,3 +217,4 @@ async function handleTelefon() {
     </div>
   )
 }
+
