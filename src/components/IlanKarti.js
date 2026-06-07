@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import styles from './IlanKarti.module.css'
+import { telefonHakkiVarMi } from '../lib/limitDB'
+import { supabase } from '../lib/supabase'
 
 const vasitaMarkalar = ['Volkswagen','BMW','Mercedes','Toyota','Honda','Renault','Ford','Hyundai','Kia','Fiat','Opel','Peugeot','Audi','Skoda','Seat','Volvo']
 
@@ -70,10 +72,10 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
   const [mesajMetni, setMesajMetni] = useState('')
   const [mesajGonderildi, setMesajGonderildi] = useState(false)
   const [telefonAcik, setTelefonAcik] = useState(false)
+  const [telefonYukleniyor, setTelefonYukleniyor] = useState(false)
   const [uyari, setUyari] = useState('')
   const [gonderiliyor, setGonderiliyor] = useState(false)
 
-  // kalanGenel: index.js'den gelen gerçek paket mesaj hakkı (giriş yoksa null)
   const kalanGenel = mesajHaklari?.kalanGenel
 
   function handleMesajAc() {
@@ -84,29 +86,44 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
   async function handleMesajGonder() {
     if (!mesajMetni.trim() || gonderiliyor) return
     setGonderiliyor(true)
-    // onMesajGonder true/false döner (limit kontrolü index.js'de)
     const sonuc = await onMesajGonder?.({ ilan, mesaj: mesajMetni })
     setGonderiliyor(false)
-    if (sonuc === false) {
-      // Limit doldu — index.js modal gösterdi, kutuyu kapat
-      setMesajAcik(false)
-      return
-    }
+    if (sonuc === false) { setMesajAcik(false); return }
     setMesajGonderildi(true); setMesajMetni('')
     setTimeout(() => setMesajAcik(false), 2000)
   }
 
-  function handleTelefon() {
+  async function handleTelefon() {
     if (!user) { window.location.href = '/giris'; return }
-    const paketliMi = user?.paket && user.paket !== 'ucretsiz' && user.paket !== 'Ücretsiz'
-    if (!paketliMi) { onTelefonGoster && onTelefonGoster(ilan); return }
+    setTelefonYukleniyor(true)
+    const kontrol = await telefonHakkiVarMi(user)
+    setTelefonYukleniyor(false)
+
+    if (!kontrol.izin) {
+      if (kontrol.sebep === 'paket-gerekli') {
+        // Paketi yok — mevcut modal'ı aç
+        onTelefonGoster && onTelefonGoster(ilan)
+      } else if (kontrol.sebep === 'limit') {
+        setUyari(`⚠️ ${kontrol.mesaj}`)
+        setTimeout(() => setUyari(''), 4000)
+      } else {
+        window.location.href = '/giris'
+      }
+      return
+    }
+
+    // Hak var — görüntülemeyi kaydet ve göster
+    if (supabase) {
+      await supabase.from('telefon_goruntulemeler').insert({
+        kullanici_email: user.email,
+        ilan_id: ilan.id,
+      })
+    }
     setTelefonAcik(true)
   }
 
-  // Az hak kaldıysa uyarı rengi (sadece 5 ve altındaysa göster)
   const azKaldi = typeof kalanGenel === 'number' && kalanGenel <= 5
   const kalanRenk = kalanGenel===1?'#E53E3E':kalanGenel<=3?'#D97706':'#0D7A6B'
-
   const beklemede = ilan?.onayDurumu === 'beklemede'
 
   return (
@@ -147,7 +164,7 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
       <div className={styles.tags}>
         {ilan.fiyatMin && ilan.fiyatMax && (
           <span className="tag tag-price">
-            ₺{Number(ilan.fiyatMin).toLocaleString('tr-TR')} – ₺{Number(ilan.fiyatMax).toLocaleString('tr-TR')}
+            ₺{Number(ilan.fiyatMin).toLocaleString('tr-TR')} — ₺{Number(ilan.fiyatMax).toLocaleString('tr-TR')}
           </span>
         )}
         {ilan.tags?.map((t,i) => <span key={i} className={`tag ${t.variant||'tag-gray'}`}>{t.label}</span>)}
@@ -189,8 +206,8 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
               {telefonGoster && (
                 telefonAcik
                   ? <span className={styles.telefonAcik}>📞 {ilanTelefon||'Bilgi yok'}</span>
-                  : <button className={styles.btnTelefon} onClick={handleTelefon}>
-                      📞 {maskedPhone(ilanTelefon)} <span className={styles.kilidAc}>Göster</span>
+                  : <button className={styles.btnTelefon} onClick={handleTelefon} disabled={telefonYukleniyor}>
+                      📞 {maskedPhone(ilanTelefon)} <span className={styles.kilidAc}>{telefonYukleniyor ? '...' : 'Göster'}</span>
                     </button>
               )}
               {!mesajAcik && (

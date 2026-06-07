@@ -300,11 +300,30 @@ function Paketler() {
   }
 
   // DB'ye kaydet
-
-async function kaydet(id) {
-    const p = liste.find(x => x.id === id)
-    if (!p) return
-    const { error } = await supabase.from('paketler').update({
+  async function kaydet(id) {
+  const p = liste.find(x => x.id === id)
+  if (!p) return
+  const { error } = await supabase.from('paketler').update({
+    ad: p.ad,
+    fiyat: Number(p.fiyat) || 0,
+    eski_fiyat: p.eski_fiyat ? Number(p.eski_fiyat) : null,
+    yillik_fiyat: p.yillik_fiyat ? Number(p.yillik_fiyat) : null,
+    yillik_eski_fiyat: p.yillik_eski_fiyat ? Number(p.yillik_eski_fiyat) : null,
+    gunluk_ilan: Number(p.gunluk_ilan) || 0,
+    gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
+    gunluk_telefon: Number(p.gunluk_telefon) || 0,
+    telefon_goster: !!p.telefon_goster,
+    aciklama: p.aciklama || null,
+    ozellikler: p.ozellikler || null,
+    populer: !!p.populer,
+    renk: p.renk || '#0D7A6B',
+    aktif: p.aktif !== false,
+  }).eq('id', id)
+  if (error) { alert('Hata: ' + error.message); return }
+  setKayitDurum(s => ({ ...s, [id]: 'kaydedildi' }))
+  setTimeout(() => setKayitDurum(s => ({ ...s, [id]: null })), 2000)
+}
+    await paketGuncelle(p.id, {
       ad: p.ad,
       fiyat: Number(p.fiyat) || 0,
       eski_fiyat: p.eski_fiyat ? Number(p.eski_fiyat) : null,
@@ -312,17 +331,15 @@ async function kaydet(id) {
       yillik_eski_fiyat: p.yillik_eski_fiyat ? Number(p.yillik_eski_fiyat) : null,
       gunluk_ilan: Number(p.gunluk_ilan) || 0,
       gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
-      gunluk_telefon: Number(p.gunluk_telefon) || 0,
       telefon_goster: !!p.telefon_goster,
       aciklama: p.aciklama || null,
       ozellikler: p.ozellikler || null,
       populer: !!p.populer,
       renk: p.renk || '#0D7A6B',
       aktif: p.aktif !== false,
-    }).eq('id', id)
-    if (error) { alert('Hata: ' + error.message); return }
-    setKayitDurum(s => ({ ...s, [id]: 'kaydedildi' }))
-    setTimeout(() => setKayitDurum(s => ({ ...s, [id]: null })), 2000)
+    })
+    setKayitDurum(s => ({ ...s, [p.id]: 'kaydedildi' }))
+    setTimeout(() => setKayitDurum(s => ({ ...s, [p.id]: null })), 2000)
   }
 
   return (

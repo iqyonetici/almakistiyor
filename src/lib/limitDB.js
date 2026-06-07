@@ -1,14 +1,11 @@
-// src/lib/limitDB.js — ilan ve mesaj limit kontrolü (CANLI paket bazlı)
+// src/lib/limitDB.js — ilan, mesaj ve telefon limit kontrolü (CANLI paket bazlı)
 import { supabase } from './supabase'
 
 // Kullanıcının paketini ve O PAKETİN güncel haklarını getir
-// (kullanicilar.gunluk_mesaj_hakki yerine DOĞRUDAN paketler tablosundan okur
-//  böylece admin paketi değiştirince anında yansır)
 export async function kullaniciHaklari(email) {
   if (!supabase || !email) {
-    return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, telefonGoster: false, engelli: false }
+    return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, gunlukTelefon: 0, telefonGoster: false, engelli: false }
   }
-  // 1. Kullanıcının paket kodunu al
   const { data: kList } = await supabase
     .from('kullanicilar')
     .select('paket, engelli')
@@ -18,10 +15,9 @@ export async function kullaniciHaklari(email) {
   const k = kList && kList.length ? kList[0] : null
   const paketKod = k?.paket || 'ucretsiz'
 
-  // 2. O paketin GÜNCEL haklarını paketler tablosundan al
   const { data: pList } = await supabase
     .from('paketler')
-    .select('gunluk_ilan, gunluk_mesaj, telefon_goster')
+    .select('gunluk_ilan, gunluk_mesaj, gunluk_telefon, telefon_goster')
     .eq('kod', paketKod)
     .limit(1)
   const p = pList && pList.length ? pList[0] : null
@@ -30,6 +26,7 @@ export async function kullaniciHaklari(email) {
     paket: paketKod,
     gunlukIlan: p?.gunluk_ilan ?? 3,
     gunlukMesaj: p?.gunluk_mesaj ?? 1,
+    gunlukTelefon: p?.gunluk_telefon ?? 0,
     telefonGoster: p?.telefon_goster ?? false,
     engelli: k?.engelli ?? false,
   }
@@ -59,6 +56,18 @@ export async function bugunkuMesajSayisi(email) {
   return count || 0
 }
 
+// Bugün kaç telefon görüntüledi?
+export async function bugunkuTelefonSayisi(email) {
+  if (!supabase || !email) return 0
+  const bugun = new Date(); bugun.setHours(0,0,0,0)
+  const { count } = await supabase
+    .from('telefon_goruntulemeler')
+    .select('*', { count: 'exact', head: true })
+    .eq('kullanici_email', email)
+    .gte('created_at', bugun.toISOString())
+  return count || 0
+}
+
 // İLAN VEREBİLİR Mİ?
 export async function ilanHakkiVarMi(user) {
   if (!user?.email) {
@@ -79,7 +88,7 @@ export async function ilanHakkiVarMi(user) {
   return { izin: true, kalan, toplam: haklar.gunlukIlan, paket: haklar.paket }
 }
 
-// MESAJ GÖNDEREBİLİR Mİ? — her çağrıda CANLI hesaplar
+// MESAJ GÖNDEREBİLİR Mİ?
 export async function mesajHakkiVarMi(user) {
   if (!user?.email) {
     return { izin: false, sebep: 'giris-gerekli', mesaj: 'Mesaj göndermek için giriş yapmalısınız.' }
@@ -97,6 +106,32 @@ export async function mesajHakkiVarMi(user) {
     }
   }
   return { izin: true, kalan, toplam: haklar.gunlukMesaj, telefonGoster: haklar.telefonGoster, paket: haklar.paket }
+}
+
+// TELEFON GÖRÜNTÜLEYEBİLİR Mİ?
+export async function telefonHakkiVarMi(user) {
+  if (!user?.email) {
+    return { izin: false, sebep: 'giris-gerekli', mesaj: 'Telefon görmek için giriş yapmalısınız.' }
+  }
+  const haklar = await kullaniciHaklari(user.email)
+  if (haklar.engelli) {
+    return { izin: false, sebep: 'engelli', mesaj: 'Hesabınız askıya alınmış.' }
+  }
+  if (!haklar.telefonGoster || haklar.gunlukTelefon === 0) {
+    return {
+      izin: false, sebep: 'paket-gerekli', paket: haklar.paket,
+      mesaj: 'Telefon numaralarını görmek için Pro üyelik gereklidir.'
+    }
+  }
+  const bugunku = await bugunkuTelefonSayisi(user.email)
+  const kalan = haklar.gunlukTelefon - bugunku
+  if (kalan <= 0) {
+    return {
+      izin: false, sebep: 'limit', kalan: 0, paket: haklar.paket,
+      mesaj: `Günlük telefon görüntüleme hakkınız doldu (${haklar.gunlukTelefon}/gün). Yarın tekrar deneyebilirsiniz.`
+    }
+  }
+  return { izin: true, kalan, toplam: haklar.gunlukTelefon, paket: haklar.paket }
 }
 
 // Kalan mesaj hakkını döndür (gösterim için)
