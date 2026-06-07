@@ -1,7 +1,6 @@
-// src/lib/limitDB.js — ilan, mesaj ve telefon limit kontrolü (CANLI paket bazlı)
+﻿// src/lib/limitDB.js
 import { supabase } from './supabase'
 
-// Kullanıcının paketini ve O PAKETİN güncel haklarını getir
 export async function kullaniciHaklari(email) {
   if (!supabase || !email) {
     return { paket: 'misafir', gunlukIlan: 1, gunlukMesaj: 0, gunlukTelefon: 0, telefonGoster: false, engelli: false }
@@ -32,7 +31,6 @@ export async function kullaniciHaklari(email) {
   }
 }
 
-// Bugün kaç ilan verdi?
 export async function bugunkuIlanSayisi(email) {
   if (!supabase || !email) return 0
   const bugun = new Date(); bugun.setHours(0,0,0,0)
@@ -44,7 +42,6 @@ export async function bugunkuIlanSayisi(email) {
   return count || 0
 }
 
-// Bugün kaç mesaj gönderdi?
 export async function bugunkuMesajSayisi(email) {
   if (!supabase || !email) return 0
   const bugun = new Date(); bugun.setHours(0,0,0,0)
@@ -56,7 +53,6 @@ export async function bugunkuMesajSayisi(email) {
   return count || 0
 }
 
-// Bugün kaç telefon görüntüledi?
 export async function bugunkuTelefonSayisi(email) {
   if (!supabase || !email) return 0
   const bugun = new Date(); bugun.setHours(0,0,0,0)
@@ -68,73 +64,112 @@ export async function bugunkuTelefonSayisi(email) {
   return count || 0
 }
 
-// İLAN VEREBİLİR Mİ?
 export async function ilanHakkiVarMi(user) {
   if (!user?.email) {
     return { izin: true, sebep: 'misafir', kalan: 1 }
   }
   const haklar = await kullaniciHaklari(user.email)
   if (haklar.engelli) {
-    return { izin: false, sebep: 'engelli', mesaj: 'Hesabınız askıya alınmış. Destek ile iletişime geçin.' }
+    return { izin: false, sebep: 'engelli', mesaj: 'Hesabiniz askiya alinmis. Destek ile iletisime gecin.' }
   }
   const bugunku = await bugunkuIlanSayisi(user.email)
   const kalan = haklar.gunlukIlan - bugunku
   if (kalan <= 0) {
     return {
       izin: false, sebep: 'limit', kalan: 0, paket: haklar.paket,
-      mesaj: `Günlük ilan hakkınız doldu (${haklar.gunlukIlan} ilan/gün). ${haklar.paket === 'ucretsiz' ? 'Daha fazla ilan için Pro üyeliğe geçin.' : 'Yarın tekrar deneyebilirsiniz.'}`
+      mesaj: `Gunluk ilan hakkiniz doldu (${haklar.gunlukIlan} ilan/gun). ${haklar.paket === 'ucretsiz' ? 'Daha fazla ilan icin Pro uyelige gecin.' : 'Yarin tekrar deneyebilirsiniz.'}`
     }
   }
   return { izin: true, kalan, toplam: haklar.gunlukIlan, paket: haklar.paket }
 }
 
-// MESAJ GÖNDEREBİLİR Mİ?
 export async function mesajHakkiVarMi(user) {
   if (!user?.email) {
-    return { izin: false, sebep: 'giris-gerekli', mesaj: 'Mesaj göndermek için giriş yapmalısınız.' }
+    return { izin: false, sebep: 'giris-gerekli', mesaj: 'Mesaj gondermek icin giris yapmalisiniz.' }
   }
   const haklar = await kullaniciHaklari(user.email)
   if (haklar.engelli) {
-    return { izin: false, sebep: 'engelli', mesaj: 'Hesabınız askıya alınmış.' }
+    return { izin: false, sebep: 'engelli', mesaj: 'Hesabiniz askiya alinmis.' }
   }
   const bugunku = await bugunkuMesajSayisi(user.email)
   const kalan = haklar.gunlukMesaj - bugunku
   if (kalan <= 0) {
     return {
       izin: false, sebep: 'limit', kalan: 0, paket: haklar.paket,
-      mesaj: `Günlük mesaj hakkınız doldu (${haklar.gunlukMesaj} mesaj/gün). ${haklar.paket === 'ucretsiz' ? 'Daha fazla mesaj için Pro üyeliğe geçin.' : 'Yarın tekrar deneyebilirsiniz.'}`
+      mesaj: `Gunluk mesaj hakkiniz doldu (${haklar.gunlukMesaj} mesaj/gun). ${haklar.paket === 'ucretsiz' ? 'Daha fazla mesaj icin Pro uyelige gecin.' : 'Yarin tekrar deneyebilirsiniz.'}`
     }
   }
   return { izin: true, kalan, toplam: haklar.gunlukMesaj, telefonGoster: haklar.telefonGoster, paket: haklar.paket }
 }
 
-// TELEFON GÖRÜNTÜLEYEBİLİR Mİ?
-export async function telefonHakkiVarMi(user) {
+// TELEFON KONTROLU + KAYIT (hep birlikte)
+export async function telefonHakkiVarMi(user, ilanId) {
   if (!user?.email) {
-    return { izin: false, sebep: 'giris-gerekli', mesaj: 'Telefon görmek için giriş yapmalısınız.' }
+    return { izin: false, sebep: 'giris-gerekli', mesaj: 'Telefon gormek icin giris yapmalisiniz.' }
   }
   const haklar = await kullaniciHaklari(user.email)
   if (haklar.engelli) {
-    return { izin: false, sebep: 'engelli', mesaj: 'Hesabınız askıya alınmış.' }
+    return { izin: false, sebep: 'engelli', mesaj: 'Hesabiniz askiya alinmis.' }
   }
   if (!haklar.telefonGoster || haklar.gunlukTelefon === 0) {
     return {
       izin: false, sebep: 'paket-gerekli', paket: haklar.paket,
-      mesaj: 'Telefon numaralarını görmek için Pro üyelik gereklidir.'
+      mesaj: 'Telefon numaralarini gormek icin Pro uyelik gereklidir.'
     }
   }
+
+  const bugun = new Date(); bugun.setHours(0,0,0,0)
+
+  // Bugun bu ilana zaten bakildi mi? Hak dusmeden tekrar goster
+  if (ilanId) {
+    const { count: zatenVar } = await supabase
+      .from('telefon_goruntulemeler')
+      .select('*', { count: 'exact', head: true })
+      .eq('kullanici_email', user.email)
+      .eq('ilan_id', ilanId)
+      .gte('created_at', bugun.toISOString())
+    if (zatenVar && zatenVar > 0) {
+      const bugunku = await bugunkuTelefonSayisi(user.email)
+      return {
+        izin: true,
+        zatenGoruldu: true,
+        kalan: Math.max(0, haklar.gunlukTelefon === 999 ? 999 : haklar.gunlukTelefon - bugunku),
+        toplam: haklar.gunlukTelefon,
+        paket: haklar.paket
+      }
+    }
+  }
+
+  // Bugunun toplam sayisi
   const bugunku = await bugunkuTelefonSayisi(user.email)
-  const kalan = haklar.gunlukTelefon - bugunku
-  if (kalan <= 0) {
+  const sinirsiz = haklar.gunlukTelefon === 999
+  const kalan = sinirsiz ? 999 : haklar.gunlukTelefon - bugunku
+
+  if (!sinirsiz && kalan <= 0) {
     return {
-      izin: false, sebep: 'limit', kalan: 0, paket: haklar.paket,
-      mesaj: `Günlük telefon görüntüleme hakkınız doldu (${haklar.gunlukTelefon}/gün). Yarın tekrar deneyebilirsiniz.`
+      izin: false, sebep: 'limit', kalan: 0,
+      toplam: haklar.gunlukTelefon,
+      paket: haklar.paket,
+      mesaj: `Gunluk telefon goruntuleme limitinize ulastiniz (${haklar.gunlukTelefon}/gun). Yarin yenilenir veya planini yukseltin.`
     }
   }
-  return { izin: true, kalan, toplam: haklar.gunlukTelefon, paket: haklar.paket }
+
+  // Kayit yaz
+  if (ilanId && supabase) {
+    await supabase.from('telefon_goruntulemeler').insert({
+      kullanici_email: user.email,
+      ilan_id: ilanId,
+    })
+  }
+
+  return {
+    izin: true,
+    kalan: sinirsiz ? 999 : kalan - 1,
+    toplam: haklar.gunlukTelefon,
+    paket: haklar.paket
+  }
 }
 
-// Kalan mesaj hakkını döndür (gösterim için)
 export async function kalanMesajHakki(email) {
   if (!supabase || !email) return 0
   const haklar = await kullaniciHaklari(email)
