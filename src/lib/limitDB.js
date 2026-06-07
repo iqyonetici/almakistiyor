@@ -1,4 +1,4 @@
-// src/lib/limitDB.js
+﻿// src/lib/limitDB.js
 import { supabase } from './supabase'
 
 export async function kullaniciHaklari(email) {
@@ -163,8 +163,9 @@ export async function telefonHakkiVarMi(user, ilanId) {
 
   // Insert sonrasi toplam sayiyi kontrol et
   const bugunSayisi = await bugunkuTelefonSayisi(user.email)
+  console.log('BUGUN SAYISI:', bugunSayisi, 'LIMIT:', haklar.gunlukTelefon)
 
-  if (!sinirsiz && bugunSayisi > haklar.gunlukTelefon) {
+  if (!sinirsiz && bugunSayisi >= haklar.gunlukTelefon) {
     // Limiti asti - az once eklenen kaydi sil
     if (ilanId) {
       await supabase.from('telefon_goruntulemeler')
@@ -195,3 +196,5 @@ export async function kalanMesajHakki(email) {
   const bugunku = await bugunkuMesajSayisi(email)
   return Math.max(0, haklar.gunlukMesaj - bugunku)
 }
+
+
