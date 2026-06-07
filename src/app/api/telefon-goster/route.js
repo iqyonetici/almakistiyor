@@ -60,3 +60,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Sunucu hatasi' }, { status: 500 });
   }
 }
+
