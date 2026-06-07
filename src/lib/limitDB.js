@@ -1,4 +1,4 @@
-﻿// src/lib/limitDB.js
+// src/lib/limitDB.js
 import { supabase } from './supabase'
 
 export async function kullaniciHaklari(email) {
@@ -102,7 +102,7 @@ export async function mesajHakkiVarMi(user) {
   return { izin: true, kalan, toplam: haklar.gunlukMesaj, telefonGoster: haklar.telefonGoster, paket: haklar.paket }
 }
 
-// TELEFON KONTROLU + KAYIT (hep birlikte)
+// TELEFON KONTROLU + KAYIT (insert-first yaklasimiyla race condition onlendi)
 export async function telefonHakkiVarMi(user, ilanId) {
   if (!user?.email) {
     return { izin: false, sebep: 'giris-gerekli', mesaj: 'Telefon gormek icin giris yapmalisiniz.' }
@@ -119,6 +119,8 @@ export async function telefonHakkiVarMi(user, ilanId) {
   }
 
   const bugun = new Date(); bugun.setHours(0,0,0,0)
+  const sinirsiz = haklar.gunlukTelefon === 999
+  const bugunTarihi = new Date().toISOString().slice(0, 10)
 
   // Bugun bu ilana zaten bakildi mi? Hak dusmeden tekrar goster
   if (ilanId) {
@@ -133,19 +135,44 @@ export async function telefonHakkiVarMi(user, ilanId) {
       return {
         izin: true,
         zatenGoruldu: true,
-        kalan: Math.max(0, haklar.gunlukTelefon === 999 ? 999 : haklar.gunlukTelefon - bugunku),
+        kalan: sinirsiz ? 999 : Math.max(0, haklar.gunlukTelefon - bugunku),
         toplam: haklar.gunlukTelefon,
         paket: haklar.paket
       }
     }
   }
 
-  // Bugunun toplam sayisi
-  const bugunku = await bugunkuTelefonSayisi(user.email)
-  const sinirsiz = haklar.gunlukTelefon === 999
-  const kalan = sinirsiz ? 999 : haklar.gunlukTelefon - bugunku
+  // Once kayit yaz - unique constraint race condition'i engeller
+  if (ilanId && supabase) {
+    const { error: insErr } = await supabase.from('telefon_goruntulemeler').insert({
+      kullanici_email: user.email,
+      ilan_id: ilanId,
+      tarih: bugunTarihi,
+    })
 
-  if (!sinirsiz && kalan <= 0) {
+    // Duplicate kayit - zaten gorulmus demek
+    if (insErr && insErr.code === '23505') {
+      return { izin: true, zatenGoruldu: true, paket: haklar.paket }
+    }
+
+    // Diger hata
+    if (insErr) {
+      console.error('telefon insert hatasi:', insErr)
+    }
+  }
+
+  // Insert sonrasi toplam sayiyi kontrol et
+  const bugunSayisi = await bugunkuTelefonSayisi(user.email)
+
+  if (!sinirsiz && bugunSayisi > haklar.gunlukTelefon) {
+    // Limiti asti - az once eklenen kaydi sil
+    if (ilanId) {
+      await supabase.from('telefon_goruntulemeler')
+        .delete()
+        .eq('kullanici_email', user.email)
+        .eq('ilan_id', ilanId)
+        .eq('tarih', bugunTarihi)
+    }
     return {
       izin: false, sebep: 'limit', kalan: 0,
       toplam: haklar.gunlukTelefon,
@@ -154,19 +181,9 @@ export async function telefonHakkiVarMi(user, ilanId) {
     }
   }
 
-  // Kayit yaz
-  if (ilanId && supabase) {
-    const { error: insErr } = await supabase.from('telefon_goruntulemeler').insert({
-      kullanici_email: user.email,
-      ilan_id: ilanId,
-      tarih: new Date().toISOString().slice(0,10),
-    })
-    if (insErr && insErr.code !== '23505') console.error('telefon insert hatasi:', insErr)
-  }
-
   return {
     izin: true,
-    kalan: sinirsiz ? 999 : kalan - 1,
+    kalan: sinirsiz ? 999 : Math.max(0, haklar.gunlukTelefon - bugunSayisi),
     toplam: haklar.gunlukTelefon,
     paket: haklar.paket
   }
@@ -178,5 +195,3 @@ export async function kalanMesajHakki(email) {
   const bugunku = await bugunkuMesajSayisi(email)
   return Math.max(0, haklar.gunlukMesaj - bugunku)
 }
-
-
