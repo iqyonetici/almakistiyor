@@ -112,21 +112,6 @@ async function handleTelefon() {
     return
   }
 
-  if (supabase) {
-    const bugun = new Date(); bugun.setHours(0,0,0,0)
-    const { count } = await supabase
-      .from('telefon_goruntulemeler')
-      .select('*', { count: 'exact', head: true })
-      .eq('kullanici_email', user.email)
-      .eq('ilan_id', ilan.id)
-      .gte('created_at', bugun.toISOString())
-    if (!count || count === 0) {
-      await supabase.from('telefon_goruntulemeler').insert({
-        kullanici_email: user.email,
-        ilan_id: ilan.id,
-      })
-    }
-  }
   setTelefonAcik(true)
 }
 
