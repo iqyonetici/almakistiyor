@@ -156,11 +156,12 @@ export async function telefonHakkiVarMi(user, ilanId) {
 
   // Kayit yaz
   if (ilanId && supabase) {
-    await supabase.from('telefon_goruntulemeler').upsert({
+    const { error: insErr } = await supabase.from('telefon_goruntulemeler').insert({
       kullanici_email: user.email,
       ilan_id: ilanId,
       tarih: new Date().toISOString().slice(0,10),
-    }, { onConflict: 'kullanici_email,ilan_id,tarih', ignoreDuplicates: true })
+    })
+    if (insErr && insErr.code !== '23505') console.error('telefon insert hatasi:', insErr)
   }
 
   return {
@@ -177,4 +178,5 @@ export async function kalanMesajHakki(email) {
   const bugunku = await bugunkuMesajSayisi(email)
   return Math.max(0, haklar.gunlukMesaj - bugunku)
 }
+
 
