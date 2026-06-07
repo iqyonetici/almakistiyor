@@ -93,34 +93,43 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, onT
     setTimeout(() => setMesajAcik(false), 2000)
   }
 
-  async function handleTelefon() {
-    if (!user) { window.location.href = '/giris'; return }
-    setTelefonYukleniyor(true)
-    const kontrol = await telefonHakkiVarMi(user)
-    setTelefonYukleniyor(false)
+async function handleTelefon() {
+  if (!user) { window.location.href = '/giris'; return }
+  if (telefonAcik) return
+  setTelefonYukleniyor(true)
+  const kontrol = await telefonHakkiVarMi(user)
+  setTelefonYukleniyor(false)
 
-    if (!kontrol.izin) {
-      if (kontrol.sebep === 'paket-gerekli') {
-        // Paketi yok — mevcut modal'ı aç
-        onTelefonGoster && onTelefonGoster(ilan)
-      } else if (kontrol.sebep === 'limit') {
-        setUyari(`⚠️ ${kontrol.mesaj}`)
-        setTimeout(() => setUyari(''), 4000)
-      } else {
-        window.location.href = '/giris'
-      }
-      return
+  if (!kontrol.izin) {
+    if (kontrol.sebep === 'paket-gerekli') {
+      onTelefonGoster && onTelefonGoster(ilan)
+    } else if (kontrol.sebep === 'limit') {
+      setUyari('Gunluk telefon goruntuleme limitinize ulastiniz. Daha fazlasi icin plani yukseltin.')
+      setTimeout(() => setUyari(''), 5000)
+    } else {
+      window.location.href = '/giris'
     }
+    return
+  }
 
-    // Hak var — görüntülemeyi kaydet ve göster
-    if (supabase) {
+  if (supabase) {
+    const bugun = new Date(); bugun.setHours(0,0,0,0)
+    const { count } = await supabase
+      .from('telefon_goruntulemeler')
+      .select('*', { count: 'exact', head: true })
+      .eq('kullanici_email', user.email)
+      .eq('ilan_id', ilan.id)
+      .gte('created_at', bugun.toISOString())
+    if (!count || count === 0) {
       await supabase.from('telefon_goruntulemeler').insert({
         kullanici_email: user.email,
         ilan_id: ilan.id,
       })
     }
-    setTelefonAcik(true)
   }
+  setTelefonAcik(true)
+}
+
 
   const azKaldi = typeof kalanGenel === 'number' && kalanGenel <= 5
   const kalanRenk = kalanGenel===1?'#E53E3E':kalanGenel<=3?'#D97706':'#0D7A6B'
