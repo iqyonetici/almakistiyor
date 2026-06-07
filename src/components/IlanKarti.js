@@ -97,7 +97,7 @@ async function handleTelefon() {
   if (!user) { window.location.href = '/giris'; return }
   if (telefonAcik) return
   setTelefonYukleniyor(true)
-  const kontrol = await telefonHakkiVarMi(user)
+  const kontrol = await telefonHakkiVarMi(user, ilan.id)
   setTelefonYukleniyor(false)
 
   if (!kontrol.izin) {
