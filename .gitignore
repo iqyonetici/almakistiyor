@@ -31,3 +31,11 @@ yarn-error.log*
 
 .vercel
 .env*
+
+*.backup
+*.backup2
+*.backup3
+*.backup4
+*.backup5
+*.py
+git

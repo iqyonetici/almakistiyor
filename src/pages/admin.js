@@ -296,6 +296,7 @@ function Paketler() {
       yillik_eski_fiyat: p.yillik_eski_fiyat ? Number(p.yillik_eski_fiyat) : null,
       gunluk_ilan: Number(p.gunluk_ilan) || 0,
       gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
+      gunluk_telefon: Number(p.gunluk_telefon) || 0,  // ← YENİ
       telefon_goster: !!p.telefon_goster,
       aciklama: p.aciklama || null,
       ozellikler: p.ozellikler || null,
@@ -321,26 +322,69 @@ function Paketler() {
                 {p.populer && <span className={styles.proRozet}>Populer</span>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
-                <label style={lblS}>Paket adi<input className={styles.miniInput} style={inpFull} value={p.ad ?? ''} onChange={e=>alanDegistir(p.id,'ad',e.target.value)} /></label>
-                <label style={lblS}>Fiyat TL/ay<input type="number" className={styles.miniInput} style={inpFull} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} /></label>
-                <label style={lblS}>Eski fiyat/ay (indirim)<input type="number" className={styles.miniInput} style={inpFull} value={p.eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'eski_fiyat',e.target.value)} placeholder="bos=yok" /></label>
-                <label style={lblS}>Fiyat TL/yil<input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_fiyat',e.target.value)} /></label>
-                <label style={lblS}>Eski fiyat/yil (indirim)<input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_eski_fiyat',e.target.value)} placeholder="bos=yok" /></label>
-                <label style={lblS}>Gunluk ilan<input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} /></label>
-                <label style={lblS}>Gunluk mesaj<input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} /></label>
-                <label style={lblS}>Kart rengi<input type="color" style={{width:'100%',height:34,borderRadius:6,border:'1.5px solid #e2e8f0',cursor:'pointer'}} value={p.renk || '#0D7A6B'} onChange={e=>alanDegistir(p.id,'renk',e.target.value)} /></label>
+                <label style={lblS}>Paket adi
+                  <input className={styles.miniInput} style={inpFull} value={p.ad ?? ''} onChange={e=>alanDegistir(p.id,'ad',e.target.value)} />
+                </label>
+                <label style={lblS}>Fiyat TL/ay
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} />
+                </label>
+                <label style={lblS}>Eski fiyat/ay (indirim)
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'eski_fiyat',e.target.value)} placeholder="bos=yok" />
+                </label>
+                <label style={lblS}>Fiyat TL/yil
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_fiyat',e.target.value)} />
+                </label>
+                <label style={lblS}>Eski fiyat/yil (indirim)
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_eski_fiyat',e.target.value)} placeholder="bos=yok" />
+                </label>
+                <label style={lblS}>Gunluk ilan
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} />
+                </label>
+                <label style={lblS}>Gunluk mesaj
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} />
+                </label>
+
+                {/* ★ YENİ ALAN ★ */}
+                <label style={{...lblS, color:'#0D7A6B'}}>📞 Gunluk telefon goruntuleme
+                  <input
+                    type="number"
+                    min={0}
+                    className={styles.miniInput}
+                    style={{...inpFull, borderColor: '#0D7A6B'}}
+                    value={p.gunluk_telefon ?? 0}
+                    onChange={e=>alanDegistir(p.id,'gunluk_telefon',e.target.value)}
+                    placeholder="0 = kapali"
+                  />
+                  {(Number(p.gunluk_telefon) === 0) && (
+                    <span style={{color:'#e53e3e',fontSize:10,marginTop:2}}>0 = telefon gizli kalir</span>
+                  )}
+                </label>
+
+                <label style={lblS}>Kart rengi
+                  <input type="color" style={{width:'100%',height:34,borderRadius:6,border:'1.5px solid #e2e8f0',cursor:'pointer'}} value={p.renk || '#0D7A6B'} onChange={e=>alanDegistir(p.id,'renk',e.target.value)} />
+                </label>
               </div>
-              <label style={{...lblS,marginTop:10,display:'block'}}>Aciklama<input className={styles.miniInput} style={inpFull} value={p.aciklama ?? ''} onChange={e=>alanDegistir(p.id,'aciklama',e.target.value)} placeholder="Orn: Profesyonel saticilar icin" /></label>
-              <label style={{...lblS,marginTop:10,display:'block'}}>Ozellikler (virgÃ¼lle ayir)<textarea className={styles.miniInput} style={{...inpFull,minHeight:54,resize:'vertical'}} value={p.ozellikler ?? ''} onChange={e=>alanDegistir(p.id,'ozellikler',e.target.value)} placeholder="Oncelikli siralama, Onaylit rozet" /></label>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Aciklama
+                <input className={styles.miniInput} style={inpFull} value={p.aciklama ?? ''} onChange={e=>alanDegistir(p.id,'aciklama',e.target.value)} placeholder="Orn: Profesyonel saticilar icin" />
+              </label>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Ozellikler (virgülle ayir)
+                <textarea className={styles.miniInput} style={{...inpFull,minHeight:54,resize:'vertical'}} value={p.ozellikler ?? ''} onChange={e=>alanDegistir(p.id,'ozellikler',e.target.value)} placeholder="Oncelikli siralama, Onaylit rozet" />
+              </label>
               <div style={{display:'flex',gap:18,marginTop:12,flexWrap:'wrap'}}>
-                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon goster</label>
-                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={!!p.populer} onChange={e=>alanDegistir(p.id,'populer',e.target.checked)} /> En populer</label>
-                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><input type="checkbox" checked={p.aktif !== false} onChange={e=>alanDegistir(p.id,'aktif',e.target.checked)} /> Aktif (sitede gorunsun)</label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon goster
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={!!p.populer} onChange={e=>alanDegistir(p.id,'populer',e.target.checked)} /> En populer
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={p.aktif !== false} onChange={e=>alanDegistir(p.id,'aktif',e.target.checked)} /> Aktif (sitede gorunsun)
+                </label>
               </div>
             </div>
             <div className={styles.ilanAksiyon}>
               <button className={styles.btnOnay} onClick={()=>kaydet(p.id)}>
-                {kayitDurum[p.id] === 'kaydedildi' ? 'Kaydedildi' : 'Kaydet'}
+                {kayitDurum[p.id] === 'kaydedildi' ? '✓ Kaydedildi' : 'Kaydet'}
               </button>
             </div>
           </div>
@@ -349,6 +393,7 @@ function Paketler() {
     </div>
   )
 }
+
 
 function Kategoriler() {
   const [kategoriler, setKategoriler] = useState([])

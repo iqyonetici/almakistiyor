@@ -4,27 +4,23 @@ import { supabase } from './supabase'
 
 export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip, marka, kullaniciEmail, limit = 50 } = {}) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
+
+  // ilanlar_pro view'i kullan - kullanici_pro alanını da getirir
   let q = supabase
-    .from('ilanlar')
+    .from('ilanlar_pro')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('siralama_skoru', { ascending: false })
     .limit(limit)
 
-  // GÖRÜNÜRLÜK KURALI:
-  // - Herkese: sadece onaylanmış VE aktif ilanlar
-  // - Giriş yapan kullanıcıya ek olarak: kendi onay bekleyen/reddedilen ilanları
   if (kullaniciEmail) {
     q = q.or(`and(durum.eq.aktif,onay_durumu.eq.onaylandi),kullanici_email.eq.${kullaniciEmail}`)
   } else {
     q = q.eq('durum', 'aktif').eq('onay_durumu', 'onaylandi')
   }
 
-  // 3. seviye filtreler (en spesifik)
   if (emlakTip) {
     q = q.eq('emlak_tip', emlakTip)
   } else if (marka) {
-    // markalar kolonu "Audi A1", "BMW 320i" gibi olabilir.
-    // Filtre değeri içeride geçiyorsa eşleştir (büyük/küçük harf duyarsız).
     q = q.ilike('markalar', '%' + marka + '%')
   } else if (altKategori) {
     q = q.eq('alt_kategori', altKategori)
@@ -89,7 +85,7 @@ export async function ilanOlustur(ilanData, user) {
 
 export async function kullanicIlanlari(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase.from('ilanlar').select('*').eq('kullanici_email', kullaniciEmail).order('created_at', { ascending: false })
+  return await supabase.from('ilanlar').select('*').eq('kullanici_email', kullaniciEmail).order('siralama_skoru', { ascending: false })
 }
 
 export async function ilanSil(ilanId) {
@@ -117,7 +113,7 @@ export async function mesajGonder({ ilanId, gonderenEmail, gonderenAd, gonderenF
 
 export async function mesajlariGetir(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase.from('mesajlar').select('*').eq('alici_email', kullaniciEmail).order('created_at', { ascending: false })
+  return await supabase.from('mesajlar').select('*').eq('alici_email', kullaniciEmail).order('siralama_skoru', { ascending: false })
 }
 
 export async function mesajOkunduIsaretle(mesajId) {

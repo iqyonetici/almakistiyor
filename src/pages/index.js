@@ -1,3 +1,15 @@
+function lokEk(k){if(!k)return 'da';const un=['a','e',String.fromCharCode(305),'i','o',String.fromCharCode(246),'u',String.fromCharCode(252)];const ka=['a',String.fromCharCode(305),'o','u'];const sr=[String.fromCharCode(231),'f','h','k','p','s',String.fromCharCode(351),'t'];let u='';for(let i=k.length-1;i>=0;i--){const h=k[i].toLowerCase();if(un.includes(h)){u=h;break}}const sn=k.slice(-1).toLowerCase();return(ka.includes(u)?(sr.includes(sn)?'ta':'da'):(sr.includes(sn)?'te':'de'))}
+
+function lokasyonEki(k) {
+  if (!k) return 'da'
+  const unlu = ['a','e','\u0131','i','o','\u00f6','u','\u00fc']
+  const kalin = ['a','\u0131','o','u']
+  const sert = ['\u00e7','f','h','k','p','s','\u015f','t']
+  let u = ''
+  for (let i = k.length-1; i >= 0; i--) { const h=k[i].toLowerCase(); if(unlu.includes(h)){u=h;break} }
+  const son = k.slice(-1).toLowerCase()
+  return (kalin.includes(u) ? (sert.includes(son)?'ta':'da') : (sert.includes(son)?'te':'de'))
+}
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
@@ -123,7 +135,7 @@ export default function Home() {
         sehir: d.sehir || '', ilce: d.ilce || '',
         baslik: (() => {
           const s = [d.sehir, d.ilce].filter(Boolean).join(' ')
-          if (d.kategori === 'emlak') return `${s ? s + "'da " : ''}${d.emlak_tip || 'Emlak'} arıyorum`
+          if (d.kategori === 'emlak') { const yer = d.ilce || d.sehir || ''; return `${yer ? yer + "'" + lokEk(yer) + " " : ''}${d.emlak_tip || 'Emlak'} arıyorum` }
           if (d.kategori === 'vasita') return `${d.markalar || 'Araç'} arıyorum`
           return (s ? s + ' — ' : '') + (d.aciklama?.slice(0, 50) || d.kategori + ' arıyorum')
         })(),
@@ -139,7 +151,7 @@ export default function Home() {
         aciklama: d.aciklama || '', tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
         goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
         email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
-        created_at: d.created_at, emlak_tip: d.emlak_tip,
+        created_at: d.created_at, emlak_tip: d.emlak_tip, kullanici_pro: d.kullanici_pro,
         onayDurumu: d.onay_durumu || 'onaylandi', durum: d.durum || 'aktif',
       })))
     } else {
@@ -357,7 +369,7 @@ export default function Home() {
               </div>
             ) : (
               filtered.map(ilan => (
-                <IlanKarti key={ilan.id} ilan={ilan} user={user}
+                <IlanKarti key={ilan.id} ilan={ilan} user={user} proUye={!!ilan.kullanici_pro}
                   mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
                   onMesajGonder={async ({ ilan: il, mesaj }) => {
                     // Mesaj göndermeden önce paket limit kontrolü
@@ -369,6 +381,18 @@ export default function Home() {
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
                     const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
                     if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
+                    // Alıcıya bildirim maili (hata olsa engellemez)
+                    fetch('/api/mesaj-mail', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        aliciEmail: il.email || '',
+                        aliciAd: il.ad || 'Değerli kullanıcı',
+                        gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Bir kullanıcı',
+                        ilanBaslik: il.baslik || 'Talebiniz',
+                        mesajMetni: mesaj,
+                      })
+                    }).catch(() => {})
                     setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
                     setKalanGenel(p => Math.max(0, p - 1))
                     return true
