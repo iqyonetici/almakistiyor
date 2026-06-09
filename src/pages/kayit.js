@@ -5,10 +5,30 @@ import { useAuth } from '../context/AuthContext'
 import { sehirler, getIlceler } from '../data/sehirler'
 import styles from './kayit.module.css'
 
+const SARI = '#F5A623'
+
 function randomCaptcha() {
   const a = Math.floor(Math.random() * 9) + 1
   const b = Math.floor(Math.random() * 9) + 1
   return { a, b, answer: a + b }
+}
+
+function formatTel(val) {
+  const digits = val.replace(/\D/g,'').replace(/^0+/,'')
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return digits.slice(0,3) + ' ' + digits.slice(3)
+  if (digits.length <= 8) return digits.slice(0,3) + ' ' + digits.slice(3,6) + ' ' + digits.slice(6)
+  return digits.slice(0,3) + ' ' + digits.slice(3,6) + ' ' + digits.slice(6,8) + ' ' + digits.slice(8,10)
+}
+
+// Zorunlu alan etiketi — sarı yıldızlı
+function ZLabel({ children, not }) {
+  return (
+    <label className="form-label">
+      {children} <span style={{color:SARI,fontWeight:700}}>*</span>
+      {not && <span style={{fontWeight:400,color:'var(--text-3)',fontSize:11}}> {not}</span>}
+    </label>
+  )
 }
 
 export default function Kayit() {
@@ -25,6 +45,7 @@ export default function Kayit() {
   const [ad, setAd] = useState('')
   const [soyad, setSoyad] = useState('')
   const [email, setEmail] = useState('')
+  const [telefon, setTelefon] = useState('')
   const [sifre, setSifre] = useState('')
   const [sifre2, setSifre2] = useState('')
   const [sehir, setSehir] = useState('')
@@ -34,11 +55,15 @@ export default function Kayit() {
 
   const ilceler = getIlceler(sehir)
 
+  // Zorunlu alan stili — hata yoksa sarı çerçeve
+  const zorunluStil = (alan) => hatalar[alan] ? undefined : { borderColor: SARI }
+
   function validate() {
     const h = {}
     if (!ad.trim()) h.ad = 'Zorunlu'
     if (!soyad.trim()) h.soyad = 'Zorunlu'
     if (!email.includes('@')) h.email = 'Geçerli e-posta girin'
+    if (telefon.replace(/\D/g,'').length < 10) h.telefon = 'En az 10 rakam'
     if (sifre.length < 6) h.sifre = 'En az 6 karakter'
     if (sifre !== sifre2) h.sifre2 = 'Şifreler eşleşmiyor'
     if (!sehir) h.sehir = 'Şehir seçin'
@@ -55,6 +80,7 @@ export default function Kayit() {
 
     const { error } = await kayitOl({
       email, sifre, ad, soyad,
+      telefon: telefon.replace(/\D/g,''),
       sehir, ilce,
     })
 
@@ -126,31 +152,49 @@ export default function Kayit() {
 
           <div className={styles.boxBody}>
             <h2 className={styles.stepTitle}>Hesap oluşturun</h2>
-            <p className={styles.stepSub2}>Bilgileriniz güvenle saklanır, üçüncü taraflarla paylaşılmaz</p>
+            <p className={styles.stepSub2}>
+              Bilgileriniz güvenle saklanır, üçüncü taraflarla paylaşılmaz.
+              <span style={{color:SARI,fontWeight:600}}> Sarı alanlar zorunludur.</span>
+            </p>
 
             <div className={styles.kompaktGrid}>
               <div className={styles.fg}>
-                <label className="form-label">Ad *</label>
+                <ZLabel>Ad</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.ad?styles.inputHata:''}`}
+                  style={zorunluStil('ad')}
                   placeholder="Adınız" value={ad} onChange={e => setAd(e.target.value)} />
                 {hatalar.ad && <span className={styles.hata}>{hatalar.ad}</span>}
               </div>
               <div className={styles.fg}>
-                <label className="form-label">Soyad *</label>
+                <ZLabel>Soyad</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.soyad?styles.inputHata:''}`}
+                  style={zorunluStil('soyad')}
                   placeholder="Soyadınız" value={soyad} onChange={e => setSoyad(e.target.value)} />
                 {hatalar.soyad && <span className={styles.hata}>{hatalar.soyad}</span>}
               </div>
               <div className={styles.fg}>
-                <label className="form-label">E-posta *</label>
+                <ZLabel>E-posta</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.email?styles.inputHata:''}`}
+                  style={zorunluStil('email')}
                   type="email" placeholder="ornek@email.com" value={email}
                   onChange={e => setEmail(e.target.value)} />
                 {hatalar.email && <span className={styles.hata}>{hatalar.email}</span>}
               </div>
               <div className={styles.fg}>
-                <label className="form-label">Şehir *</label>
+                <ZLabel not="(başında 0 olmadan)">Telefon</ZLabel>
+                <div className={styles.telWrap}>
+                  <span className={styles.telPrefiks}>+90</span>
+                  <input className={`form-input ${styles.kompaktInput} ${hatalar.telefon?styles.inputHata:''}`}
+                    style={{borderRadius:'0 8px 8px 0',borderLeft:'none',...(hatalar.telefon?{}:{borderColor:SARI})}}
+                    placeholder="532 111 22 33" value={telefon}
+                    onChange={e => setTelefon(formatTel(e.target.value))} maxLength={13} />
+                </div>
+                {hatalar.telefon && <span className={styles.hata}>{hatalar.telefon}</span>}
+              </div>
+              <div className={styles.fg}>
+                <ZLabel>Şehir</ZLabel>
                 <select className={`form-select ${styles.kompaktInput} ${hatalar.sehir?styles.inputHata:''}`}
+                  style={zorunluStil('sehir')}
                   value={sehir} onChange={e => { setSehir(e.target.value); setIlce('') }}>
                   <option value="">Şehir seçin</option>
                   {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
@@ -158,7 +202,7 @@ export default function Kayit() {
                 {hatalar.sehir && <span className={styles.hata}>{hatalar.sehir}</span>}
               </div>
               <div className={styles.fg}>
-                <label className="form-label">İlçe</label>
+                <label className="form-label">İlçe <span style={{fontWeight:400,color:'var(--text-3)',fontSize:11}}>(isteğe bağlı)</span></label>
                 <select className={`form-select ${styles.kompaktInput}`} value={ilce}
                   onChange={e => setIlce(e.target.value)} disabled={!sehir}>
                   <option value="">İlçe seçin</option>
@@ -166,15 +210,17 @@ export default function Kayit() {
                 </select>
               </div>
               <div className={styles.fg}>
-                <label className="form-label">Şifre * <span style={{fontWeight:400,color:'var(--text-3)',fontSize:11}}>(en az 6 karakter)</span></label>
+                <ZLabel not="(en az 6 karakter)">Şifre</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.sifre?styles.inputHata:''}`}
+                  style={zorunluStil('sifre')}
                   type="password" placeholder="••••••••" value={sifre}
                   onChange={e => setSifre(e.target.value)} />
                 {hatalar.sifre && <span className={styles.hata}>{hatalar.sifre}</span>}
               </div>
               <div className={styles.fg}>
-                <label className="form-label">Şifre Tekrar *</label>
+                <ZLabel>Şifre Tekrar</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.sifre2?styles.inputHata:''}`}
+                  style={zorunluStil('sifre2')}
                   type="password" placeholder="••••••••" value={sifre2}
                   onChange={e => setSifre2(e.target.value)} />
                 {hatalar.sifre2 && <span className={styles.hata}>{hatalar.sifre2}</span>}
@@ -182,11 +228,11 @@ export default function Kayit() {
             </div>
 
             {/* CAPTCHA */}
-            <div className={styles.captchaBox}>
-              <span style={{fontSize:13,fontWeight:500,color:'var(--text-2)'}}>🤖 Robot doğrulama:</span>
+            <div className={styles.captchaBox} style={{borderColor:SARI}}>
+              <span style={{fontSize:13,fontWeight:500,color:'var(--text-2)'}}>🤖 Robot doğrulama <span style={{color:SARI,fontWeight:700}}>*</span></span>
               <span className={styles.captchaSoru}>{captcha.a} + {captcha.b} =</span>
               <input className={`form-input ${hatalar.captcha?styles.inputHata:''}`}
-                style={{width:64,textAlign:'center',padding:'8px 4px'}}
+                style={{width:64,textAlign:'center',padding:'8px 4px',...(hatalar.captcha?{}:{borderColor:SARI})}}
                 placeholder="?" value={captchaInput}
                 onChange={e => setCaptchaInput(e.target.value)} />
               {hatalar.captcha && <span className={styles.hata}>{hatalar.captcha}</span>}
@@ -196,11 +242,11 @@ export default function Kayit() {
             <div className={styles.sozlesmeBox}>
               <label className={styles.checkRow}>
                 <input type="checkbox" checked={kvkk} onChange={e => setKvkk(e.target.checked)} />
-                <span><a href="/kvkk" target="_blank">KVKK Aydınlatma Metni</a>'ni okudum, onaylıyorum *</span>
+                <span><a href="/kvkk" target="_blank">KVKK Aydınlatma Metni</a>'ni okudum, onaylıyorum <span style={{color:SARI,fontWeight:700}}>*</span></span>
               </label>
               <label className={styles.checkRow}>
                 <input type="checkbox" checked={sozlesme} onChange={e => setSozlesme(e.target.checked)} />
-                <span><a href="/kullanim-sartlari" target="_blank">Kullanım Şartları</a>'nı okudum, kabul ediyorum *</span>
+                <span><a href="/kullanim-sartlari" target="_blank">Kullanım Şartları</a>'nı okudum, kabul ediyorum <span style={{color:SARI,fontWeight:700}}>*</span></span>
               </label>
               {hatalar.sozlesme && <p className={styles.hata}>{hatalar.sozlesme}</p>}
             </div>
