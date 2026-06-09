@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     }
 
     // Kullanıcı email'ini bul (ilanlar tablosunda email varsa direkt, yoksa kullanicilar'dan)
-    let alici = ilan.email
+    let alici = ilan.kullanici_email || ilan.email
     let ad = ilan.kullanici_ad || ilan.ad || 'Değerli kullanıcı'
 
     if (!alici && ilan.kullanici_id) {

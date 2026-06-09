@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -125,8 +125,8 @@ function Onaylar() {
     setIlanlar(data || []); setYukleniyor(false)
   }
   useEffect(() => { yukle() }, [])
-  async function onayla(id) { await supabase.from('ilanlar').update({onay_durumu:'onaylandi',durum:'aktif'}).eq('id',id); yukle() }
-  async function reddet(id) { await supabase.from('ilanlar').update({onay_durumu:'reddedildi',durum:'pasif'}).eq('id',id); yukle() }
+  async function onayla(id) { await supabase.from('ilanlar').update({onay_durumu:'onaylandi',durum:'aktif'}).eq('id',id); fetch('/api/bildirim-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ilanId:id,tip:'onaylandi'})}).catch(()=>{}); yukle() }
+  async function reddet(id) { await supabase.from('ilanlar').update({onay_durumu:'reddedildi',durum:'pasif'}).eq('id',id); fetch('/api/bildirim-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ilanId:id,tip:'reddedildi'})}).catch(()=>{}); yukle() }
   return (
     <div>
       <h1 className={styles.baslik}>ilan Onaylari {ilanlar.length>0 && <span className={styles.rozet}>{ilanlar.length}</span>}</h1>

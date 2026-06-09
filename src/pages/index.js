@@ -379,15 +379,15 @@ export default function Home() {
                       return false
                     }
                     const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
-                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.email || '', aliciAd: il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
+                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.kullanici_email || il.email || '', aliciAd: il.kullanici_ad || il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
                     if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
                     // Alıcıya bildirim maili (hata olsa engellemez)
                     fetch('/api/mesaj-mail', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        aliciEmail: il.email || '',
-                        aliciAd: il.ad || 'Değerli kullanıcı',
+                        aliciEmail: il.kullanici_email || il.email || '',
+                        aliciAd: il.kullanici_ad || il.ad || 'Değerli kullanıcı',
                         gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Bir kullanıcı',
                         ilanBaslik: il.baslik || 'Talebiniz',
                         mesajMetni: mesaj,
