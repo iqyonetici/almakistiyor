@@ -1,15 +1,14 @@
-﻿// src/lib/mail.js
+// src/lib/mail.js
 // Resend ile e-posta bildirimleri
 
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Test modunda gÃ¶nderen adresi (domain verify olunca degistir)
 const GONDEREN = 'AlmakIstiyor <noreply@almakistiyor.net>'
 const SITE_URL = 'https://almakistiyor.com'
 
-// Ortak HTML ÅŸablon sarmalayÄ±cÄ±
+// Ortak HTML şablon sarmalayıcı
 function sablon(baslik, icerik, butonMetin, butonLink) {
   return `
   <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:24px">
@@ -26,17 +25,17 @@ function sablon(baslik, icerik, butonMetin, butonLink) {
       ` : ''}
     </div>
     <div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">
-      Bu e-posta almakistiyor.com tarafÄ±ndan gÃ¶nderildi.<br>
-      Talebinizle ilgili bildirimler iÃ§in bu adresi kullanÄ±yoruz.
+      Bu e-posta almakistiyor.com tarafından gönderildi.<br>
+      Talebinizle ilgili bildirimler için bu adresi kullanıyoruz.
     </div>
   </div>
   `
 }
 
-// Genel gÃ¶nderim fonksiyonu
+// Genel gönderim fonksiyonu
 async function gonder(alici, konu, html) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY yok, mail gÃ¶nderilemedi')
+    console.warn('RESEND_API_KEY yok, mail gönderilemedi')
     return { hata: 'API key yok' }
   }
   try {
@@ -47,70 +46,69 @@ async function gonder(alici, konu, html) {
       html,
     })
     if (error) {
-      console.error('Mail hatasÄ±:', error)
+      console.error('Mail hatası:', error)
       return { hata: error.message }
     }
     return { basarili: true, id: data?.id }
   } catch (err) {
-    console.error('Mail gÃ¶nderim hatasÄ±:', err)
+    console.error('Mail gönderim hatası:', err)
     return { hata: err.message }
   }
 }
 
-// 1. Ä°lan oluÅŸturuldu (onay bekliyor)
+// 1. İlan oluşturuldu (onay bekliyor)
 export async function ilanOlusturulduMaili(alici, ad, ilanBaslik) {
   const icerik = `
     Merhaba ${ad},<br><br>
-    <strong>"${ilanBaslik}"</strong> baÅŸlÄ±klÄ± talebiniz baÅŸarÄ±yla alÄ±ndÄ± ve onay sÃ¼recine girdi.<br><br>
-    YÃ¶neticilerimiz talebinizi inceledikten sonra yayÄ±na alÄ±nacak. Genellikle birkaÃ§ saat iÃ§inde onaylanÄ±r.
-    OnaylandÄ±ÄŸÄ±nda size tekrar bilgi vereceÄŸiz.
+    <strong>"${ilanBaslik}"</strong> başlıklı talebiniz başarıyla alındı ve onay sürecine girdi.<br><br>
+    Yöneticilerimiz talebinizi inceledikten sonra yayına alınacak. Genellikle birkaç saat içinde onaylanır.
+    Onaylandığında size tekrar bilgi vereceğiz.
   `
-  return gonder(alici, 'Talebiniz alÄ±ndÄ± ğŸ“¨', sablon('Talebiniz onay sÃ¼recinde', icerik, 'Talebimi GÃ¶rÃ¼ntÃ¼le', `${SITE_URL}/panel`))
+  return gonder(alici, 'Talebiniz alındı', sablon('Talebiniz onay sürecinde', icerik, 'Talebimi Görüntüle', `${SITE_URL}/panel`))
 }
 
-// 2. Ä°lan onaylandÄ± (yayÄ±nda)
+// 2. İlan onaylandı (yayında)
 export async function ilanOnaylandiMaili(alici, ad, ilanBaslik) {
   const icerik = `
     Merhaba ${ad},<br><br>
-    Harika haber! <strong>"${ilanBaslik}"</strong> baÅŸlÄ±klÄ± talebiniz onaylandÄ± ve artÄ±k yayÄ±nda. ğŸ‰<br><br>
-    SatÄ±cÄ±lar talebinizi gÃ¶rebilir ve size teklif gÃ¶nderebilir. Gelen teklifleri kaÃ§Ä±rmamak iÃ§in
-    e-postanÄ±zÄ± ve hesabÄ±nÄ±zÄ± dÃ¼zenli kontrol edin.
+    Harika haber! <strong>"${ilanBaslik}"</strong> başlıklı talebiniz onaylandı ve artık yayında.<br><br>
+    Satıcılar talebinizi görebilir ve size teklif gönderebilir. Gelen teklifleri kaçırmamak için
+    e-postanızı ve hesabınızı düzenli kontrol edin.
   `
-  return gonder(alici, 'Talebiniz yayÄ±nda! ğŸ‰', sablon('Talebiniz onaylandÄ±', icerik, 'Talebimi GÃ¶rÃ¼ntÃ¼le', `${SITE_URL}/panel`))
+  return gonder(alici, 'Talebiniz yayında!', sablon('Talebiniz onaylandı', icerik, 'Talebimi Görüntüle', `${SITE_URL}/panel`))
 }
 
-// 3. Ä°lan reddedildi
+// 3. İlan reddedildi
 export async function ilanReddedildiMaili(alici, ad, ilanBaslik, sebep) {
   const icerik = `
     Merhaba ${ad},<br><br>
-    <strong>"${ilanBaslik}"</strong> baÅŸlÄ±klÄ± talebiniz maalesef onaylanamadÄ±.<br><br>
+    <strong>"${ilanBaslik}"</strong> başlıklı talebiniz maalesef onaylanamadı.<br><br>
     ${sebep ? `<strong>Sebep:</strong> ${sebep}<br><br>` : ''}
-    Talebinizi dÃ¼zenleyip tekrar gÃ¶nderebilirsiniz. SorularÄ±nÄ±z iÃ§in destek ekibimize ulaÅŸabilirsiniz.
+    Talebinizi düzenleyip tekrar gönderebilirsiniz. Sorularınız için destek ekibimize ulaşabilirsiniz.
   `
-  return gonder(alici, 'Talebiniz hakkÄ±nda', sablon('Talebiniz onaylanamadÄ±', icerik, 'Yeni Talep OluÅŸtur', `${SITE_URL}`))
+  return gonder(alici, 'Talebiniz hakkında', sablon('Talebiniz onaylanamadı', icerik, 'Yeni Talep Oluştur', `${SITE_URL}`))
 }
 
 // 4. Yeni mesaj geldi
 export async function yeniMesajMaili(alici, ad, gonderenAd, ilanBaslik, mesajOnizleme) {
   const icerik = `
     Merhaba ${ad},<br><br>
-    <strong>${gonderenAd}</strong> size <strong>"${ilanBaslik}"</strong> talebiniz hakkÄ±nda mesaj gÃ¶nderdi:<br><br>
+    <strong>${gonderenAd}</strong> size <strong>"${ilanBaslik}"</strong> talebiniz hakkında mesaj gönderdi:<br><br>
     <div style="background:#f1f5f9;border-left:3px solid #0D7A6B;padding:12px 16px;border-radius:0 8px 8px 0;font-style:italic;color:#475569">
       "${mesajOnizleme}"
     </div><br>
-    YanÄ±tlamak iÃ§in mesajlarÄ±nÄ±za gidin.
+    Yanıtlamak için mesajlarınıza gidin.
   `
-  return gonder(alici, `${gonderenAd} size mesaj gÃ¶nderdi ğŸ’¬`, sablon('Yeni mesajÄ±nÄ±z var', icerik, 'MesajÄ± GÃ¶rÃ¼ntÃ¼le', `${SITE_URL}/panel`))
+  return gonder(alici, `${gonderenAd} size mesaj gönderdi`, sablon('Yeni mesajınız var', icerik, 'Mesajı Görüntüle', `${SITE_URL}/panel`))
 }
 
-// 5. HoÅŸ geldin (kayÄ±t sonrasÄ±)
+// 5. Hoş geldin (kayıt sonrası)
 export async function hosgeldinMaili(alici, ad) {
   const icerik = `
     Merhaba ${ad},<br><br>
-    almakistiyor.com'a hoÅŸ geldiniz! HesabÄ±nÄ±z baÅŸarÄ±yla oluÅŸturuldu.<br><br>
-    ArtÄ±k talep oluÅŸturabilir, satÄ±cÄ±lardan teklif alabilir ve onlarla mesajlaÅŸabilirsiniz.
-    Ä°htiyacÄ±nÄ±z olan her ÅŸeyi tek bir yerden bulun.
+    almakistiyor.com'a hoş geldiniz! Hesabınız başarıyla oluşturuldu.<br><br>
+    Artık talep oluşturabilir, satıcılardan teklif alabilir ve onlarla mesajlaşabilirsiniz.
+    İhtiyacınız olan her şeyi tek bir yerden bulun.
   `
-  return gonder(alici, 'HoÅŸ geldiniz! ğŸ‘‹', sablon('almakistiyor.com\'a hoÅŸ geldiniz', icerik, 'Hemen BaÅŸla', SITE_URL))
+  return gonder(alici, 'Hoş geldiniz!', sablon('almakistiyor.com\'a hoş geldiniz', icerik, 'Hemen Başla', SITE_URL))
 }
-
