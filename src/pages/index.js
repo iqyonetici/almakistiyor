@@ -34,7 +34,7 @@ const demoIlanlar = [
 const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'villa', 'koltuk']
 
 export default function Home() {
-  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
+  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); const [heroYazi, setHeroYazi] = useState(''); useEffect(() => { const kel = ['Araba','Ev','Telefon','Özel ders','Hasta bakıcı','Boya badana','Traktör','Yavru köpek','Laptop','Daire']; let ki = 0, h = 0, sil = false, t; function adim() { const k = kel[ki]; if (!sil) { h++; setHeroYazi(k.slice(0, h)); if (h === k.length) { sil = true; t = setTimeout(adim, 1400); return; } } else { h--; setHeroYazi(k.slice(0, h)); if (h === 0) { sil = false; ki = (ki + 1) % kel.length; } } t = setTimeout(adim, sil ? 45 : 95); } adim(); return () => clearTimeout(t); }, []); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
@@ -223,7 +223,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroH1}>
-            Aramayı bırakın, <span className={styles.heroVurgu}>satıcılar sizi bulsun</span>
+            <span className={styles.heroUst}>NE ALMAK İSTİYORSUN?</span><span className={styles.heroSatir}><span className={styles.heroKelime}>{heroYazi}</span><span className={styles.heroImlec}>|</span> <strong>almak</strong><span className={styles.heroIstiyor}>istiyor</span></span>
           </h1>
           <p className={styles.heroSub}>
             Ne almak istediğinizi yazın; ev, araba, telefon ne olursa. Satıcılar size özel teklif göndersin.

@@ -439,3 +439,16 @@
   .heroStats { gap:12px; margin-top:12px; }
   .statNum { font-size:15px; }
 }
+
+/* ===== HERO DAKTILO ===== */
+.heroUst { display:block; font-size:12px; letter-spacing:3px; color:#F5A623; font-weight:500; margin-bottom:8px; }
+.heroSatir { display:block; min-height:1.35em; }
+.heroKelime { color:#F5A623; font-weight:600; }
+.heroImlec { color:#F5A623; font-weight:400; animation:imlecYanip 0.8s infinite; }
+.heroSatir strong { font-weight:700; }
+.heroIstiyor { font-weight:400; }
+@keyframes imlecYanip { 0%,100%{opacity:1} 50%{opacity:0} }
+@media (max-width:768px) {
+  .heroUst { font-size:11px; letter-spacing:2px; margin-bottom:6px; }
+  .heroSatir { font-size:19px; }
+}
