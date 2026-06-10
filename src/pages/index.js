@@ -34,7 +34,7 @@ const demoIlanlar = [
 const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'villa', 'koltuk']
 
 export default function Home() {
-  const { user } = useAuth()
+  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
@@ -280,7 +280,7 @@ export default function Home() {
             <span style={{ fontSize: 13, color: '#085549', fontWeight: 500 }}>Merhaba, {user.ad}!</span>
             <div style={{ display: 'flex', gap: 8 }}>
               <a href="/panel" style={{ fontSize: 12, padding: '5px 12px', borderRadius: 7, background: '#0D7A6B', color: 'white', fontWeight: 500 }}>📋 İlanlarım</a>
-              <a href="/panel?tab=mesajlar" style={{ fontSize: 12, padding: '5px 12px', borderRadius: 7, border: '1.5px solid #0D7A6B', color: '#0D7A6B', fontWeight: 500 }}>💬 Mesajlarım</a>
+              <a href="/panel?tab=mesajlar" style={{ fontSize: 12, padding: '5px 12px', borderRadius: 7, border: '1.5px solid #0D7A6B', color: '#0D7A6B', fontWeight: 500 }}>💬 Mesajlarım{anaOkunmamis > 0 && <span style={{marginLeft:5,background:'#E53E3E',color:'white',borderRadius:9,padding:'1px 7px',fontSize:11,fontWeight:700}}>{anaOkunmamis}</span>}</a>
             </div>
           </div>
         </div>
