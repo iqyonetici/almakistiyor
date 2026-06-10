@@ -222,12 +222,6 @@ export default function Home() {
 
       <section className={styles.hero}>
         <div className={styles.heroInner}>
-          <div className={styles.heroLogo}>
-            <img src="/almakistiyor-icon.png" alt="almakistiyor.com logo" className={styles.heroLogoImg} width="48" height="48" />
-            <span className={styles.heroLogoText}>
-              <strong>almak</strong>istiyor<span className={styles.heroLogoCom}>.com</span>
-            </span>
-          </div>
           <h1 className={styles.heroH1}>
             Aramayı bırakın, <span className={styles.heroVurgu}>satıcılar sizi bulsun</span>
           </h1>
@@ -270,10 +264,10 @@ export default function Home() {
       <div className={styles.trustBar}>
         <div className={`container ${styles.trustInner}`}>
           {[
-            { icon: '🔒', text: 'Kişisel bilgileriniz korunur' },
-            { icon: '✅', text: 'Doğrulanmış satıcılar' },
-            { icon: '🎯', text: 'Size özel teklifler' },
-            { icon: '🤝', text: 'Güvenli alışveriş deneyimi' },
+            { icon: '📢', text: 'İlanı siz verin, satıcılar size gelsin' },
+            { icon: '🔍', text: 'Aramakla vakit kaybetmeyin' },
+            { icon: '💰', text: 'Satıcılar yarışsın, en iyi fiyatı siz seçin' },
+            { icon: '📵', text: 'Numaranız gizli kalır' },
           ].map(t => (
             <div key={t.text} className={styles.trustItem}><span>{t.icon}</span> {t.text}</div>
           ))}
