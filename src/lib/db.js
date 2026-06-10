@@ -85,7 +85,7 @@ export async function ilanOlustur(ilanData, user) {
 
 export async function kullanicIlanlari(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase.from('ilanlar').select('*').eq('kullanici_email', kullaniciEmail).order('siralama_skoru', { ascending: false })
+  return await supabase.from('ilanlar').select('*').eq('kullanici_email', kullaniciEmail).order('created_at', { ascending: false })
 }
 
 export async function ilanSil(ilanId) {
@@ -113,7 +113,7 @@ export async function mesajGonder({ ilanId, gonderenEmail, gonderenAd, gonderenF
 
 export async function mesajlariGetir(kullaniciEmail) {
   if (!supabase) return { data: [], error: 'Supabase bağlı değil' }
-  return await supabase.from('mesajlar').select('*').eq('alici_email', kullaniciEmail).order('siralama_skoru', { ascending: false })
+  return await supabase.from('mesajlar').select('*').eq('alici_email', kullaniciEmail).order('created_at', { ascending: false })
 }
 
 export async function mesajOkunduIsaretle(mesajId) {
