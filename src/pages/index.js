@@ -275,12 +275,12 @@ export default function Home() {
       </div>
 
       {user && (
-        <div style={{ background: '#E6F5F2', borderBottom: '1px solid #B2DDD7', padding: '8px 16px' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <span style={{ fontSize: 13, color: '#085549', fontWeight: 500 }}>Merhaba, {user.ad}!</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <a href="/panel" style={{ fontSize: 12, padding: '5px 12px', borderRadius: 7, background: '#0D7A6B', color: 'white', fontWeight: 500 }}>📋 İlanlarım</a>
-              <a href="/panel?tab=mesajlar" style={{ fontSize: 12, padding: '5px 12px', borderRadius: 7, border: '1.5px solid #0D7A6B', color: '#0D7A6B', fontWeight: 500 }}>💬 Mesajlarım{anaOkunmamis > 0 && <span style={{marginLeft:5,background:'#E53E3E',color:'white',borderRadius:9,padding:'1px 7px',fontSize:11,fontWeight:700}}>{anaOkunmamis}</span>}</a>
+        <div className={styles.welcomeBar}>
+          <div className={styles.welcomeInner}>
+            <span className={styles.welcomeText}>Merhaba, {user.ad}!</span>
+            <div className={styles.welcomeBtns}>
+              <a href="/panel" className={styles.welcomeBtnPrimary}>📋 İlanlarım</a>
+              <a href="/panel?tab=mesajlar" className={styles.welcomeBtnSecondary}>💬 Mesajlarım{anaOkunmamis > 0 && <span style={{marginLeft:5,background:'#E53E3E',color:'white',borderRadius:9,padding:'1px 7px',fontSize:11,fontWeight:700}}>{anaOkunmamis}</span>}</a>
             </div>
           </div>
         </div>

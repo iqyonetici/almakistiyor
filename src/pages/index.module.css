@@ -413,3 +413,29 @@
   cursor: pointer; font-family: inherit; margin-bottom: 8px; transition: all 0.12s;
 }
 .filtreTemizle:hover { background: #FEE2E2; }
+
+/* ===== KARSILAMA BARI ===== */
+.welcomeBar { background:#E6F5F2; border-bottom:1px solid #B2DDD7; padding:8px 16px; }
+.welcomeInner { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.welcomeText { font-size:13px; color:#085549; font-weight:500; }
+.welcomeBtns { display:flex; gap:8px; }
+.welcomeBtnPrimary { font-size:12px; padding:6px 14px; border-radius:8px; background:#0D7A6B; color:white; font-weight:500; display:inline-flex; align-items:center; }
+.welcomeBtnSecondary { font-size:12px; padding:6px 14px; border-radius:8px; border:1.5px solid #0D7A6B; color:#0D7A6B; font-weight:500; display:inline-flex; align-items:center; background:white; }
+
+/* ===== MOBIL IYILESTIRMELER ===== */
+@media (max-width:768px) {
+  .trustBar { display:block; padding:8px 0; }
+  .trustInner { display:flex; overflow-x:auto; gap:16px; padding:0 14px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .trustInner::-webkit-scrollbar { display:none; }
+  .trustItem { white-space:nowrap; flex:0 0 auto; font-size:12px; }
+
+  .welcomeBar { padding:10px 12px; }
+  .welcomeText { display:none; }
+  .welcomeBtns { width:100%; }
+  .welcomeBtnPrimary, .welcomeBtnSecondary { flex:1; justify-content:center; padding:12px 8px; font-size:13.5px; min-height:44px; }
+
+  .hero { padding:14px 16px; }
+  .heroSub { font-size:12.5px; margin-bottom:14px; }
+  .heroStats { gap:12px; margin-top:12px; }
+  .statNum { font-size:15px; }
+}
