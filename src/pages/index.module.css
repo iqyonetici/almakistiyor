@@ -3,7 +3,7 @@
    ===================== */
 .hero {
   background: #085549;
-  padding: 28px 16px;
+  padding: 14px 16px;
   position: relative;
   overflow: hidden;
 }
@@ -32,13 +32,13 @@
 
 .heroH1 {
   font-family: 'Sora', sans-serif;
-  font-size: 28px; font-weight: 600; color: white;
+  font-size: 23px; font-weight: 600; color: white;
   line-height: 1.25; margin: 0 0 8px;
 }
 .heroVurgu { color: #F5A623; }
 .heroSub {
   color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.6;
-  margin: 0 auto 22px; max-width: 540px;
+  margin: 0 auto 12px; max-width: 540px;
 }
 
 .heroArama {
@@ -57,7 +57,7 @@
 }
 
 .heroStats {
-  margin-top: 16px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
+  margin-top: 10px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
 }
 .stat { display: inline-flex; align-items: baseline; gap: 5px; }
 .statNum { font-size: 18px; font-weight: 600; color: white; }

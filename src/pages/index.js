@@ -230,7 +230,7 @@ export default function Home() {
           </p>
           <button className={styles.heroArama} onClick={formAc}>
             <span className={styles.heroAramaSol}>
-              <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyorum...</span>
+              <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyor</span>
             </span>
             <span className={styles.heroAramaBtn}>+ Talep Oluştur</span>
           </button>
