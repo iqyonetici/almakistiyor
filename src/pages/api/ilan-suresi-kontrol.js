@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     // Suresi dolmus aktif ilanlari bul
     const { data: dolanlar, error } = await supabase
       .from('ilanlar')
-      .select('id, kullanici_email, kullanici_ad, baslik, kategori, sehir, ilce, emlak_tip, markalar')
+      .select('id, kullanici_email, kullanici_ad, kategori, sehir, ilce, emlak_tip, markalar')
       .eq('durum', 'aktif')
       .not('bitis_tarihi', 'is', null)
       .lt('bitis_tarihi', simdi)
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
 
       // Mail gonder (hata olsa devam et)
       if (ilan.kullanici_email && ilan.kullanici_email.includes('@')) {
-        let ilanBaslik = ilan.baslik
+        let ilanBaslik = null
         if (!ilanBaslik) {
           const yer = ilan.ilce || ilan.sehir || ''
           if (ilan.kategori === 'emlak') ilanBaslik = `${yer} ${ilan.emlak_tip || 'Emlak'} talebi`.trim()
