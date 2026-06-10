@@ -112,3 +112,17 @@ export async function hosgeldinMaili(alici, ad) {
   `
   return gonder(alici, 'Hoş geldiniz!', sablon('almakistiyor.com\'a hoş geldiniz', icerik, 'Hemen Başla', SITE_URL))
 }
+
+// 6. İlan süresi doldu (30 gün)
+export async function ilanSuresiDolduMaili(alici, ad, ilanBaslik) {
+  const icerik = `
+    Merhaba ${ad},<br><br>
+    <strong>"${ilanBaslik}"</strong> başlıklı talebinizin 30 günlük yayın süresi doldu ve talebiniz
+    otomatik olarak yayından kaldırıldı.<br><br>
+    Hâlâ aramaya devam ediyorsanız üzülmeyin — talebinizi <strong>ücretsiz olarak 30 gün daha</strong>
+    yayınlayabilirsiniz. Tek yapmanız gereken panelinizdeki "İlanlarım" bölümüne gidip
+    talebinizin üzerindeki <strong>"30 Gün Daha Yayınla"</strong> butonuna tıklamak.<br><br>
+    Talebiniz yeniden yayına girer girmez satıcılar size teklif göndermeye devam edebilir.
+  `
+  return gonder(alici, 'Talebinizin süresi doldu — ücretsiz uzatabilirsiniz', sablon('Yayın süreniz doldu', icerik, 'İlanlarıma Git', `${SITE_URL}/panel`))
+}
