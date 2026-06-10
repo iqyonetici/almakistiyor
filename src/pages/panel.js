@@ -116,7 +116,7 @@ export default function Panel() {
           baslik: (d.sehir||'') + (d.ilce?' '+d.ilce:'') + ' — ' + (d.kategori||'') + ' arıyorum',
           kategori: d.kategori ? d.kategori.charAt(0).toUpperCase() + d.kategori.slice(1) : 'Diğer',
           tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
-          durum: d.durum, goruntuleme: d.goruntuleme || 0,
+          durum: d.durum, goruntuleme: d.goruntuleme || 0, bitisTarihi: d.bitis_tarihi, suresiDoldu: d.bitis_tarihi ? new Date(d.bitis_tarihi) < new Date() : false,
           mesajSayisi: 0,
           detay: [d.fiyat_min&&d.fiyat_max ? '₺'+Number(d.fiyat_min).toLocaleString('tr-TR')+' – ₺'+Number(d.fiyat_max).toLocaleString('tr-TR') : null, d.m2_min&&d.m2_max ? d.m2_min+'–'+d.m2_max+' m²' : null, d.oda, d.emlak_tip].filter(Boolean).join(' | ')
         })))
@@ -132,7 +132,7 @@ export default function Panel() {
   if (!user) return <div style={{minHeight:'100vh',background:'var(--bg)'}} />
 
   function ilanSil(id) { setTalepler(p => p.filter(i => i.id !== id)) }
-  function ilanToggle(id) { setTalepler(p => p.map(i => i.id === id ? {...i, durum: i.durum==='aktif'?'pasif':'aktif'} : i)) }
+  async function ilanToggle(id) { const ilan = talepler.find(i => i.id === id); if (!ilan) return; const islem = ilan.durum === 'aktif' ? 'pasif' : 'aktif'; const r = await fetch('/api/ilan-uzat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ilanId: id, email: user.email, islem }) }).then(x => x.json()).catch(() => null); if (r && r.basarili) { setTalepler(p => p.map(i => i.id === id ? { ...i, durum: r.durum, bitisTarihi: r.bitisTarihi || i.bitisTarihi, suresiDoldu: r.durum === 'aktif' ? false : i.suresiDoldu } : i)) } else { alert((r && r.hata) || 'İşlem başarısız, tekrar deneyin') } }
 
   async function konusmaAc(k) {
     setSeciliKonusma(k)
@@ -255,7 +255,7 @@ export default function Panel() {
                     </div>
                     <span className={`${styles.durumBadge} ${ilan.durum==='aktif'?styles.durumAktif:styles.durumPasif}`}>{ilan.durum}</span>
                   </div>
-                  <div className={styles.ilanAlt}>
+                  {ilan.suresiDoldu && ilan.durum !== 'aktif' && <div style={{background:'#FEF2F2',border:'1px solid #FECACA',color:'#B91C1C',borderRadius:8,padding:'10px 14px',fontSize:13,margin:'10px 0',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}><span>⚠️ 30 günlük ilan süreniz doldu. İsterseniz ücretsiz 30 gün daha aktif edebilirsiniz.</span><button onClick={() => ilanToggle(ilan.id)} style={{background:'#0D7A6B',color:'white',border:'none',borderRadius:7,padding:'8px 14px',fontSize:12.5,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>🔄 30 Gün Daha Yayınla</button></div>}<div className={styles.ilanAlt}>
                     <button className={styles.ilanBtn} onClick={() => { setAktifTab('mesajlar'); setFiltreIlan(String(ilan.id)) }}>
                       💬 Mesajları Gör ({ilan.mesajSayisi})
                     </button>
