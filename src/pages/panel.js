@@ -9,81 +9,10 @@ import styles from './panel.module.css'
 import { kullanicIlanlari, konusmalariGetir, konusmaMesajlariGetir, konusmaMesajGonder, konusmaOkunduIsaretle } from '../lib/db'
 
 // Demo ilanlar — alici1@demo.com hesabına ait
-const DEMO_TALEPLER = [
-  {
-    id: 1,
-    baslik: 'Kadıköy veya Üsküdar\'da 3+1 kiralık daire arıyorum',
-    kategori: 'Emlak', tarih: '3 gün önce', durum: 'aktif',
-    goruntuleme: 47, mesajSayisi: 3,
-    detay: 'Bütçe: ₺25.000 – ₺35.000 | 120–160 m² | Eşyalı tercih | Asansör, Otopark',
-  },
-  {
-    id: 2,
-    baslik: '2018–2022 model BMW veya Mercedes arıyorum',
-    kategori: 'Vasıta', tarih: '7 gün önce', durum: 'aktif',
-    goruntuleme: 89, mesajSayisi: 2,
-    detay: 'Bütçe: ₺800.000 – ₺1.200.000 | 0–80.000 km | Otomatik | Benzin/Hybrid',
-  },
-  {
-    id: 3,
-    baslik: 'Beşiktaş\'ta 4+1 satılık daire',
-    kategori: 'Emlak', tarih: '10 gün önce', durum: 'pasif',
-    goruntuleme: 214, mesajSayisi: 1,
-    detay: 'Bütçe: ₺8M – ₺15M | 150–250 m² | Yüksek kat | Deniz manzarası',
-  },
-]
+const DEMO_TALEPLER = []
 
 // Demo mesajlar — ilan bazlı, satıcılardan geliyor
-const DEMO_MESAJLAR = [
-  {
-    id: 1, ilanId: 1,
-    gonderen: 'Emre Yıldız', firma: 'Yıldız Emlak & Danışmanlık',
-    ilan: 'Kadıköy veya Üsküdar\'da 3+1 kiralık daire arıyorum',
-    mesaj: 'Merhaba Mehmet Bey, Kadıköy Moda\'da tam aradığınız özelliklerde 140 m², 3+1, asansörlü ve otoparklı eşyalı bir dairemiz mevcut. Aylık kira 28.500₺. Uygun olur mu, görüşelim mi?',
-    tarih: '2 saat önce', okundu: false,
-    yanıtlar: [],
-  },
-  {
-    id: 2, ilanId: 1,
-    gonderen: 'Selin Aktaş', firma: 'Metropol Gayrimenkul',
-    ilan: 'Kadıköy veya Üsküdar\'da 3+1 kiralık daire arıyorum',
-    mesaj: 'İyi günler, Üsküdar Bağlarbaşı\'nda 125 m², 3+1, balkonlu ve eşyalı bir dairemiz var. Kira 26.000₺. Site içinde, 7/24 güvenlik mevcut. Görmek ister misiniz?',
-    tarih: '1 gün önce', okundu: false,
-    yanıtlar: [],
-  },
-  {
-    id: 3, ilanId: 1,
-    gonderen: 'Burak Demir', firma: 'Demir Oto Galerisi',
-    ilan: 'Kadıköy veya Üsküdar\'da 3+1 kiralık daire arıyorum',
-    mesaj: 'Selam, Kadıköy\'de yeni açılan projede güzel daireler var. 32.000₺\'den başlayan fiyatlarla. Biraz bütçeniz esnetilebilir mi, konuşalım.',
-    tarih: '2 gün önce', okundu: true,
-    yanıtlar: [],
-  },
-  {
-    id: 4, ilanId: 2,
-    gonderen: 'Burak Demir', firma: 'Demir Oto Galerisi',
-    ilan: '2018–2022 model BMW veya Mercedes arıyorum',
-    mesaj: 'Merhaba, galerimizde 2020 model BMW 320i M Sport paketi mevcut. 42.000 km, tek sahipli, boyasız kazasız. Fiyatımız 1.180.000₺. Hafta sonu test sürüşüne gelebilirsiniz.',
-    tarih: '3 gün önce', okundu: true,
-    yanıtlar: [{ metin: 'Merhaba Burak Bey, ilgileniyorum. Pazar günü saat 14:00 uygun mu?', tarih: '3 gün önce', benden: true }],
-  },
-  {
-    id: 5, ilanId: 2,
-    gonderen: 'Emre Yıldız', firma: 'Yıldız Emlak & Danışmanlık',
-    ilan: '2018–2022 model BMW veya Mercedes arıyorum',
-    mesaj: 'Merhaba, müşterimizde 2021 Mercedes C200 AMG Line var, 38.000 km, otomatik, gece mavisi. 1.150.000₺. İlgilenir misiniz?',
-    tarih: '5 gün önce', okundu: true,
-    yanıtlar: [],
-  },
-  {
-    id: 6, ilanId: 3,
-    gonderen: 'Selin Aktaş', firma: 'Metropol Gayrimenkul',
-    ilan: 'Beşiktaş\'ta 4+1 satılık daire',
-    mesaj: 'Beşiktaş Sinanpaşa\'da 12. katta, Boğaz manzaralı, 4+1, 210 m² dairemiz var. Tadilatlı, eşyasız. 13.500.000₺. Uygun mu?',
-    tarih: '8 gün önce', okundu: true,
-    yanıtlar: [],
-  },
-]
+const DEMO_MESAJLAR = []
 
 export default function Panel() {
   const { user, cikisYap, yuklendi } = useAuth()
