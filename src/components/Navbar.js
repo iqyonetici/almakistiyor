@@ -56,7 +56,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
   const [admin, setAdmin] = useState(false);
   const [paketModal, setPaketModal] = useState(false);
   const [paketBilgi, setPaketBilgi] = useState(null);
-  const [tumPaketler, setTumPaketler] = useState([]);
+  const [tumPaketler, setTumPaketler] = useState([]); const [okunmamisMesaj, setOkunmamisMesaj] = useState(0); useEffect(() => { let aktif = true; async function mesajSay() { if (!user?.email) { setOkunmamisMesaj(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const toplam = (a||[]).reduce((t,k)=>t+(k.okunmamis_alici||0),0) + (s||[]).reduce((t,k)=>t+(k.okunmamis_satici||0),0); if (aktif) setOkunmamisMesaj(toplam); } catch (e) {} } mesajSay(); const zamanlayici = setInterval(mesajSay, 60000); return () => { aktif = false; clearInterval(zamanlayici); }; }, [user]);
 
   useEffect(() => {
     if (user?.email) adminMi(user.email).then(setAdmin);
@@ -167,7 +167,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                         )}
                         <div className={styles.profilGrup}>
                           <Link href="/panel" className={styles.profilLink} onClick={() => setProfilAcik(false)}>📋 İlanlarım</Link>
-                          <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım</Link>
+                          <Link href="/panel?tab=mesajlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>💬 Mesajlarım{okunmamisMesaj > 0 && <span style={{marginLeft:6,background:'#E53E3E',color:'white',borderRadius:10,padding:'1px 7px',fontSize:11,fontWeight:700}}>{okunmamisMesaj}</span>}</Link>
                         </div>
                         <div className={styles.profilGrup}>
                           <Link href="/ayarlar" className={styles.profilLink} onClick={() => setProfilAcik(false)}>⚙️ Hesap Ayarları</Link>
@@ -268,7 +268,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                     </div>
                   </div>
                   <Link href="/panel" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>📋 İlanlarım</Link>
-                  <Link href="/panel?tab=mesajlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>💬 Mesajlarım</Link>
+                  <Link href="/panel?tab=mesajlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>💬 Mesajlarım{okunmamisMesaj > 0 && <span style={{marginLeft:6,background:'#E53E3E',color:'white',borderRadius:10,padding:'1px 7px',fontSize:11,fontWeight:700}}>{okunmamisMesaj}</span>}</Link>
                   <Link href="/ayarlar" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>⚙️ Hesap Ayarları</Link>
                   {admin && <Link href="/admin" className={styles.drawerProfilLink} onClick={() => setMobilMenuAcik(false)}>🛠️ Admin Panel</Link>}
                   <button className={styles.drawerCikis} onClick={() => { setMobilMenuAcik(false); handleCikis(); }}>🚪 Çıkış Yap</button>
@@ -300,7 +300,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
         </button>
         <Link href="/panel?tab=mesajlar" className={styles.navItem}>
           <span className={styles.navIcon}>💬</span>
-          <span className={styles.navLabel}>Mesajlar</span>
+          <span className={styles.navLabel}>Mesajlar</span>{okunmamisMesaj > 0 && <span style={{marginLeft:4,background:'#E53E3E',color:'white',borderRadius:9,padding:'0 6px',fontSize:10,fontWeight:700}}>{okunmamisMesaj}</span>}
         </Link>
         {user ? (
           <button className={styles.navItem} onClick={() => setMobilMenuAcik(true)}>
