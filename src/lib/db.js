@@ -29,7 +29,7 @@ export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip
   }
 
   if (sehir) q = q.eq('sehir', sehir)
-  if (ilce) q = q.eq('ilce', ilce)
+  if (ilce) q = q.or('ilce.eq.' + ilce + ',ilce.is.null,ilce.eq.')
   return await q
 }
 

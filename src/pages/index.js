@@ -174,7 +174,7 @@ export default function Home() {
 
   const filtered = ilanlar
     .filter(i => !filterSehir || i.sehir === filterSehir)
-    .filter(i => !filterIlce || i.ilce === filterIlce)
+    .filter(i => !filterIlce || !i.ilce || i.ilce === filterIlce)
     .filter(i => {
       if (!filterTarih) return true
       const t = new Date(i.created_at || Date.now()), now = new Date()
