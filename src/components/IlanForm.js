@@ -480,7 +480,6 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
 
   function konumEkle() {
     if (!data.sehir) { alert('Önce şehir seçin'); return }
-    if (konumlar.length >= 10) { alert('En fazla 10 konum ekleyebilirsiniz'); return }
     const yeni = { sehir: data.sehir, ilce: data.ilce || '' }
     if (konumlar.some(k => k.sehir === yeni.sehir && k.ilce === yeni.ilce)) { alert('Bu konum zaten ekli'); return }
     const yeniListe = [...konumlar, yeni]
@@ -748,12 +747,12 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                       cursor: data.sehir ? 'pointer':'not-allowed',fontFamily:'inherit'}}>
                     + Bu konumu ekle
                   </button>
-                  <div style={{fontSize:12.5,color:'#8a95a3',marginBottom:14}}>💡 Birden fazla bölge ekleyebilirsiniz (en fazla 10 adet). Her bölgenin satıcıları talebinizi görür.</div>
+                  <div style={{fontSize:12.5,color:'#8a95a3',marginBottom:14}}>💡 Birden fazla bölge ekleyebilirsiniz. "Tüm ilçeler" seçerseniz o şehrin tamamında görünürsünüz. Her bölgenin satıcıları talebinizi görür.</div>
 
                   {konumlar.length > 0 && (
                     <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'12px 14px'}}>
                       <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:8}}>
-                        ✓ Eklenen konumlar ({konumlar.length}/10)
+                        ✓ Eklenen konumlar ({konumlar.length})
                       </div>
                       <div style={{display:'flex',flexDirection:'column',gap:6}}>
                         {konumlar.map((k, i) => (
