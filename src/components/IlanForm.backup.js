@@ -413,9 +413,8 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   const [done, setDone] = useState(false)
   const [yukleniyor, setYukleniyor] = useState(false)
   const [katYol, setKatYol] = useState([])
-  const [secilenler, setSecilenler] = useState([])
   const [data, setData] = useState({
-    kategori:'', altKategori:'', altKategori2:'', kategoriler:[],
+    kategori:'', altKategori:'', altKategori2:'',
     islemTuru:'satin-al', sehir:'', ilce:'',
     fiyatMin:'0', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
@@ -466,32 +465,12 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     }
   }
 
-  function kategoriEkle() {
-    if (katYol.length === 0) return
-    if (secilenler.length >= 10) { alert('En fazla 10 kategori secebilirsiniz'); return }
-    const slug = katYol[katYol.length - 1].slug
-    if (secilenler.some(s => s.slug === slug)) { alert('Bu kategori zaten ekli'); return }
-    const yeni = { slug, label: katYol.map(k => k.label).join(' > '), seviye1: katYol[0].slug, yol: [...katYol] }
-    const yeniListe = [...secilenler, yeni]
-    setSecilenler(yeniListe)
-    set('kategoriler', yeniListe.map(s => s.slug))
-    if (yeniListe.length === 1) kategoriYazByol(katYol)
-    setKatYol(katYol.slice(0, 1))
-  }
-  function kategoriCikar(slug) {
-    const yeniListe = secilenler.filter(s => s.slug !== slug)
-    setSecilenler(yeniListe)
-    set('kategoriler', yeniListe.map(s => s.slug))
-    if (yeniListe.length > 0) { kategoriYazByol(yeniListe[0].yol) }
-    else { set('kategori',''); set('altKategori',''); set('altKategori2','') }
-  }
-
   function katSec(k) {
     const cocukVar = k.altKategoriler && k.altKategoriler.length > 0
     const yeniYol = [...katYol, k]
     setKatYol(yeniYol)
     kategoriYazByol(yeniYol)
-    // otomatik gecis kaldirildi
+    if (!cocukVar) setTimeout(() => setStep(2), 350)
   }
 
   function kategoriOnayla() { kategoriYazByol(katYol) }
@@ -544,8 +523,8 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   }
 
   function reset() {
-    setStep(1); setDone(false); setKatYol([]); setSecilenler([])
-    setData({ kategori:'', altKategori:'', altKategori2:'', kategoriler:[], islemTuru:'satin-al', sehir:'', ilce:'', fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
+    setStep(1); setDone(false); setKatYol([])
+    setData({ kategori:'', altKategori:'', altKategori2:'', islemTuru:'satin-al', sehir:'', ilce:'', fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
   }
 
   function getFiyatlar() {
@@ -678,25 +657,6 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                     {katYol.length === 0 ? 'Ne almak istiyorsunuz?' : `${katYol[katYol.length-1].label} içinde seçin`}
                   </div>
 
-                  {secilenler.length > 0 && (
-                    <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'12px 14px',marginBottom:14}}>
-                      <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:8}}>
-                        ✓ Seçtikleriniz ({secilenler.length}/10)
-                      </div>
-                      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                        {secilenler.map(s => (
-                          <div key={s.slug} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'white',borderRadius:8,padding:'7px 10px'}}>
-                            <span style={{fontSize:13,color:'#085549',fontWeight:500}}>{s.label}</span>
-                            <button onClick={() => kategoriCikar(s.slug)} style={{border:'none',background:'#FEF2F2',color:'#DC2626',borderRadius:6,width:24,height:24,cursor:'pointer',fontWeight:700,fontFamily:'inherit'}}>✕</button>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={() => { kategoriOnayla(); ileri() }} style={{width:'100%',marginTop:12,background:'#0D7A6B',color:'white',border:'none',borderRadius:9,padding:'12px',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                        Devam et →
-                      </button>
-                    </div>
-                  )}
-
                   {aktifKatListesi.length > 0 ? (
                     <div className={styles.katGrid2}>
                       {aktifKatListesi.map(k => {
@@ -715,11 +675,11 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                   ) : (
                     <div className={styles.katSonSeviye}>
                       <div className={styles.katSonIkon}>✓</div>
-                      <div className={styles.katSonBaslik}>{katYol[katYol.length-1]?.label}</div>
-                      <button className={styles.katDevamBurada} onClick={kategoriEkle}>
-                        + Bu kategoriyi ekle
+                      <div className={styles.katSonBaslik}>{katYol[katYol.length-1]?.label} seçildi</div>
+                      <div className={styles.katSonAlt}>Bu kategori için ilan vermeye devam edin</div>
+                      <button className={styles.katDevamBurada} onClick={() => { kategoriOnayla(); ileri() }}>
+                        Devam et →
                       </button>
-                      <div style={{fontSize:12,color:'#8a95a3',marginTop:10}}>💡 Birden fazla seçebilirsiniz (en fazla 10 adet)</div>
                     </div>
                   )}
                 </div>
