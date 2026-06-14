@@ -23,7 +23,8 @@ export async function ilanListele({ kategori, altKategori, sehir, ilce, emlakTip
   } else if (marka) {
     q = q.ilike('markalar', '%' + marka + '%')
   } else if (altKategori) {
-    q = q.eq('alt_kategori', altKategori)
+    // alt_kategori (2.sv) VEYA alt_kategori2 (3.sv) VEYA kategori_yol icinde (her seviye) ara
+    q = q.or(`alt_kategori.eq.${altKategori},alt_kategori2.eq.${altKategori},kategori_yol.cs.[{"slug":"${altKategori}"}]`)
   } else if (kategori) {
     q = q.eq('kategori', kategori)
   }
