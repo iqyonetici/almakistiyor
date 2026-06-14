@@ -415,7 +415,7 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   const [katYol, setKatYol] = useState([])
   const [konumlar, setKonumlar] = useState([])
   const [data, setData] = useState({
-    kategori:'', altKategori:'', altKategori2:'',
+    kategori:'', altKategori:'', altKategori2:'', kategoriYol:[], enAltKategori:'', enAltLabel:'',
     islemTuru:'satin-al', sehir:'', ilce:'', konumlar:[],
     fiyatMin:'0', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
@@ -435,6 +435,10 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     set('kategori', yol[0]?.slug || '')
     set('altKategori', yol[1]?.slug || '')
     set('altKategori2', yol[2]?.slug || '')
+    // Tam yol (baslik icin) + en alt secilen kategori
+    set('kategoriYol', yol.map(k => ({ slug: k.slug || '', label: k.label || '' })))
+    set('enAltKategori', yol.length > 0 ? (yol[yol.length-1].slug || '') : '')
+    set('enAltLabel', yol.length > 0 ? (yol[yol.length-1].label || '') : '')
     const son = yol[yol.length - 1]
 
     // İşlem türünü kategori adından otomatik belirle
@@ -543,7 +547,7 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
 
   function reset() {
     setStep(1); setDone(false); setKatYol([]); setKonumlar([])
-    setData({ kategori:'', altKategori:'', altKategori2:'', islemTuru:'satin-al', sehir:'', ilce:'', konumlar:[], fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
+    setData({ kategori:'', altKategori:'', altKategori2:'', kategoriYol:[], enAltKategori:'', enAltLabel:'', islemTuru:'satin-al', sehir:'', ilce:'', konumlar:[], fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
   }
 
   function getFiyatlar() {
