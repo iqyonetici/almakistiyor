@@ -25,7 +25,7 @@ const YIL_SECENEKLER = Array.from({length: BITIS_YIL - BASLANGIC_YIL + 1}, (_,i)
 function validate(step, data, giris) {
   switch(step) {
     case 1: return !!data.kategori
-    case 2: return !!data.sehir
+    case 2: return (data.konumlar && data.konumlar.length > 0) || !!data.sehir
     case 3: {
       // Bütçe: en az 0 sabit, en fazla zorunlu
       if (!data.fiyatMax) return false
@@ -413,10 +413,10 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   const [done, setDone] = useState(false)
   const [yukleniyor, setYukleniyor] = useState(false)
   const [katYol, setKatYol] = useState([])
-  const [secilenler, setSecilenler] = useState([])
+  const [konumlar, setKonumlar] = useState([])
   const [data, setData] = useState({
-    kategori:'', altKategori:'', altKategori2:'', kategoriler:[],
-    islemTuru:'satin-al', sehir:'', ilce:'',
+    kategori:'', altKategori:'', altKategori2:'',
+    islemTuru:'satin-al', sehir:'', ilce:'', konumlar:[],
     fiyatMin:'0', fiyatMax:'',
     emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[],
     vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'',
@@ -466,37 +466,36 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     }
   }
 
-  function kategoriEkle() {
-    if (katYol.length === 0) return
-    if (secilenler.length >= 10) { alert('En fazla 10 kategori secebilirsiniz'); return }
-    const slug = katYol[katYol.length - 1].slug
-    if (secilenler.some(s => s.slug === slug)) { alert('Bu kategori zaten ekli'); return }
-    const yeni = { slug, label: katYol.map(k => k.label).join(' > '), seviye1: katYol[0].slug, yol: [...katYol] }
-    const yeniListe = [...secilenler, yeni]
-    setSecilenler(yeniListe)
-    set('kategoriler', yeniListe.map(s => s.slug))
-    if (yeniListe.length === 1) kategoriYazByol(katYol)
-    setKatYol(katYol.slice(0, 1))
-  }
-  function kategoriCikar(slug) {
-    const yeniListe = secilenler.filter(s => s.slug !== slug)
-    setSecilenler(yeniListe)
-    set('kategoriler', yeniListe.map(s => s.slug))
-    if (yeniListe.length > 0) { kategoriYazByol(yeniListe[0].yol) }
-    else { set('kategori',''); set('altKategori',''); set('altKategori2','') }
-  }
-
   function katSec(k) {
     const cocukVar = k.altKategoriler && k.altKategoriler.length > 0
     const yeniYol = [...katYol, k]
     setKatYol(yeniYol)
     kategoriYazByol(yeniYol)
-    // otomatik gecis kaldirildi
+    if (!cocukVar) setTimeout(() => setStep(2), 350)
   }
 
   function kategoriOnayla() { kategoriYazByol(katYol) }
 
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0 }, [step])
+
+  function konumEkle() {
+    if (!data.sehir) { alert('Önce şehir seçin'); return }
+    if (konumlar.length >= 10) { alert('En fazla 10 konum ekleyebilirsiniz'); return }
+    const yeni = { sehir: data.sehir, ilce: data.ilce || '' }
+    if (konumlar.some(k => k.sehir === yeni.sehir && k.ilce === yeni.ilce)) { alert('Bu konum zaten ekli'); return }
+    const yeniListe = [...konumlar, yeni]
+    setKonumlar(yeniListe)
+    set('konumlar', yeniListe)
+    if (yeniListe.length === 1) { set('sehir', yeni.sehir); set('ilce', yeni.ilce) }
+    set('ilce', '')
+  }
+  function konumCikar(i) {
+    const yeniListe = konumlar.filter((_, idx) => idx !== i)
+    setKonumlar(yeniListe)
+    set('konumlar', yeniListe)
+    if (yeniListe.length > 0) { set('sehir', yeniListe[0].sehir); set('ilce', yeniListe[0].ilce) }
+    else { set('sehir', ''); set('ilce', '') }
+  }
 
   function ileri() { if (!validate(step, data, giris)) return; if (step < TOPLAM) setStep(s => s+1) }
   function geri()  { if (step > 1) setStep(s => s-1) }
@@ -544,8 +543,8 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
   }
 
   function reset() {
-    setStep(1); setDone(false); setKatYol([]); setSecilenler([])
-    setData({ kategori:'', altKategori:'', altKategori2:'', kategoriler:[], islemTuru:'satin-al', sehir:'', ilce:'', fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
+    setStep(1); setDone(false); setKatYol([]); setKonumlar([])
+    setData({ kategori:'', altKategori:'', altKategori2:'', islemTuru:'satin-al', sehir:'', ilce:'', konumlar:[], fiyatMin:'0', fiyatMax:'', emlakTip:'', m2Min:'', m2Max:'', oda:[], tercihler:[], vasitaAltTip:'', vasitaMarka:'', vasitaModel:'', vasitaVersiyon:'', markalar:[], yilMin:'', yilMax:String(new Date().getFullYear()), kmMax:'', yakit:[], vites:[], aciklama:'', iletisimTercihi:'telefon', ad:'', soyad:'', email:'', telefon:'', sifre:'', sifre2:'', dogrulamaKodu:'', kodGonderildi:false, kodDogrulandi:false })
   }
 
   function getFiyatlar() {
@@ -558,7 +557,8 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
     const s = []
     if (katYol.length > 0) s.push({l:'Kategori', v: katYol.map(k=>k.label).join(' › ')})
     s.push({l:'İşlem', v: data.islemTuru==='satin-al'?'Satın almak':'Kiralamak'})
-    if (data.sehir) s.push({l:'Konum', v: data.sehir+(data.ilce?' / '+data.ilce:'')})
+    if (konumlar.length > 0) s.push({l:'Konumlar', v: konumlar.map(k => k.sehir + (k.ilce ? ' / ' + k.ilce : '')).join(', ')})
+    else if (data.sehir) s.push({l:'Konum', v: data.sehir+(data.ilce?' / '+data.ilce:'')})
     if (data.fiyatMax) s.push({l:'Bütçe', v:'₺0 – ₺'+Number(data.fiyatMax).toLocaleString('tr-TR')})
     if (data.kategori==='emlak') {
       if (data.emlakTip) s.push({l:'Tür', v:data.emlakTip})
@@ -678,25 +678,6 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                     {katYol.length === 0 ? 'Ne almak istiyorsunuz?' : `${katYol[katYol.length-1].label} içinde seçin`}
                   </div>
 
-                  {secilenler.length > 0 && (
-                    <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'12px 14px',marginBottom:14}}>
-                      <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:8}}>
-                        ✓ Seçtikleriniz ({secilenler.length}/10)
-                      </div>
-                      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                        {secilenler.map(s => (
-                          <div key={s.slug} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'white',borderRadius:8,padding:'7px 10px'}}>
-                            <span style={{fontSize:13,color:'#085549',fontWeight:500}}>{s.label}</span>
-                            <button onClick={() => kategoriCikar(s.slug)} style={{border:'none',background:'#FEF2F2',color:'#DC2626',borderRadius:6,width:24,height:24,cursor:'pointer',fontWeight:700,fontFamily:'inherit'}}>✕</button>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={() => { kategoriOnayla(); ileri() }} style={{width:'100%',marginTop:12,background:'#0D7A6B',color:'white',border:'none',borderRadius:9,padding:'12px',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                        Devam et →
-                      </button>
-                    </div>
-                  )}
-
                   {aktifKatListesi.length > 0 ? (
                     <div className={styles.katGrid2}>
                       {aktifKatListesi.map(k => {
@@ -715,11 +696,11 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                   ) : (
                     <div className={styles.katSonSeviye}>
                       <div className={styles.katSonIkon}>✓</div>
-                      <div className={styles.katSonBaslik}>{katYol[katYol.length-1]?.label}</div>
-                      <button className={styles.katDevamBurada} onClick={kategoriEkle}>
-                        + Bu kategoriyi ekle
+                      <div className={styles.katSonBaslik}>{katYol[katYol.length-1]?.label} seçildi</div>
+                      <div className={styles.katSonAlt}>Bu kategori için ilan vermeye devam edin</div>
+                      <button className={styles.katDevamBurada} onClick={() => { kategoriOnayla(); ileri() }}>
+                        Devam et →
                       </button>
-                      <div style={{fontSize:12,color:'#8a95a3',marginTop:10}}>💡 Birden fazla seçebilirsiniz (en fazla 10 adet)</div>
                     </div>
                   )}
                 </div>
@@ -757,6 +738,31 @@ export default function IlanForm({ open, onClose, onSubmit, user, kategoriAgaci 
                         <option value="">Tüm ilçeler</option>
                         {getIlceler(data.sehir).map(i => <option key={i} value={i}>{i}</option>)}
                       </select>
+                    </div>
+                  )}
+
+                  <button onClick={konumEkle} disabled={!data.sehir}
+                    style={{width:'100%',marginTop:4,marginBottom:8,padding:'14px',minHeight:48,
+                      background: data.sehir ? '#0D7A6B' : '#cbd5e1', color:'white',
+                      border:'none',borderRadius:10,fontSize:15,fontWeight:600,
+                      cursor: data.sehir ? 'pointer':'not-allowed',fontFamily:'inherit'}}>
+                    + Bu konumu ekle
+                  </button>
+                  <div style={{fontSize:12.5,color:'#8a95a3',marginBottom:14}}>💡 Birden fazla bölge ekleyebilirsiniz (en fazla 10 adet). Her bölgenin satıcıları talebinizi görür.</div>
+
+                  {konumlar.length > 0 && (
+                    <div style={{background:'#E6F5F2',border:'1px solid #B2DDD7',borderRadius:10,padding:'12px 14px'}}>
+                      <div style={{fontSize:12,fontWeight:600,color:'#085549',marginBottom:8}}>
+                        ✓ Eklenen konumlar ({konumlar.length}/10)
+                      </div>
+                      <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                        {konumlar.map((k, i) => (
+                          <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'white',borderRadius:8,padding:'10px 12px'}}>
+                            <span style={{fontSize:14,color:'#085549',fontWeight:500}}>📍 {k.sehir}{k.ilce ? ' / ' + k.ilce : ' (tüm ilçeler)'}</span>
+                            <button onClick={() => konumCikar(i)} style={{border:'none',background:'#FEF2F2',color:'#DC2626',borderRadius:7,width:32,height:32,minWidth:32,cursor:'pointer',fontWeight:700,fontFamily:'inherit',fontSize:15}}>✕</button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
