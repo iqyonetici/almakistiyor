@@ -92,6 +92,21 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
   const ilanBaslik = ilan?.baslik || 'Talep ilanı'
   const ilanSehir  = ilan?.sehir || ''
   const ilanIlce   = ilan?.ilce || ''
+  // Çoklu konum metni: "İzmir: Gaziemir · Güzelbahçe" veya tek konum
+  const konumListe = (ilan?.konumlar && ilan.konumlar.length > 0) ? ilan.konumlar : null
+  const konumKisa = konumListe
+    ? (() => {
+        const sehirler = [...new Set(konumListe.map(k => k.sehir))]
+        if (sehirler.length === 1) {
+          const ilceler = konumListe.map(k => k.ilce).filter(Boolean)
+          return ilceler.length > 0 ? `${sehirler[0]}: ${ilceler.join(' · ')}` : sehirler[0]
+        }
+        return konumListe.map(k => k.ilce ? `${k.sehir}/${k.ilce}` : k.sehir).join(' · ')
+      })()
+    : `${ilanSehir}${ilanIlce ? ` / ${ilanIlce}` : ''}`
+  const konumUzun = konumListe
+    ? konumListe.map(k => k.ilce ? `${k.sehir} — ${k.ilce}` : k.sehir).join(' · ')
+    : `${ilanSehir}${ilanIlce ? ` — ${ilanIlce}` : ''}`
 
   const [mesajAcik, setMesajAcik] = useState(false)
   const [mesajMetni, setMesajMetni] = useState('')
@@ -160,7 +175,7 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
         </div>
         <span className={styles.katEtiket}>{kat.etiket}</span>
         <span className={styles.katAlt}>
-          {ilanSehir}{ilanIlce ? ` / ${ilanIlce}` : ''}
+          {konumKisa}
         </span>
       </div>
 
@@ -194,7 +209,7 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
                 </span>
               )}
             </div>
-              <div className={styles.location}>📍 {ilanSehir}{ilanIlce?` — ${ilanIlce}`:''}</div>
+              <div className={styles.location}>📍 {konumUzun}</div>
             </div>
           </div>
           <div className={styles.metaRight}>
@@ -207,7 +222,28 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
         </div>
 
         {/* Başlık */}
-        <div className={styles.title}>{ilanBaslik}</div>
+        <div className={styles.title} style={{fontWeight:700}}>{ilanBaslik}</div>
+
+        {/* Kategori yolu — ne aradığı net görünsün */}
+        {ilan.kategoriYol && ilan.kategoriYol.length > 0 && (
+          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap',margin:'4px 0 8px'}}>
+            {ilan.kategoriYol.map((k, i) => (
+              <span key={i} style={{display:'inline-flex',alignItems:'center',gap:5}}>
+                {i > 0 && <span style={{color:renk.badge,fontSize:11,opacity:0.6}}>›</span>}
+                <span style={{
+                  fontSize:11.5, fontWeight: i === ilan.kategoriYol.length-1 ? 700 : 500,
+                  color: i === ilan.kategoriYol.length-1 ? renk.badge : '#64748b',
+                  background: i === ilan.kategoriYol.length-1 ? renk.badgeBg : 'transparent',
+                  padding: i === ilan.kategoriYol.length-1 ? '2px 8px' : '0',
+                  borderRadius: 6,
+                }}>{k.label}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Açıklama — ön planda, belirgin */}
+        {ilan.aciklama && <p className={styles.desc} style={{fontSize:14,color:'#1e293b',fontWeight:500,margin:'8px 0',lineHeight:1.5}}>{ilan.aciklama}</p>}
 
         {/* Fiyat + etiketler */}
         <div className={styles.tags}>
@@ -218,8 +254,6 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
           )}
           {ilan.tags?.map((t,i) => <span key={i} className={`tag ${t.variant||'tag-gray'}`}>{t.label}</span>)}
         </div>
-
-        {ilan.aciklama && <p className={styles.desc}>{ilan.aciklama}</p>}
 
         {/* Mesaj kutusu */}
         {mesajAcik && (

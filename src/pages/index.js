@@ -134,8 +134,18 @@ export default function Home() {
         ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
         sehir: d.sehir || '', ilce: d.ilce || '',
         baslik: (() => {
-          const s = [d.sehir, d.ilce].filter(Boolean).join(' ')
-          if (d.kategori === 'emlak') { const yer = d.ilce || d.sehir || ''; return `${yer ? yer + "'" + lokEk(yer) + " " : ''}${d.emlak_tip || 'Emlak'} arıyorum` }
+          // Çoklu konum varsa ilk şehri, yoksa tek şehri al
+          const ilkKonum = (d.konumlar && d.konumlar.length > 0) ? d.konumlar[0] : null
+          const bsehir = ilkKonum ? ilkKonum.sehir : d.sehir
+          const bilce = ilkKonum ? ilkKonum.ilce : d.ilce
+          // YENİ: kategori_yol varsa en alt seçilen kategoriyi başlığa koy
+          if (d.kategori_yol && d.kategori_yol.length > 0) {
+            const enAlt = d.kategori_yol[d.kategori_yol.length - 1]?.label || ''
+            const yer = bilce || bsehir || ''
+            if (enAlt) return `${yer ? yer + "'" + lokEk(yer) + " " : ''}${enAlt} arıyorum`
+          }
+          const s = [bsehir, bilce].filter(Boolean).join(' ')
+          if (d.kategori === 'emlak') { const yer = bilce || bsehir || ''; return `${yer ? yer + "'" + lokEk(yer) + " " : ''}${d.emlak_tip || 'Emlak'} arıyorum` }
           if (d.kategori === 'vasita') return `${d.markalar || 'Araç'} arıyorum`
           return (s ? s + ' — ' : '') + (d.aciklama?.slice(0, 50) || d.kategori + ' arıyorum')
         })(),
@@ -148,6 +158,8 @@ export default function Home() {
           d.yil_min && d.yil_max ? { label: d.yil_min + '–' + d.yil_max, variant: 'tag-gray' } : null,
           d.km_max ? { label: 'Max ' + Number(d.km_max).toLocaleString('tr-TR') + ' km', variant: 'tag-gray' } : null,
         ].filter(Boolean),
+        kategoriYol: d.kategori_yol || [],
+        konumlar: d.konumlar || [],
         aciklama: d.aciklama || '', tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
         goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
         email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
