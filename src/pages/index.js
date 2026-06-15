@@ -108,20 +108,17 @@ export default function Home() {
     const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
 
-    // 3. seviye ve sonrası (marka/model): filtre değeriyle markalar kolonunda ara.
-    // Eşleşen ilan yoksa boş döner. Filtre değeri yoksa direkt boş.
-    const markaFiltre = (katSeviye >= 3)
-      ? (aktifFiltre?.deger || null)
-      : (aktifFiltre?.tip === 'marka' ? aktifFiltre.deger : undefined)
+    // Vasıtada seviye 3+ = marka/model araması (markalar kolonunda).
+    // Diğer kategorilerde seviye 3+ = slug ile kategori_yol araması.
+    const vasitaMarkaArama = (katSeviye >= 3) && (aktifFiltre?.tip === 'marka' || aktifFiltre?.deger)
+    const markaFiltre = vasitaMarkaArama ? (aktifFiltre?.deger || null) : undefined
 
-    if (katSeviye >= 3 && !markaFiltre) {
-      setIlanlar([])
-      return
-    }
+    // altKategori: ana kategori değilse ve marka araması değilse → slug'ı kategori_yol'da ara
+    const altKategoriDeger = (isAltKat && !vasitaMarkaArama) ? activeCategory : undefined
 
     const { data } = await ilanListele({
       kategori: isAltKat ? undefined : (activeCategory || undefined),
-      altKategori: (isAltKat && katSeviye < 3 && !aktifFiltre) ? activeCategory : undefined,
+      altKategori: altKategoriDeger,
       emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
       marka: markaFiltre || undefined,
       sehir: filterSehir || undefined,
