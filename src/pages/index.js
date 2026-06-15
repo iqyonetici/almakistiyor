@@ -108,25 +108,35 @@ export default function Home() {
     const anaKategoriler = ['emlak','vasita','alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca']
     const isAltKat = activeCategory && !anaKategoriler.includes(activeCategory)
 
-    // Vasıtada seviye 3+ = marka/model araması (markalar kolonunda).
-    // Diğer kategorilerde seviye 3+ = slug ile kategori_yol araması.
+    // Vasıtada marka filtresi (markalar kolonunda DB'de aranır)
     const vasitaMarkaArama = (katSeviye >= 3) && (aktifFiltre?.tip === 'marka' || aktifFiltre?.deger)
     const markaFiltre = vasitaMarkaArama ? (aktifFiltre?.deger || null) : undefined
 
-    // altKategori: ana kategori değilse ve marka araması değilse → slug'ı kategori_yol'da ara
-    const altKategoriDeger = (isAltKat && !vasitaMarkaArama) ? activeCategory : undefined
-
+    // ana kategoriyi bul — alt kategoride katYol[0] olmalı ama bilemiyoruz, hepsi gelsin
+    // DB'ye sadece ana kategori gonderilir, alt seviye JS'te filtrelenir
     const { data } = await ilanListele({
       kategori: isAltKat ? undefined : (activeCategory || undefined),
-      altKategori: altKategoriDeger,
       emlakTip: aktifFiltre?.tip === 'emlak_tip' ? aktifFiltre.deger : undefined,
       marka: markaFiltre || undefined,
       sehir: filterSehir || undefined,
       ilce: filterIlce || undefined,
       kullaniciEmail: user?.email || undefined,
     })
-    if (data && data.length > 0) {
-      setIlanlar(data.map(d => ({
+
+    // JS tarafı filtre: alt kategori seçildiyse ilanın kategori_yol/alt_kategori/alt_kategori2 alanlarında ara
+    let veri = data || []
+    if (isAltKat && activeCategory) {
+      veri = veri.filter(d => {
+        if (d.alt_kategori === activeCategory) return true
+        if (d.alt_kategori2 === activeCategory) return true
+        if (d.kategori && d.kategori_yol && Array.isArray(d.kategori_yol)) {
+          return d.kategori_yol.some(k => k && k.slug === activeCategory)
+        }
+        return false
+      })
+    }
+    if (veri && veri.length > 0) {
+      setIlanlar(veri.map(d => ({
         id: d.id, kategori: d.kategori || 'alisveris', altKategori: d.alt_kategori || '',
         ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
         sehir: d.sehir || '', ilce: d.ilce || '',
