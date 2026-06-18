@@ -2,6 +2,36 @@ import { useState } from 'react'
 import TelefonGosterButon from './TelefonGosterButon'
 import styles from './IlanKarti.module.css'
 
+// D3 tasarımı: her ANA kategori için renk şeması (tag, ikon, sol şerit)
+const ANA_KAT_RENK = {
+  emlak:                        { renk:'#16A34A', bg:'#DCFCE7', text:'#15803D', border:'#86EFAC', ikon:'🏠', ad:'EMLAK' },
+  vasita:                       { renk:'#EA580C', bg:'#FFEDD5', text:'#9A3412', border:'#FED7AA', ikon:'🚗', ad:'VASITA' },
+  hayvanlar:                    { renk:'#D97706', bg:'#FEF3C7', text:'#92400E', border:'#FCD34D', ikon:'🐾', ad:'HAYVAN' },
+  'ikinci-el-sifir-alisveris':  { renk:'#9333EA', bg:'#F3E8FF', text:'#6B21A8', border:'#E9D5FF', ikon:'🛍️', ad:'ALIŞVERİŞ' },
+  'is-makineleri':              { renk:'#0891B2', bg:'#CFFAFE', text:'#155E75', border:'#A5F3FC', ikon:'🚜', ad:'İŞ MAK.' },
+  hizmetler:                    { renk:'#2563EB', bg:'#DBEAFE', text:'#1E40AF', border:'#BFDBFE', ikon:'🔧', ad:'HİZMET' },
+  'ozel-ders':                  { renk:'#7C3AED', bg:'#EDE9FE', text:'#5B21B6', border:'#DDD6FE', ikon:'📚', ad:'DERS' },
+  'is-ilanlari':                { renk:'#059669', bg:'#D1FAE5', text:'#065F46', border:'#6EE7B7', ikon:'💼', ad:'İŞ İLANI' },
+  'yedek-parca-aksesuar-donanim-tuning': { renk:'#475569', bg:'#E2E8F0', text:'#334155', border:'#CBD5E1', ikon:'🔩', ad:'PARÇA' },
+}
+const VARSAYILAN_RENK = { renk:'#475569', bg:'#E2E8F0', text:'#334155', border:'#CBD5E1', ikon:'📋', ad:'İLAN' }
+
+function anaKatBul(ilan) {
+  const yolKok = ilan?.kategoriYol?.[0]?.slug
+  return ANA_KAT_RENK[yolKok] || ANA_KAT_RENK[ilan?.kategori] || VARSAYILAN_RENK
+}
+
+function islemRozetBul(ilan) {
+  // Satılık/Kiralık rozeti: emlak ve iş makineleri kategorilerinde
+  const rozetliKategoriler = ['emlak', 'is-makineleri']
+  if (!rozetliKategoriler.includes(ilan?.kategori) || !ilan?.islemTuru) return null
+  const makine = ilan.kategori === 'is-makineleri'
+  if (ilan.islemTuru === 'kirala')   return { etiket:'KİRALIK', renk:'#EA580C', bg:'#FFEDD5', text:'#9A3412', ikon: makine ? '🚜' : '🔑' }
+  if (ilan.islemTuru === 'satin-al') return { etiket:'SATILIK', renk:'#16A34A', bg:'#DCFCE7', text:'#15803D', ikon: makine ? '🚜' : '🏠' }
+  return null
+}
+
+
 const vasitaMarkalar = ['Volkswagen','BMW','Mercedes','Toyota','Honda','Renault','Ford','Hyundai','Kia','Fiat','Opel','Peugeot','Audi','Skoda','Seat','Volvo']
 
 // Her kategori için ikon, renk, etiket, arka plan rengi
@@ -85,13 +115,16 @@ function maskedName(name) {
   return p.length === 1 ? p[0] : p[0] + ' ' + (p[p.length-1][0]||'') + '.'
 }
 
-export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, proUye }) {
+export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, proUye, onKatTikla }) {
   const renk = getIlanRenk(ilan)
   const kat = getKatConfig(ilan)
+  const anaRenk = anaKatBul(ilan)          // D3: ana kategori renk şeması
+  const islemRozet = islemRozetBul(ilan)   // D3: satılık/kiralık rozeti
   const ilanAd     = ilan?.ad || 'Kullanıcı'
   const ilanBaslik = ilan?.baslik || 'Talep ilanı'
   const ilanSehir  = ilan?.sehir || ''
   const ilanIlce   = ilan?.ilce || ''
+
   // Çoklu konum metni: "İzmir: Gaziemir · Güzelbahçe" veya tek konum
   const konumListe = (ilan?.konumlar && ilan.konumlar.length > 0) ? ilan.konumlar : null
   const konumKisa = konumListe
@@ -112,6 +145,7 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
   const [mesajMetni, setMesajMetni] = useState('')
   const [mesajGonderildi, setMesajGonderildi] = useState(false)
   const [gonderiliyor, setGonderiliyor] = useState(false)
+  const [aciklamaAcik, setAciklamaAcik] = useState(false)
 
   const kalanGenel = mesajHaklari?.kalanGenel
   const beklemede = ilan?.onayDurumu === 'beklemede'
@@ -141,11 +175,11 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
     <div
       className={styles.card}
       style={{
-        background: beklemede ? '#FEF2F2' : renk.bg,
-        borderColor: beklemede ? '#FCA5A5' : proOncelikli ? '#1D9E75' : renk.border,
-        border: proOncelikli && !beklemede ? '2px solid #1D9E75' : undefined,
-        '--kat-renk': kat.renk,
-        '--kat-bg': kat.bg,
+        background: beklemede ? '#FEF2F2' : '#ffffff',
+        borderColor: beklemede ? '#FCA5A5' : '#e5e7eb',
+        borderLeft: `5px solid ${beklemede ? '#DC2626' : (islemRozet ? islemRozet.renk : anaRenk.renk)}`,
+        '--kat-renk': anaRenk.renk,
+        '--kat-bg': anaRenk.bg,
       }}
     >
       {/* Tıkla ok animasyonu */}
@@ -156,11 +190,11 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
         <div style={{
           position:'absolute', top:0, right:0,
           background:'#1D9E75', color:'#E1F5EE',
-          fontSize:10, fontWeight:500,
-          padding:'4px 10px',
-          borderRadius:'0 16px 0 10px',
+          fontSize:9, fontWeight:500,
+          padding:'3px 8px',
+          borderRadius:'0 12px 0 8px',
           zIndex:3, pointerEvents:'none',
-          display:'flex', alignItems:'center', gap:4,
+          display:'flex', alignItems:'center', gap:3,
         }}>
           🚀 Öncelikli
         </div>
@@ -168,92 +202,144 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
 
       {!beklemede && <a href={`/ilan/${ilan?.id}`} className={styles.cardLink} aria-label="İlan detayını gör" />}
 
-      {/* Kategori header bandı */}
-      <div className={styles.katHeader} style={{ background: kat.bg }}>
-        <div className={styles.katIkonWrap}>
-          <span style={{fontSize:20}}>{kat.ikon}</span>
+      {/* V2: Header — ikon (sol) | başlık+konum (orta) | kullanıcı üst + fiyat orta (sağ) */}
+      <div style={{display:'flex', gap:11, padding:'12px 13px 0'}}>
+        <div style={{
+          display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+          width:44, height:44, borderRadius:8,
+          background: islemRozet ? islemRozet.renk : anaRenk.renk,
+          flexShrink:0,
+        }}>
+          <span style={{fontSize:18, lineHeight:1}}>{islemRozet ? islemRozet.ikon : anaRenk.ikon}</span>
+          <span style={{fontSize:7, fontWeight:700, color:'#fff', marginTop:2, letterSpacing:0.2, textAlign:'center'}}>
+            {islemRozet ? islemRozet.etiket : anaRenk.ad}
+          </span>
         </div>
-        <span className={styles.katEtiket}>{kat.etiket}</span>
-        <span className={styles.katAlt}>
-          {konumKisa}
-        </span>
+
+        {/* Orta — başlık + konum/tarih */}
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{fontSize:14, fontWeight:700, lineHeight:1.25, color:'#0f172a', paddingRight: proOncelikli ? 70 : 0}}>{ilanBaslik}</div>
+          <div style={{fontSize:10.5, color:'#94a3b8', marginTop:4, display:'flex', alignItems:'center', gap:5, flexWrap:'wrap'}}>
+            <span>📍 {konumKisa}</span>
+            {ilan?.tarih && <><span>·</span><span>{ilan.tarih}</span></>}
+            <span>·</span>
+            <span>👁 {ilan.goruntuleme||0}</span>
+          </div>
+        </div>
+
+        {/* Sağ blok — üstte kullanıcı (öncelikli rozetinin altında), ortada fiyat */}
+        <div style={{flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6, paddingTop: proOncelikli ? 22 : 0, maxWidth:'42%'}}>
+          {/* Kullanıcı + Onaylı rozeti — aynı satırda */}
+          <div style={{display:'flex', alignItems:'center', gap:5, position:'relative', zIndex:2, flexWrap:'nowrap'}}>
+            {proOnayli && (
+              <span style={{
+                display:'inline-flex', alignItems:'center', gap:2,
+                padding:'1px 7px', borderRadius:20,
+                fontSize:9, fontWeight:500,
+                background:'#E1F5EE', color:'#085041',
+                border:'0.5px solid #5DCAA5', lineHeight:1.4,
+                whiteSpace:'nowrap', flexShrink:0,
+              }}>
+                ✅ Onaylı
+              </span>
+            )}
+            <span style={{fontSize:11.5, fontWeight:600, color:'#475569', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:80}}>{maskedName(ilanAd)}</span>
+            <div className={styles.avatar} style={{background:anaRenk.bg, color:anaRenk.text, width:24, height:24, fontSize:10}}>
+              {initials(ilanAd)}
+            </div>
+          </div>
+          {/* Fiyat — sağ orta */}
+          {ilan.fiyatMax > 0 && (
+            <div style={{textAlign:'right', marginTop:2}}>
+              {ilan.fiyatMin > 0 ? (
+                <div style={{fontSize:14, fontWeight:800, color:anaRenk.renk, lineHeight:1.3}}>
+                  ₺{Number(ilan.fiyatMin).toLocaleString('tr-TR')} – ₺{Number(ilan.fiyatMax).toLocaleString('tr-TR')}
+                  <span style={{fontSize:11, fontWeight:700, color:anaRenk.renk}}> arasında</span>
+                  {ilan.kategori==='is-ilanlari' && <span style={{fontSize:10,fontWeight:500,color:'#94a3b8'}}>/ay</span>}
+                </div>
+              ) : (
+                <div style={{fontSize:15, fontWeight:800, color:anaRenk.renk, lineHeight:1.3}}>
+                  <span style={{fontSize:11, fontWeight:700, color:anaRenk.renk}}>{ilan.kategori==='is-ilanlari' ? 'Maaş ' : 'en fazla '}</span>
+                  ₺{Number(ilan.fiyatMax).toLocaleString('tr-TR')}
+                  {ilan.kategori==='is-ilanlari' && <span style={{fontSize:10,fontWeight:500,color:'#94a3b8'}}>/ay</span>}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Gövde */}
-      <div className={styles.govde}>
+      <div className={styles.govde} style={{padding:'10px 13px 12px'}}>
         {beklemede && (
           <div style={{display:'flex',alignItems:'center',gap:8,background:'#DC2626',color:'white',padding:'8px 12px',borderRadius:'8px',marginBottom:10,fontSize:12,fontWeight:600,position:'relative',zIndex:1}}>
             ⏳ Yönetici onayı bekliyor — yalnızca siz görüyorsunuz
           </div>
         )}
 
-        {/* Kullanıcı satırı */}
-        <div className={styles.top}>
-          <div className={styles.left}>
-            <div className={styles.avatar} style={{background:renk.badgeBg, color:renk.badge}}>
-              {initials(ilanAd)}
-            </div>
-            <div style={{minWidth:0}}>
-              <div className={styles.name} style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-              {maskedName(ilanAd)}
-              {proOnayli && (
-                <span style={{
-                  display:'inline-flex', alignItems:'center', gap:3,
-                  padding:'2px 7px', borderRadius:20,
-                  fontSize:10, fontWeight:500,
-                  background:'#E1F5EE', color:'#085041',
-                  border:'0.5px solid #5DCAA5',
-                  lineHeight:1.4,
-                }}>
-                  ✅ Onaylı
-                </span>
-              )}
-            </div>
-              <div className={styles.location}>📍 {konumUzun}</div>
-            </div>
-          </div>
-          <div className={styles.metaRight}>
-            <div className={styles.date}>{ilan?.tarih||''}</div>
-          </div>
-          {/* Mobilde tarih */}
-          <div className={styles.metaMobil}>
-            <span style={{fontSize:10,color:'var(--text-3)'}}>{ilan?.tarih||''}</span>
-          </div>
-        </div>
-
-        {/* Başlık */}
-        <div className={styles.title} style={{fontWeight:700}}>{ilanBaslik}</div>
-
-        {/* Kategori yolu — ne aradığı net görünsün */}
+        {/* D3: Tıklanabilir renkli kategori tag'leri */}
         {ilan.kategoriYol && ilan.kategoriYol.length > 0 && (
-          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap',margin:'4px 0 8px'}}>
-            {ilan.kategoriYol.map((k, i) => (
-              <span key={i} style={{display:'inline-flex',alignItems:'center',gap:5}}>
-                {i > 0 && <span style={{color:renk.badge,fontSize:11,opacity:0.6}}>›</span>}
-                <span style={{
-                  fontSize:11.5, fontWeight: i === ilan.kategoriYol.length-1 ? 700 : 500,
-                  color: i === ilan.kategoriYol.length-1 ? renk.badge : '#64748b',
-                  background: i === ilan.kategoriYol.length-1 ? renk.badgeBg : 'transparent',
-                  padding: i === ilan.kategoriYol.length-1 ? '2px 8px' : '0',
-                  borderRadius: 6,
-                }}>{k.label}</span>
-              </span>
-            ))}
+          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap',marginBottom:8, position:'relative', zIndex:2}}>
+            {ilan.kategoriYol.map((k, i) => {
+              const sonSeviye = i === ilan.kategoriYol.length - 1
+              return (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onKatTikla?.(k.slug, null, i + 1) }}
+                  style={{
+                    fontSize:10.5, fontWeight: sonSeviye ? 600 : 500,
+                    color: sonSeviye ? '#fff' : anaRenk.text,
+                    background: sonSeviye ? anaRenk.renk : 'transparent',
+                    border: sonSeviye ? 'none' : `0.5px solid ${anaRenk.border}`,
+                    padding:'2px 8px', borderRadius:5, cursor:'pointer',
+                    fontFamily:'inherit', transition:'all 0.12s', whiteSpace:'nowrap',
+                  }}
+                  title={`${k.label} kategorisindeki ilanları gör`}
+                >
+                  {k.label}
+                </button>
+              )
+            })}
           </div>
         )}
 
-        {/* Açıklama — ön planda, belirgin */}
-        {ilan.aciklama && <p className={styles.desc} style={{fontSize:14,color:'#1e293b',fontWeight:500,margin:'8px 0',lineHeight:1.5}}>{ilan.aciklama}</p>}
+        {/* Açıklama — tek satır + devamını oku */}
+        {ilan.aciklama && (
+          <p style={{
+            fontSize:12.5, color:'#64748b', fontWeight:400,
+            margin:'0 0 8px', lineHeight:1.45,
+            ...(aciklamaAcik ? {} : {
+              display:'-webkit-box', WebkitLineClamp:1, WebkitBoxOrient:'vertical',
+              overflow:'hidden',
+            }),
+          }}>
+            {ilan.aciklama}
+            {!aciklamaAcik && ilan.aciklama.length > 40 && (
+              <button
+                onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); setAciklamaAcik(true) }}
+                style={{ background:'none', border:'none', color:anaRenk.renk, fontWeight:600, fontSize:12.5, cursor:'pointer', padding:0, marginLeft:4, fontFamily:'inherit', position:'relative', zIndex:2 }}
+              >devamını oku</button>
+            )}
+          </p>
+        )}
+        {ilan.aciklama && aciklamaAcik && (
+          <button
+            onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); setAciklamaAcik(false) }}
+            style={{ background:'none', border:'none', color:'#94a3b8', fontWeight:600, fontSize:11.5, cursor:'pointer', padding:0, marginBottom:8, fontFamily:'inherit', position:'relative', zIndex:2, display:'block' }}
+          >↑ kapat</button>
+        )}
 
-        {/* Fiyat + etiketler */}
-        <div className={styles.tags}>
-          {ilan.fiyatMin && ilan.fiyatMax && (
-            <span className="tag tag-price">
-              ₺{Number(ilan.fiyatMin).toLocaleString('tr-TR')} — ₺{Number(ilan.fiyatMax).toLocaleString('tr-TR')}
-            </span>
-          )}
-          {ilan.tags?.map((t,i) => <span key={i} className={`tag ${t.variant||'tag-gray'}`}>{t.label}</span>)}
-        </div>
+        {/* Özellik etiketleri — küçük */}
+        {ilan.tags && ilan.tags.length > 0 && (
+          <div style={{display:'flex', gap:5, flexWrap:'wrap', marginBottom:8}}>
+            {ilan.tags.map((t,i) => (
+              <span key={i} style={{
+                fontSize:10, color:'#64748b', background:'#f1f5f9',
+                padding:'2px 8px', borderRadius:5, whiteSpace:'nowrap',
+              }}>{t.label}</span>
+            ))}
+          </div>
+        )}
 
         {/* Mesaj kutusu */}
         {mesajAcik && (
@@ -279,27 +365,29 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
           </div>
         )}
 
-        {/* Footer */}
-        <div className={styles.footer}>
-          <div className={styles.views}>👁 {ilan.goruntuleme||0} satıcı baktı</div>
-          <div className={styles.butonlar}>
-            {beklemede ? (
-              <span style={{fontSize:12,color:'#DC2626',fontWeight:600}}>Onay sonrası satıcılar görecek</span>
-            ) : (
-              <>
-                {telefonGoster && !mesajAcik && (
-                  <div style={{position:'relative',zIndex:2}} onClick={e=>e.preventDefault()}>
-                    <TelefonGosterButon ilanId={ilan.id} kullaniciEmail={user?.email} />
-                  </div>
-                )}
-                {!mesajAcik && (
-                  <button className={styles.btnMesaj} style={{background:kat.renk}} onClick={handleMesajAc}>
-                    💬 Mesaj Gönder
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+        {/* Footer — sadece butonlar, sağa hizalı */}
+        <div style={{display:'flex', justifyContent:'flex-end', alignItems:'center', gap:6, marginTop:4}}>
+          {beklemede ? (
+            <span style={{fontSize:11,color:'#DC2626',fontWeight:600}}>Onay sonrası satıcılar görecek</span>
+          ) : (
+            <>
+              {telefonGoster && !mesajAcik && (
+                <div style={{position:'relative',zIndex:2}} onClick={e=>e.preventDefault()}>
+                  <TelefonGosterButon ilanId={ilan.id} kullaniciEmail={user?.email} />
+                </div>
+              )}
+              {!mesajAcik && (
+                <button style={{
+                  background:anaRenk.renk, color:'#fff', border:'none',
+                  borderRadius:6, padding:'6px 14px', fontSize:11.5, fontWeight:600,
+                  cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap',
+                  position:'relative', zIndex:2,
+                }} onClick={handleMesajAc}>
+                  💬 Mesaj Gönder
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
