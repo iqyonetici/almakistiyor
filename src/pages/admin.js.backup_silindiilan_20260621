@@ -1,0 +1,584 @@
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import { supabase } from '../lib/supabase'
+import { adminMi, tumKategorileriGetir, kategoriEkle, kategoriGuncelle, kategoriSil } from '../lib/kategoriDB'
+import { dashboardStats, son7GunIlan, kullanicilariGetir, kullaniciEngelle, kullaniciSil, kullaniciPaketDegistir, sikayetleriGetir, sikayetDurumGuncelle, paketleriGetir, adminDestekTalepleri, adminDestekYanitla, adminDestekDurum } from '../lib/adminDB'
+import styles from './admin.module.css'
+
+const SEKMELER = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'onaylar', label: 'ilan Onaylari' },
+  { id: 'ilanlar', label: 'Tum ilanlar' },
+  { id: 'kullanicilar', label: 'Kullanicilar' },
+  { id: 'destek', label: 'Destek Talepleri' },
+  { id: 'paketler', label: 'Pro Uyelikler' },
+  { id: 'kategoriler', label: 'Kategoriler' },
+]
+
+export default function AdminPanel() {
+  const { user, yuklendi } = useAuth()
+  const router = useRouter()
+  const [yetkili, setYetkili] = useState(null)
+  const [sekme, setSekme] = useState('dashboard')
+
+  useEffect(() => {
+    if (!yuklendi) return
+    if (!user?.email) { setYetkili(false); return }
+    adminMi(user.email).then(setYetkili)
+  }, [user, yuklendi])
+
+  if (yetkili === null) return <div className={styles.merkez}><div className={styles.spinner} /> Yetki kontrol ediliyor...</div>
+  if (yetkili === false) return (
+    <div className={styles.merkez}>
+      <h2>Erisim Reddedildi</h2>
+      <p>Bu sayfaya yalnizca yoneticiler erisebilir.</p>
+      <button className={styles.btn} onClick={() => router.push('/')}>Ana Sayfaya Don</button>
+    </div>
+  )
+
+  return (
+    <>
+      <Head><title>Admin Panel | AlmakIstiyor</title></Head>
+      <div className={styles.layout}>
+        <aside className={styles.yanMenu}>
+          <div className={styles.yanLogo}>Admin</div>
+          {SEKMELER.map(s => (
+            <button key={s.id}
+              className={`${styles.yanBtn} ${sekme===s.id?styles.yanAktif:''}`}
+              onClick={() => setSekme(s.id)}>
+              {s.label}
+            </button>
+          ))}
+          <button className={styles.yanCikis} onClick={() => router.push('/')}>Siteye Don</button>
+        </aside>
+        <main className={styles.anaIcerik}>
+          {sekme === 'dashboard' && <Dashboard />}
+          {sekme === 'onaylar' && <Onaylar />}
+          {sekme === 'ilanlar' && <TumIlanlar />}
+          {sekme === 'kullanicilar' && <Kullanicilar />}
+          {sekme === 'destek' && <DestekTalepleri />}
+          {sekme === 'paketler' && <Paketler />}
+          {sekme === 'kategoriler' && <Kategoriler />}
+        </main>
+      </div>
+    </>
+  )
+}
+
+function Dashboard() {
+  const [stats, setStats] = useState(null)
+  const [grafik, setGrafik] = useState([])
+  useEffect(() => {
+    dashboardStats().then(setStats)
+    son7GunIlan().then(setGrafik)
+  }, [])
+  if (!stats) return <div className={styles.yukleniyor}>Yukleniyor...</div>
+  const maxSayi = Math.max(...grafik.map(g => g.sayi), 1)
+  const kartlar = [
+    { l: 'Aktif ilan', v: stats.ilanAktif, i: 'ok', renk: '#0D7A6B' },
+    { l: 'Onay Bekleyen', v: stats.ilanBekleyen, i: '...', renk: '#F5A623' },
+    { l: 'Toplam ilan', v: stats.ilanToplam, i: 'list', renk: '#4a5568' },
+    { l: 'Kullanici', v: stats.kullanici, i: 'usr', renk: '#0D7A6B' },
+    { l: 'Bugun ilan', v: stats.bugunIlan, i: 'cal', renk: '#0D7A6B' },
+    { l: 'Bugun Uye', v: stats.bugunUye, i: 'new', renk: '#0D7A6B' },
+  ]
+  return (
+    <div>
+      <h1 className={styles.baslik}>Dashboard</h1>
+      <div className={styles.statGrid}>
+        {kartlar.map(k => (
+          <div key={k.l} className={styles.statKart}>
+            <div className={styles.statIkon} style={{background:k.renk}}>{k.i}</div>
+            <div>
+              <div className={styles.statSayi}>{k.v.toLocaleString('tr-TR')}</div>
+              <div className={styles.statLabel}>{k.l}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className={styles.grafikKart}>
+        <h3>Son 7 Gun - ilan Sayisi</h3>
+        <div className={styles.grafik}>
+          {grafik.map((g,i) => (
+            <div key={i} className={styles.grafikCubukWrap}>
+              <div className={styles.grafikSayi}>{g.sayi}</div>
+              <div className={styles.grafikCubuk} style={{height:`${(g.sayi/maxSayi)*100}%`}} />
+              <div className={styles.grafikGun}>{g.gun}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Onaylar() {
+  const [ilanlar, setIlanlar] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  async function yukle() {
+    setYukleniyor(true)
+    const { data } = await supabase.from('ilanlar').select('*').eq('onay_durumu','beklemede').order('created_at',{ascending:false})
+    setIlanlar(data || []); setYukleniyor(false)
+  }
+  useEffect(() => { yukle() }, [])
+  async function onayla(id) { await supabase.from('ilanlar').update({onay_durumu:'onaylandi',durum:'aktif'}).eq('id',id); fetch('/api/bildirim-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ilanId:id,tip:'onaylandi'})}).catch(()=>{}); yukle() }
+  async function reddet(id) { await supabase.from('ilanlar').update({onay_durumu:'reddedildi',durum:'pasif'}).eq('id',id); fetch('/api/bildirim-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ilanId:id,tip:'reddedildi'})}).catch(()=>{}); yukle() }
+  return (
+    <div>
+      <h1 className={styles.baslik}>ilan Onaylari {ilanlar.length>0 && <span className={styles.rozet}>{ilanlar.length}</span>}</h1>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        ilanlar.length === 0 ? <div className={styles.bos}>Onay bekleyen ilan yok</div> :
+        ilanlar.map(ilan => (
+          <div key={ilan.id} className={styles.ilanKart}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>{ilan.kategori} {ilan.alt_kategori?`> ${ilan.alt_kategori}`:''} {ilan.emlak_tip?`> ${ilan.emlak_tip}`:''}</div>
+              <div className={styles.ilanDetay}>{ilan.kullanici_ad} {ilan.kullanici_soyad} - {ilan.sehir} {ilan.ilce||''} {ilan.fiyat_min?`- ${Number(ilan.fiyat_min).toLocaleString('tr-TR')}-${Number(ilan.fiyat_max).toLocaleString('tr-TR')} TL`:''}</div>
+              {ilan.aciklama && <div className={styles.ilanAciklama}>{ilan.aciklama}</div>}
+              <div className={styles.ilanTarih}>{new Date(ilan.created_at).toLocaleString('tr-TR')}</div>
+            </div>
+            <div className={styles.ilanAksiyon}>
+              <button className={styles.btnOnay} onClick={() => onayla(ilan.id)}>Onayla</button>
+              <button className={styles.btnRed} onClick={() => reddet(ilan.id)}>Reddet</button>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+
+function TumIlanlar() {
+  const [ilanlar, setIlanlar] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [arama, setArama] = useState('')
+  async function yukle() {
+    setYukleniyor(true)
+    const { data } = await supabase.from('ilanlar').select('*').order('created_at',{ascending:false}).limit(200)
+    setIlanlar(data || []); setYukleniyor(false)
+  }
+  useEffect(() => { yukle() }, [])
+  async function durdur(id) { await supabase.from('ilanlar').update({durum:'pasif'}).eq('id',id); yukle() }
+  async function yayinla(id) { await supabase.from('ilanlar').update({durum:'aktif',onay_durumu:'onaylandi'}).eq('id',id); yukle() }
+  async function sil(id) { if(!confirm('Kalici silinecek. Emin misiniz?'))return; await supabase.from('ilanlar').delete().eq('id',id); yukle() }
+  const filt = ilanlar.filter(i => !arama || (i.kullanici_ad||'').toLowerCase().includes(arama.toLowerCase()) || (i.sehir||'').toLowerCase().includes(arama.toLowerCase()))
+  return (
+    <div>
+      <h1 className={styles.baslik}>Tum ilanlar</h1>
+      <input className={styles.arama} placeholder="isim veya sehir ara..." value={arama} onChange={e=>setArama(e.target.value)} />
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        filt.map(ilan => (
+          <div key={ilan.id} className={styles.ilanKart}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>
+                {ilan.kategori} {ilan.alt_kategori?`> ${ilan.alt_kategori}`:''}
+                <span className={`${styles.durum} ${ilan.durum==='aktif'?styles.durumAktif:styles.durumPasif}`}>{ilan.durum==='aktif'?'Yayinda':'Pasif'}</span>
+                {ilan.onay_durumu==='beklemede' && <span className={styles.durumBekle}>Beklemede</span>}
+              </div>
+              <div className={styles.ilanDetay}>{ilan.kullanici_ad} - {ilan.sehir} - {ilan.goruntuleme||0} goruntulenme</div>
+            </div>
+            <div className={styles.ilanAksiyon}>
+              {ilan.durum==='aktif' ? <button className={styles.btnDurdur} onClick={()=>durdur(ilan.id)}>Durdur</button>
+                : <button className={styles.btnOnay} onClick={()=>yayinla(ilan.id)}>Yayinla</button>}
+              <button className={styles.btnSil} onClick={()=>sil(ilan.id)}>Sil</button>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+
+function Kullanicilar() {
+  const [liste, setListe] = useState([])
+  const [arama, setArama] = useState('')
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [paketler, setPaketler] = useState([])
+  const [engelModal, setEngelModal] = useState(null)
+  const [engelNot, setEngelNot] = useState('')
+  async function yukle() { setYukleniyor(true); setListe(await kullanicilariGetir(arama)); setYukleniyor(false) }
+  useEffect(() => { yukle(); paketleriGetir().then(setPaketler) }, [])
+  async function engelKaldir(k) { await kullaniciEngelle(k.id, false); yukle() }
+  async function engelOnayla() {
+    if (!engelModal) return
+    await kullaniciEngelle(engelModal.id, true, engelNot.trim())
+    setEngelModal(null); setEngelNot(''); yukle()
+  }
+  async function paketYap(k, paket) { await kullaniciPaketDegistir(k.id, paket); yukle() }
+  async function sil(k) {
+    if (!confirm(`"${k.ad} ${k.soyad}" kalici olarak silinecek (soft-delete). Emin misiniz?`)) return
+    await kullaniciSil(k.id); yukle()
+  }
+  return (
+    <div>
+      <h1 className={styles.baslik}>Kullanicilar</h1>
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <input className={styles.arama} style={{marginBottom:0}} placeholder="isim veya email ara..." value={arama} onChange={e=>setArama(e.target.value)} onKeyDown={e=>e.key==='Enter'&&yukle()} />
+        <button className={styles.btnOnay} onClick={yukle}>Ara</button>
+      </div>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        liste.map(k => (
+          <div key={k.id} className={styles.ilanKart}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>
+                {k.ad} {k.soyad}
+                {k.paket && k.paket!=='ucretsiz' && <span className={styles.proRozet}>PRO {k.paket}</span>}
+                {k.engelli && <span className={styles.durumPasif} style={{marginLeft:6,padding:'2px 8px',borderRadius:6,fontSize:11}}>Engelli</span>}
+              </div>
+              <div className={styles.ilanDetay}>{k.email} - {k.telefon||'-'} - {k.sehir||'-'}</div>
+              <div className={styles.ilanTarih}>{k.gunluk_ilan_hakki||3} ilan/gun - {k.gunluk_mesaj_hakki||1} mesaj/gun - Uyelik: {new Date(k.created_at).toLocaleDateString('tr-TR')}</div>
+              {k.engelli && k.engel_notu && (
+                <div style={{marginTop:6,padding:'6px 10px',background:'#FFF3E0',borderRadius:6,fontSize:12,color:'#8a5a00'}}>
+                  <strong>Engel notu:</strong> {k.engel_notu}
+                </div>
+              )}
+            </div>
+            <div className={styles.ilanAksiyon}>
+              <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>paketYap(k, e.target.value)}>
+                {paketler.length > 0 ? paketler.map(p => (
+                  <option key={p.kod} value={p.kod}>
+                    {p.ad} ({p.gunluk_ilan >= 999 ? 'sinirsiz' : p.gunluk_ilan} ilan / {p.gunluk_mesaj >= 999 ? 'sinirsiz' : p.gunluk_mesaj} mesaj)
+                  </option>
+                )) : (
+                  <option value="ucretsiz">Yukleniyor...</option>
+                )}
+              </select>
+              {k.engelli ? (
+                <button className={styles.btnOnay} onClick={()=>engelKaldir(k)}>Ac</button>
+              ) : (
+                <button className={styles.btnSil} onClick={()=>{setEngelModal(k); setEngelNot('')}}>Engelle</button>
+              )}
+              <button className={styles.btnSil} onClick={()=>sil(k)}>Sil</button>
+            </div>
+          </div>
+        ))
+      }
+      {engelModal && (
+        <div className={styles.modalArka} onClick={e=>e.target===e.currentTarget&&setEngelModal(null)}>
+          <div className={styles.modal}>
+            <h3>{engelModal.ad} {engelModal.soyad} - Engelle</h3>
+            <label>Sebep / not (opsiyonel)</label>
+            <textarea
+              value={engelNot}
+              onChange={e=>setEngelNot(e.target.value)}
+              placeholder="Orn: Spam ilan, uygunsuz mesaj..."
+              rows={3}
+              style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'1.5px solid #e2e8f0',fontSize:13,fontFamily:'inherit',resize:'vertical',marginTop:4}}
+            />
+            <div className={styles.modalBtnler}>
+              <button className={styles.btnIptal} onClick={()=>setEngelModal(null)}>iptal</button>
+              <button className={styles.btnEkle} onClick={engelOnayla}>Engelle</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Sikayetler() {
+  const [liste, setListe] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  async function yukle() { setYukleniyor(true); setListe(await sikayetleriGetir()); setYukleniyor(false) }
+  useEffect(() => { yukle() }, [])
+  async function durum(id, d) { await sikayetDurumGuncelle(id, d); yukle() }
+  return (
+    <div>
+      <h1 className={styles.baslik}>Sikayetler</h1>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        liste.length === 0 ? <div className={styles.bos}>Sikayet yok</div> :
+        liste.map(s => (
+          <div key={s.id} className={styles.ilanKart}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>ilan #{s.ilan_id} <span className={`${styles.durum} ${s.durum==='yeni'?styles.durumBekle:styles.durumAktif}`}>{s.durum}</span></div>
+              <div className={styles.ilanDetay}>Sebep: {s.sebep} - {s.sikayet_eden_email}</div>
+              {s.aciklama && <div className={styles.ilanAciklama}>{s.aciklama}</div>}
+              <div className={styles.ilanTarih}>{new Date(s.created_at).toLocaleString('tr-TR')}</div>
+            </div>
+            <div className={styles.ilanAksiyon}>
+              <button className={styles.btnOnay} onClick={()=>durum(s.id,'incelendi')}>incelendi</button>
+              <button className={styles.btnDurdur} onClick={()=>durum(s.id,'kapatildi')}>Kapat</button>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+
+function Paketler() {
+  const lblS = { fontSize: 11, fontWeight: 600, color: '#8a95a3', display: 'flex', flexDirection: 'column', gap: 4 }
+  const inpFull = { width: '100%', marginLeft: 0 }
+  const [liste, setListe] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [kayitDurum, setKayitDurum] = useState({})
+
+  async function yukle() { setYukleniyor(true); setListe(await paketleriGetir()); setYukleniyor(false) }
+  useEffect(() => { yukle() }, [])
+
+  function alanDegistir(id, alan, deger) {
+    setListe(prev => prev.map(p => p.id === id ? { ...p, [alan]: deger } : p))
+  }
+
+  async function kaydet(id) {
+    const p = liste.find(x => x.id === id)
+    if (!p) return
+    const { error } = await supabase.from('paketler').update({
+      ad: p.ad,
+      fiyat: Number(p.fiyat) || 0,
+      eski_fiyat: p.eski_fiyat ? Number(p.eski_fiyat) : null,
+      yillik_fiyat: p.yillik_fiyat ? Number(p.yillik_fiyat) : null,
+      yillik_eski_fiyat: p.yillik_eski_fiyat ? Number(p.yillik_eski_fiyat) : null,
+      gunluk_ilan: Number(p.gunluk_ilan) || 0,
+      gunluk_mesaj: Number(p.gunluk_mesaj) || 0,
+      gunluk_telefon: Number(p.gunluk_telefon) || 0,  // ← YENİ
+      telefon_goster: !!p.telefon_goster,
+      aciklama: p.aciklama || null,
+      ozellikler: p.ozellikler || null,
+      populer: !!p.populer,
+      renk: p.renk || '#0D7A6B',
+      aktif: p.aktif !== false,
+    }).eq('id', id)
+    if (error) { alert('Hata: ' + error.message); return }
+    setKayitDurum(s => ({ ...s, [id]: 'kaydedildi' }))
+    setTimeout(() => setKayitDurum(s => ({ ...s, [id]: null })), 2000)
+  }
+
+  return (
+    <div>
+      <h1 className={styles.baslik}>Pro Uyelik Paketleri</h1>
+      <p style={{color:'#8a95a3',fontSize:13,marginBottom:16}}>Buradaki degisiklikler /pro sayfasina aninda yansir.</p>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        liste.map(p => (
+          <div key={p.id} className={styles.ilanKart} style={{flexDirection:'column',alignItems:'stretch',gap:12}}>
+            <div className={styles.ilanBilgi} style={{width:'100%'}}>
+              <div className={styles.ilanBaslik} style={{marginBottom:12}}>
+                {p.ad} <span className={styles.ilanTarih}>({p.kod})</span>
+                {p.populer && <span className={styles.proRozet}>Populer</span>}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
+                <label style={lblS}>Paket adi
+                  <input className={styles.miniInput} style={inpFull} value={p.ad ?? ''} onChange={e=>alanDegistir(p.id,'ad',e.target.value)} />
+                </label>
+                <label style={lblS}>Fiyat TL/ay
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.fiyat ?? ''} onChange={e=>alanDegistir(p.id,'fiyat',e.target.value)} />
+                </label>
+                <label style={lblS}>Eski fiyat/ay (indirim)
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'eski_fiyat',e.target.value)} placeholder="bos=yok" />
+                </label>
+                <label style={lblS}>Fiyat TL/yil
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_fiyat',e.target.value)} />
+                </label>
+                <label style={lblS}>Eski fiyat/yil (indirim)
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.yillik_eski_fiyat ?? ''} onChange={e=>alanDegistir(p.id,'yillik_eski_fiyat',e.target.value)} placeholder="bos=yok" />
+                </label>
+                <label style={lblS}>Gunluk ilan
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_ilan ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_ilan',e.target.value)} />
+                </label>
+                <label style={lblS}>Gunluk mesaj
+                  <input type="number" className={styles.miniInput} style={inpFull} value={p.gunluk_mesaj ?? ''} onChange={e=>alanDegistir(p.id,'gunluk_mesaj',e.target.value)} />
+                </label>
+
+                {/* ★ YENİ ALAN ★ */}
+                <label style={{...lblS, color:'#0D7A6B'}}>📞 Gunluk telefon goruntuleme
+                  <input
+                    type="number"
+                    min={0}
+                    className={styles.miniInput}
+                    style={{...inpFull, borderColor: '#0D7A6B'}}
+                    value={p.gunluk_telefon ?? 0}
+                    onChange={e=>alanDegistir(p.id,'gunluk_telefon',e.target.value)}
+                    placeholder="0 = kapali"
+                  />
+                  {(Number(p.gunluk_telefon) === 0) && (
+                    <span style={{color:'#e53e3e',fontSize:10,marginTop:2}}>0 = telefon gizli kalir</span>
+                  )}
+                </label>
+
+                <label style={lblS}>Kart rengi
+                  <input type="color" style={{width:'100%',height:34,borderRadius:6,border:'1.5px solid #e2e8f0',cursor:'pointer'}} value={p.renk || '#0D7A6B'} onChange={e=>alanDegistir(p.id,'renk',e.target.value)} />
+                </label>
+              </div>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Aciklama
+                <input className={styles.miniInput} style={inpFull} value={p.aciklama ?? ''} onChange={e=>alanDegistir(p.id,'aciklama',e.target.value)} placeholder="Orn: Profesyonel saticilar icin" />
+              </label>
+              <label style={{...lblS,marginTop:10,display:'block'}}>Ozellikler (virgülle ayir)
+                <textarea className={styles.miniInput} style={{...inpFull,minHeight:54,resize:'vertical'}} value={p.ozellikler ?? ''} onChange={e=>alanDegistir(p.id,'ozellikler',e.target.value)} placeholder="Oncelikli siralama, Onaylit rozet" />
+              </label>
+              <div style={{display:'flex',gap:18,marginTop:12,flexWrap:'wrap'}}>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={!!p.telefon_goster} onChange={e=>alanDegistir(p.id,'telefon_goster',e.target.checked)} /> Telefon goster
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={!!p.populer} onChange={e=>alanDegistir(p.id,'populer',e.target.checked)} /> En populer
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
+                  <input type="checkbox" checked={p.aktif !== false} onChange={e=>alanDegistir(p.id,'aktif',e.target.checked)} /> Aktif (sitede gorunsun)
+                </label>
+              </div>
+            </div>
+            <div className={styles.ilanAksiyon}>
+              <button className={styles.btnOnay} onClick={()=>kaydet(p.id)}>
+                {kayitDurum[p.id] === 'kaydedildi' ? '✓ Kaydedildi' : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+
+
+function Kategoriler() {
+  const [kategoriler, setKategoriler] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [ekleModal, setEkleModal] = useState(null)
+  const [yLabel, setYLabel] = useState(''); const [ySlug, setYSlug] = useState(''); const [yIcon, setYIcon] = useState('')
+  const [yFiltreTip, setYFiltreTip] = useState(''); const [yFiltreDeger, setYFiltreDeger] = useState('')
+
+  async function yukle() { setYukleniyor(true); setKategoriler(await tumKategorileriGetir()); setYukleniyor(false) }
+  useEffect(() => { yukle() }, [])
+
+  async function ekle() {
+    if (!yLabel || !ySlug) { alert('isim ve slug zorunlu'); return }
+    await kategoriEkle({ parentId: ekleModal.parentId, label: yLabel, slug: ySlug, icon: yIcon, seviye: ekleModal.seviye, sira: 99, filtreTip: yFiltreTip||null, filtreDeger: yFiltreDeger||null })
+    setEkleModal(null); setYLabel(''); setYSlug(''); setYIcon(''); setYFiltreTip(''); setYFiltreDeger(''); yukle()
+  }
+  async function aktiflik(kat) { await kategoriGuncelle(kat.id, {aktif:!kat.aktif}); yukle() }
+  async function sil(kat) { if(!confirm(`"${kat.label}" ve alt kategorileri silinecek. Emin misiniz?`))return; await kategoriSil(kat.id); yukle() }
+
+  function KatSatir({ kat, derinlik }) {
+    return (
+      <div>
+        <div className={styles.katSatir} style={{paddingLeft:12+derinlik*24}}>
+          <div className={styles.katBilgi}>
+            <span style={{opacity:kat.aktif?1:0.4}}>
+              {kat.icon} {kat.label}
+              <span className={styles.katSlug}>({kat.slug})</span>
+              {kat.filtre_tip && <span className={styles.katFiltre}>{kat.filtre_tip}={kat.filtre_deger}</span>}
+            </span>
+          </div>
+          <div className={styles.katAksiyon}>
+            {derinlik < 3 && <button className={styles.miniBtn} onClick={()=>setEkleModal({parentId:kat.id,seviye:kat.seviye+1})}>+ Alt</button>}
+            <button className={`${styles.miniBtn} ${kat.aktif?styles.acik:styles.kapali}`} onClick={()=>aktiflik(kat)}>{kat.aktif?'Acik':'Kapali'}</button>
+            <button className={styles.miniBtnSil} onClick={()=>sil(kat)}>Sil</button>
+          </div>
+        </div>
+        {kat.altKategoriler?.map(alt => <KatSatir key={alt.id} kat={alt} derinlik={derinlik+1} />)}
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h1 className={styles.baslik}>Kategoriler</h1>
+      <button className={styles.btnYeniAna} onClick={()=>setEkleModal({parentId:null,seviye:1})}>+ Yeni Ana Kategori</button>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        <div className={styles.katListe}>{kategoriler.map(kat => <KatSatir key={kat.id} kat={kat} derinlik={0} />)}</div>
+      }
+      {ekleModal && (
+        <div className={styles.modalArka} onClick={e=>e.target===e.currentTarget&&setEkleModal(null)}>
+          <div className={styles.modal}>
+            <h3>{ekleModal.seviye}. Seviye Kategori Ekle</h3>
+            <label>isim *</label>
+            <input value={yLabel} onChange={e=>{setYLabel(e.target.value); setYSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))}} placeholder="Orn: Daire" />
+            <label>Slug</label>
+            <input value={ySlug} onChange={e=>setYSlug(e.target.value)} />
+            <label>ikon (emoji, opsiyonel)</label>
+            <input value={yIcon} onChange={e=>setYIcon(e.target.value)} placeholder="ev" />
+            {ekleModal.seviye >= 3 && (<>
+              <label>Filtre Tipi</label>
+              <select value={yFiltreTip} onChange={e=>setYFiltreTip(e.target.value)}>
+                <option value="">Yok</option>
+                <option value="emlak_tip">emlak_tip</option>
+                <option value="marka">marka</option>
+              </select>
+              {yFiltreTip && (<>
+                <label>Filtre Degeri</label>
+                <input value={yFiltreDeger} onChange={e=>setYFiltreDeger(e.target.value)} placeholder="Daire / BMW" />
+              </>)}
+            </>)}
+            <div className={styles.modalBtnler}>
+              <button className={styles.btnIptal} onClick={()=>setEkleModal(null)}>iptal</button>
+              <button className={styles.btnEkle} onClick={ekle}>Ekle</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DestekTalepleri() {
+  const [liste, setListe] = useState([])
+  const [yukleniyor, setYukleniyor] = useState(true)
+  const [yanitlar, setYanitlar] = useState({})
+  const [filtre, setFiltre] = useState('hepsi')
+
+  async function yukle() { setYukleniyor(true); setListe(await adminDestekTalepleri()); setYukleniyor(false) }
+  useEffect(() => { yukle() }, [])
+
+  async function yanitla(t) {
+    const y = yanitlar[t.id]
+    if (!y || !y.trim()) { alert('Yanit yazin'); return }
+    await adminDestekYanitla(t.id, y, 'cozuldu')
+    setYanitlar(s => ({ ...s, [t.id]: '' }))
+    yukle()
+  }
+  async function durumDegistir(id, durum) { await adminDestekDurum(id, durum); yukle() }
+
+  const turEtiket = { soru:'Soru', sikayet:'Sikayet', oneri:'Oneri', istek:'istek', teknik:'Teknik' }
+  const durumEtiket = { yeni:'Yeni', inceleniyor:'inceleniyor', cozuldu:'Cozuldu', kapatildi:'Kapatildi' }
+
+  const filtreli = filtre === 'hepsi' ? liste : liste.filter(t => filtre === 'acik' ? (t.durum === 'yeni' || t.durum === 'inceleniyor') : t.durum === filtre)
+  const yeniSayisi = liste.filter(t => t.durum === 'yeni').length
+
+  return (
+    <div>
+      <h1 className={styles.baslik}>Destek Talepleri {yeniSayisi > 0 && <span className={styles.rozet}>{yeniSayisi}</span>}</h1>
+      <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+        {[{v:'hepsi',l:'Hepsi'},{v:'acik',l:'Acik'},{v:'cozuldu',l:'Cozuldu'}].map(f => (
+          <button key={f.v} onClick={()=>setFiltre(f.v)}
+            className={styles.miniBtn} style={filtre===f.v?{background:'#0D7A6B',color:'white',borderColor:'#0D7A6B'}:{}}>
+            {f.l}
+          </button>
+        ))}
+      </div>
+      {yukleniyor ? <div className={styles.yukleniyor}>Yukleniyor...</div> :
+        filtreli.length === 0 ? <div className={styles.bos}>Talep yok</div> :
+        filtreli.map(t => (
+          <div key={t.id} className={styles.ilanKart} style={{flexDirection:'column',alignItems:'stretch',gap:10}}>
+            <div className={styles.ilanBilgi}>
+              <div className={styles.ilanBaslik}>
+                {turEtiket[t.tur] || t.tur} - {t.konu}
+                <span className={`${styles.durum} ${t.durum==='cozuldu'?styles.durumAktif:t.durum==='yeni'?styles.durumBekle:styles.durumPasif}`}>{durumEtiket[t.durum]||t.durum}</span>
+              </div>
+              <div className={styles.ilanDetay}>{t.kullanici_ad || 'Anonim'} - {t.kullanici_email || '-'}</div>
+              <div className={styles.ilanAciklama}>{t.mesaj}</div>
+              {t.admin_yanit && (
+                <div style={{background:'#E6F5F2',padding:'8px 12px',borderRadius:8,fontSize:13,color:'#085549',marginTop:6}}>
+                  <strong>Yanitiniz:</strong> {t.admin_yanit}
+                </div>
+              )}
+              <div className={styles.ilanTarih}>{new Date(t.created_at).toLocaleString('tr-TR')}</div>
+            </div>
+            {t.durum !== 'cozuldu' && t.durum !== 'kapatildi' && (
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap'}}>
+                <textarea
+                  placeholder="Yanitinizi yazin..." rows={2}
+                  value={yanitlar[t.id] || ''}
+                  onChange={e=>setYanitlar(s=>({...s,[t.id]:e.target.value}))}
+                  style={{flex:1,minWidth:200,padding:'8px 12px',borderRadius:8,border:'1.5px solid #e2e8f0',fontSize:13,fontFamily:'inherit',resize:'vertical'}} />
+                <button className={styles.btnOnay} onClick={()=>yanitla(t)}>Yanitla ve Coz</button>
+                <button className={styles.btnDurdur} onClick={()=>durumDegistir(t.id,'inceleniyor')}>inceleniyor</button>
+                <button className={styles.btnSil} onClick={()=>durumDegistir(t.id,'kapatildi')}>Kapat</button>
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </div>
+  )
+}

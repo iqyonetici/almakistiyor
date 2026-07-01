@@ -23,27 +23,28 @@ export default function Footer() {
             <h6>Platform</h6>
             <a href="/nasil-calisir">Nasıl çalışır?</a>
             <a href="/">Talep ilanları</a>
-            <a href="/ilan-ver">İlan ver</a>
-            <a href="/guvenlik">Güvenlik</a>
+            <a href="/guvenlik">Güvenli alışveriş</a>
           </div>
           <div className={styles.col}>
             <h6>Satıcılar için</h6>
             <a href="/satici">Satıcı girişi</a>
-            <a href="/paketler">Paketler ve fiyatlar</a>
-            <a href="/kurumsal">Kurumsal hesap</a>
-            <a href="/api">API erişimi</a>
+            <a href="/pro">Paketler ve fiyatlar</a>
           </div>
           <div className={styles.col}>
-            <h6>Yardım</h6>
-            <a href="/yardim">Yardım merkezi</a>
+            <h6>Yardım & İletişim</h6>
             <a href="/iletisim">İletişim</a>
-            <a href="/gizlilik">Gizlilik politikası</a>
+            <a href="/guvenlik">Güvenlik ipuçları</a>
+          </div>
+          <div className={styles.col}>
+            <h6>Yasal</h6>
             <a href="/kullanim-sartlari">Kullanım şartları</a>
-            <a href="/kvkk">KVKK Aydınlatma</a>
+            <a href="/gizlilik">Gizlilik politikası</a>
+            <a href="/kvkk">KVKK Aydınlatma Metni</a>
+            <a href="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</a>
           </div>
         </div>
         <div className={styles.bottom}>
-          <span>© 2025 AlmakIstiyor.com — Tüm hakları saklıdır</span>
+          <span>© 2026 AlmakIstiyor.com — Tüm hakları saklıdır</span>
           <span className={styles.motto}>Alıcıyı koru · Satıcıyı kazan</span>
         </div>
       </div>

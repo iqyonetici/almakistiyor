@@ -1,12 +1,172 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import Link from 'next/link'
+import Head from 'next/head'
+import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
+import SeoMeta from '../../components/SeoMeta'
+import { kategorileriGetir } from '../../lib/kategoriDB'
+import { ilanListele } from '../../lib/db'
+import styles from './[slug].module.css'
 
-export default function KategoriRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    if (router.isReady) {
-      router.replace('/?kategori=' + (router.query.slug || ''));
+const ANA_KATEGORILER = ['emlak', 'vasita', 'ikinci-el-sifir-alisveris', 'is-makineleri', 'hizmetler', 'ozel-ders', 'is-ilanlari', 'hayvanlar', 'yedek-parca-aksesuar-donanim-tuning']
+
+// kategoriAgaci içinde DFS ile slug arar, kökten o node'a kadar olan yolu döner
+// (index.js'teki slugBul ile birebir aynı mantık — tek kaynaktan sapmamak için)
+function slugBul(liste, hedefSlug, yol) {
+  for (const kat of (liste || [])) {
+    const yeniYol = yol.concat([kat])
+    if (kat.slug === hedefSlug) return yeniYol
+    if (kat.altKategoriler && kat.altKategoriler.length > 0) {
+      const sonuc = slugBul(kat.altKategoriler, hedefSlug, yeniYol)
+      if (sonuc) return sonuc
     }
-  }, [router.isReady, router.query.slug]);
-  return null;
+  }
+  return null
+}
+
+export async function getServerSideProps({ params }) {
+  const slug = params.slug
+  const kategoriAgaci = await kategorileriGetir()
+  const yol = slugBul(kategoriAgaci, slug, [])
+
+  if (!yol || yol.length === 0) {
+    return { notFound: true }
+  }
+
+  const node = yol[yol.length - 1]
+  const seviye = node.seviye || yol.length
+  const isAltKat = !ANA_KATEGORILER.includes(slug)
+  const aktifAnaKat = yol[0]?.slug || null
+
+  const filtreTip = node.filtre_tip || null
+  const ozelKolonFiltreleri = ['emlak_tip', 'islem_turu', 'marka']
+  const ozelKolon = ozelKolonFiltreleri.includes(filtreTip) ? filtreTip : null
+  const ozelDeger = ozelKolon ? (node.filtre_deger || null) : null
+  const markaFiltre = (ozelKolon === 'marka' && aktifAnaKat === 'vasita') ? ozelDeger : null
+
+  // index.js'teki yukle() ile aynı sorgu mantığı (ilanListele tek kaynak)
+  const { data } = await ilanListele({
+    kategori: (!isAltKat) ? slug : (ozelKolon && aktifAnaKat) ? aktifAnaKat : undefined,
+    altKategori: (isAltKat && !ozelKolon) ? slug : undefined,
+    anaKatSlug: aktifAnaKat || undefined,
+    emlakTip: ozelKolon === 'emlak_tip' ? ozelDeger : undefined,
+    islemTuru: ozelKolon === 'islem_turu' ? ozelDeger : undefined,
+    marka: markaFiltre || undefined,
+    limit: 24,
+  })
+
+  // İç link ağı: alt kategori varsa onları, yoksa kardeşlerini öner.
+  // (Görsel değişiklik yok — sadece slug/label çiftleri, render mevcut
+  // .breadcrumb stiliyle yapılacak.)
+  let ilgiliKategoriler = []
+  if (node.altKategoriler && node.altKategoriler.length > 0) {
+    ilgiliKategoriler = node.altKategoriler.map(k => ({ slug: k.slug, label: k.label }))
+  } else {
+    const parent = yol.length >= 2 ? yol[yol.length - 2] : null
+    if (parent && parent.altKategoriler && parent.altKategoriler.length > 0) {
+      ilgiliKategoriler = parent.altKategoriler
+        .filter(k => k.slug !== slug)
+        .map(k => ({ slug: k.slug, label: k.label }))
+    }
+  }
+
+  return {
+    props: {
+      slug,
+      kategoriLabel: node.label || slug,
+      ilanlar: data || [],
+      ilgiliKategoriler,
+    },
+  }
+}
+
+export default function KategoriSayfasi({ slug, kategoriLabel, ilanlar, ilgiliKategoriler }) {
+  const baslik = `${kategoriLabel} İlanları`
+  const bosMu = ilanlar.length === 0
+  const aciklama = bosMu
+    ? `${kategoriLabel} kategorisinde şu anda açık talep ilanı bulunmuyor. İlk talebi siz oluşturun, satıcılar sizi bulsun.`
+    : `${kategoriLabel} kategorisinde ${ilanlar.length} talep ilanı. Alıcılar ne aradığını yazdı, satıcılar burada bulabilir.`
+
+  return (
+    <>
+      <SeoMeta
+        title={baslik}
+        description={aciklama}
+        canonical={`/kategori/${slug}`}
+        ogType="website"
+        noindex={bosMu}
+      />
+
+      <Head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Ana Sayfa', item: 'https://almakistiyor.com/' },
+                { '@type': 'ListItem', position: 2, name: kategoriLabel, item: `https://almakistiyor.com/kategori/${slug}` },
+              ],
+            }),
+          }}
+        />
+      </Head>
+
+      <Navbar />
+      <div className={styles.sayfa}>
+        <div className="container">
+          <nav className={styles.breadcrumb}>
+            <Link href="/">Ana Sayfa</Link> <span>›</span> <span>{kategoriLabel}</span>
+          </nav>
+
+          <h1 className={styles.baslik}>{kategoriLabel} İlanları</h1>
+          <p className={styles.altBaslik}>{ilanlar.length} talep ilanı bulundu</p>
+
+          {ilanlar.length === 0 ? (
+            <div className={styles.bos}>
+              <p>Bu kategoride henüz ilan yok.</p>
+              <Link href="/" className="btn-primary">Ana Sayfaya Dön</Link>
+            </div>
+          ) : (
+            <div className={styles.liste}>
+              {ilanlar.map((ilan) => {
+                const sehirIlce = [ilan.sehir, ilan.ilce].filter(Boolean).join(' / ')
+                const fiyat = ilan.fiyat_min && ilan.fiyat_max
+                  ? `₺${Number(ilan.fiyat_min).toLocaleString('tr-TR')} – ₺${Number(ilan.fiyat_max).toLocaleString('tr-TR')}`
+                  : null
+                return (
+                  <Link key={ilan.id} href={`/ilan/${ilan.id}`} className={styles.kart}>
+                    <h3>{sehirIlce ? `${sehirIlce} — ` : ''}{kategoriLabel} arıyorum</h3>
+                    {fiyat && <span className={styles.fiyat}>{fiyat}</span>}
+                    {ilan.aciklama && <p>{ilan.aciklama.slice(0, 120)}</p>}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+
+          {ilgiliKategoriler.length > 0 && (
+            <>
+              <p className={styles.altBaslik}>İlgili kategoriler</p>
+              <nav className={styles.breadcrumb}>
+                {ilgiliKategoriler.map((k, i) => (
+                  <span key={k.slug}>
+                    <Link href={`/kategori/${k.slug}`}>{k.label}</Link>
+                    {i < ilgiliKategoriler.length - 1 && ' · '}
+                  </span>
+                ))}
+              </nav>
+            </>
+          )}
+
+          <div className={styles.tumFiltreler}>
+            <Link href={`/?kategori=${slug}`} className="btn-primary">
+              Tüm filtrelerle görüntüle →
+            </Link>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </>
+  )
 }

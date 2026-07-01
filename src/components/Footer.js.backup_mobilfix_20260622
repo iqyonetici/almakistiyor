@@ -1,0 +1,55 @@
+import styles from './Footer.module.css'
+
+export default function Footer() {
+  return (
+    <footer className={styles.footer} style={{paddingTop:28}}>
+      <div className={`container ${styles.inner}`}>
+        <div style={{display:'grid', gridTemplateColumns:'1.6fr 0.8fr 0.8fr 1.1fr', gap:24, marginBottom:16, alignItems:'start'}}>
+          <div className={styles.brand}>
+            <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:8}}>
+              <img src="/almakistiyor-icon.png" alt="almakistiyor.com" width="36" height="36" style={{borderRadius:8}} />
+              <span style={{fontSize:18, fontFamily:'Sora,sans-serif', color:'white', letterSpacing:'-0.3px'}}>
+                <strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span>
+              </span>
+            </div>
+            <p>Alıcıların talep oluşturduğu, emlakçı ve galerilerin müşteri bulduğu Türkiye'nin güvenli platformu.</p>
+            <div className={styles.badges}>
+              <span className={styles.badge}>🔒 SSL Güvenli</span>
+              <span className={styles.badge}>✓ KVKK Uyumlu</span>
+            </div>
+          </div>
+          <div className={styles.col} style={{paddingTop:22}}>
+            <h6>Platform</h6>
+            <a href="/nasil-calisir">Nasıl çalışır?</a>
+            <a href="/">Talep ilanları</a>
+            <a href="/blog">Blog</a>
+            <a href="/guvenlik">Güvenlik</a>
+          </div>
+          <div className={styles.col} style={{paddingTop:22}}>
+            <h6>Yardım</h6>
+            <a href="/yardim">Yardım & İletişim</a>
+            <a href="/gizlilik">Gizlilik politikası</a>
+            <a href="/kullanim-sartlari">Kullanım şartları</a>
+            <a href="/kvkk">KVKK Aydınlatma</a>
+          </div>
+          <div style={{background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.28)', borderRadius:10, padding:'16px 18px'}}>
+            <div style={{fontSize:11, fontWeight:700, color:'#F5A623', letterSpacing:'0.8px', marginBottom:12}}>PRO ÜYELİK</div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14}}>
+              {['Günde 10 ilan', 'Telefon görüntüleme', 'Öncelikli destek', 'Daha fazla mesaj'].map(f => (
+                <div key={f} style={{display:'flex', alignItems:'center', gap:5}}>
+                  <span style={{fontSize:10, color:'#F5A623'}}>✓</span>
+                  <span style={{fontSize:11, color:'rgba(255,255,255,0.75)'}}>{f}</span>
+                </div>
+              ))}
+            </div>
+            <a href="/pro" style={{display:'block', background:'#F5A623', color:'#1A1D23', fontSize:12, fontWeight:700, padding:'9px 12px', borderRadius:7, textAlign:'center', textDecoration:'none'}}>Hemen başla →</a>
+          </div>
+        </div>
+        <div className={styles.bottom} style={{paddingTop:12}}>
+          <span>© 2025 AlmakIstiyor.com — Tüm hakları saklıdır</span>
+          <span className={styles.motto}>Alıcıyı koru · Satıcıyı kazan</span>
+        </div>
+      </div>
+    </footer>
+  )
+}

@@ -289,6 +289,28 @@
 }
 .katDevamAra:hover { background: #F0FBF9; border-color: #0D7A6B; }
 
+/* Kategori kartı + "bu seviyede dur" mini aksiyonu için sarmalayıcı */
+.katKart2Wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.katKart2Wrap .katKart2 { width: 100%; }
+.katKart2DevamMini {
+  align-self: flex-end;
+  padding: 6px 12px;
+  background: white;
+  color: #0D7A6B;
+  border: 1.5px dashed #B2DDD7;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.katKart2DevamMini:hover { background: #F0FBF9; border-color: #0D7A6B; }
+
 @media (max-width: 600px) {
   .katGrid2 { grid-template-columns: 1fr 1fr; gap: 10px; }
   .katKart2 { flex-direction: column; text-align: center; gap: 8px; padding: 16px 10px; }
@@ -296,6 +318,7 @@
   .katKart2Ok, .katKart2Sec { display: none; }
   .katBaslik2 { font-size: 16px; }
   .katBreadcrumb { font-size: 12px; padding: 10px; }
+  .katKart2DevamMini { align-self: stretch; text-align: center; font-size: 11px; padding: 7px 8px; }
 }
 
 

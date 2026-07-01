@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import SeoMeta from '../components/SeoMeta'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { destekTalepGonder, kullaniciTalepleri } from '../lib/destekDB'
@@ -77,7 +78,23 @@ export default function Yardim() {
 
   return (
     <>
-      <Head><title>Yardım & Destek | AlmakIstiyor.com</title></Head>
+      <SeoMeta title="Yardım & Destek" description="AlmakIstiyor.com hakkında sıkça sorulan sorular, kullanım rehberi ve destek talebi formu." canonical="/yardim" />
+      <Head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: SSS.map(item => ({
+                '@type': 'Question',
+                name: item.s,
+                acceptedAnswer: { '@type': 'Answer', text: item.c },
+              })),
+            }),
+          }}
+        />
+      </Head>
       <div className={styles.sayfa}>
         <div className={styles.ust}>
           <Link href="/" className={styles.geri}>← Ana Sayfa</Link>

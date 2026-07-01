@@ -4,13 +4,14 @@ import { supabase } from './supabase'
 // === DESTEK TALEPLERİ ===
 export async function destekTalepGonder({ email, ad, tur, konu, mesaj }) {
   if (!supabase) return { error: 'Bağlantı yok' }
-  return await supabase.from('destek_talepleri').insert([{
-    kullanici_email: email || null,
-    kullanici_ad: ad || null,
-    tur: tur || 'soru',
-    konu, mesaj,
-    durum: 'yeni',
-  }])
+  const { data, error } = await supabase.rpc('destek_talebi_olustur', {
+    p_tur: tur || 'soru',
+    p_konu: konu,
+    p_kullanici_ad: ad || null,
+    p_kullanici_email: email || null,
+    p_mesaj: mesaj,
+  })
+  return { data, error }
 }
 
 // Kullanıcının kendi taleplerini getir

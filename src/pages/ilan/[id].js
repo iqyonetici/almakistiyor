@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import SeoMeta from '../../components/SeoMeta'
 import { useRouter } from 'next/router'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
@@ -7,6 +8,7 @@ import IlanForm from '../../components/IlanForm'
 import TelefonGosterButon from '../../components/TelefonGosterButon'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { sehirIsimdenSlugBul } from '../../lib/sehirler'
 import styles from './[id].module.css'
 
 const KAT_CONFIG = {
@@ -52,18 +54,30 @@ function maskedName(ad, soyad) {
   return ad + (soyad ? ' ' + soyad[0] + '.' : '')
 }
 
-export default function IlanDetay() {
+export async function getServerSideProps({ params }) {
+  const { id } = params
+  const { data } = await supabase.from('ilanlar').select('*').eq('id', id).single()
+  return {
+    props: {
+      ilkIlan: data || null,
+    },
+  }
+}
+
+export default function IlanDetay({ ilkIlan }) {
   const router = useRouter()
   const { id } = router.query
   const { user } = useAuth()
-  const [ilan, setIlan] = useState(null)
-  const [yukleniyor, setYukleniyor] = useState(true)
+  const [ilan, setIlan] = useState(ilkIlan)
+  const [yukleniyor, setYukleniyor] = useState(!ilkIlan)
   const [formOpen, setFormOpen] = useState(false)
   const [mesajAcik, setMesajAcik] = useState(false)
   const [mesajMetni, setMesajMetni] = useState('')
   const [mesajGonderildi, setMesajGonderildi] = useState(false)
 
   useEffect(() => {
+    // Sunucudan zaten veri geldiyse tekrar çekmeye gerek yok
+    if (ilkIlan) return
     if (!id) return
     async function getIlan() {
       const { data } = await supabase.from('ilanlar').select('*').eq('id', id).single()
@@ -71,6 +85,17 @@ export default function IlanDetay() {
       setYukleniyor(false)
     }
     getIlan()
+  }, [id, ilkIlan])
+
+  // Görüntüleme sayacı — her ziyarette +1
+  useEffect(() => {
+    if (!id) return
+    async function goruntulemeArttir() {
+      try {
+        await supabase.rpc('goruntuleme_arttir', { ilan_id: id })
+      } catch (_) {}
+    }
+    goruntulemeArttir()
   }, [id])
 
   if (yukleniyor) return (
@@ -98,6 +123,8 @@ export default function IlanDetay() {
   const katConf = getKatConfig(ilan.kategori, ilan.emlak_tip)
   const sehirIlce = [ilan.sehir, ilan.ilce].filter(Boolean).join(' / ')
   const baslik = `${sehirIlce ? sehirIlce + ' — ' : ''}${kat} arıyorum`
+  const sehirSlug = sehirIsimdenSlugBul(ilan.sehir)
+  const benzerLink = sehirSlug ? `/kategori/${ilan.kategori}/${sehirSlug}` : `/kategori/${ilan.kategori}`
   const fiyat = ilan.fiyat_min && ilan.fiyat_max
     ? `₺${Number(ilan.fiyat_min).toLocaleString('tr-TR')} – ₺${Number(ilan.fiyat_max).toLocaleString('tr-TR')}`
     : null
@@ -139,12 +166,28 @@ export default function IlanDetay() {
 
   return (
     <>
+      <SeoMeta
+        title={baslik}
+        description={metaDesc}
+        canonical={`/ilan/${ilan.id}`}
+        ogType="product"
+      />
+
       <Head>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDesc} />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDesc} />
-        <meta property="og:url" content={`https://almakistiyor.com/ilan/${ilan.id}`} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Ana Sayfa', item: 'https://almakistiyor.com/' },
+                { '@type': 'ListItem', position: 2, name: kat, item: `https://almakistiyor.com/kategori/${ilan.kategori}` },
+                { '@type': 'ListItem', position: 3, name: baslik, item: `https://almakistiyor.com/ilan/${ilan.id}` },
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <Navbar onIlanVer={() => setFormOpen(true)} />
@@ -153,7 +196,7 @@ export default function IlanDetay() {
         <div className={styles.inner}>
           <div className={styles.breadcrumb}>
             <a href="/">Ana Sayfa</a><span>›</span>
-            <a href={`/?kategori=${ilan.kategori}`}>{kat}</a><span>›</span>
+            <a href={`/kategori/${ilan.kategori}`}>{kat}</a><span>›</span>
             <span>{sehirIlce || 'Türkiye'}</span>
           </div>
 
@@ -274,9 +317,14 @@ export default function IlanDetay() {
                 </div>
               </div>
 
+              <div style={{background:'#FFFBEB',border:'1px solid #FDE68A',borderRadius:12,padding:'14px 16px',fontSize:13,lineHeight:1.6,color:'#92400E',marginBottom:16}}>
+                <div style={{fontWeight:600,marginBottom:4}}>⚠️ Güvenli Alışveriş İçin</div>
+                Görmeden kapora veya ön ödeme göndermeyin. Ürünü teslim almadan para transferi yapmayın. Şüpheli bir durumla karşılaşırsanız bize bildirin.
+              </div>
+
               <div className={styles.benzerKart}>
                 <h4>Benzer İlanlar</h4>
-                <a href={`/?kategori=${ilan.kategori}&sehir=${ilan.sehir||''}`}>
+                <a href={benzerLink}>
                   {sehirIlce} bölgesindeki {kat} ilanlarını gör →
                 </a>
               </div>
@@ -288,7 +336,7 @@ export default function IlanDetay() {
                     if(navigator.share) navigator.share({title:baslik,url:window.location.href})
                     else navigator.clipboard.writeText(window.location.href)
                   }} className={styles.paylasBtn}>🔗 Kopyala</button>
-                  <a href={`https://wa.me/?text=${encodeURIComponent(baslik+' '+window.location?.href)}`}
+                  <a href={`https://wa.me/?text=${encodeURIComponent(baslik+' '+'https://almakistiyor.com/ilan/'+ilan.id)}`}
                     target="_blank" rel="noopener" className={styles.paylasBtn}>📱 WhatsApp</a>
                 </div>
               </div>

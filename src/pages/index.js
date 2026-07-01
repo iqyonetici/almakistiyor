@@ -11,6 +11,7 @@ function lokasyonEki(k) {
   return (kalin.includes(u) ? (sert.includes(son)?'ta':'da') : (sert.includes(son)?'te':'de'))
 }
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/router'
 import { useAuth } from '../context/AuthContext'
 import SeoMeta from '../components/SeoMeta'
 import { websiteStructuredData } from '../lib/seoHelpers'
@@ -36,12 +37,15 @@ const demoIlanlar = [
 const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'villa', 'koltuk']
 
 export default function Home() {
-  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); const [heroYazi, setHeroYazi] = useState(''); useEffect(() => { const kel = ['Kiralık ev','İkinci el araba','Uygun telefon','Hasta bakıcı','İngilizce öğretmeni','Nakliyeci','Yavru köpek','Temizlikçi','Spor aleti','Çamaşır makinesi']; let ki = 0, h = 0, sil = false, t; function adim() { const k = kel[ki]; if (!sil) { h++; setHeroYazi(k.slice(0, h)); if (h === k.length) { sil = true; t = setTimeout(adim, 1400); return; } } else { h--; setHeroYazi(k.slice(0, h)); if (h === 0) { sil = false; ki = (ki + 1) % kel.length; } } t = setTimeout(adim, sil ? 45 : 95); } adim(); return () => clearTimeout(t); }, []); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
+  const router = useRouter()
+  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); const [heroYazi, setHeroYazi] = useState(''); useEffect(() => { const kel = ['İstanbul\'da kiralık ev','İkinci el araba','Kelepir arsa','iPhone 17 Pro Max','Satılık daire','LGS için özel öğretmen','İkinci el beyaz eşya','Temizlik hizmeti']; let ki = 0, h = 0, sil = false, t; function adim() { const k = kel[ki]; if (!sil) { h++; setHeroYazi(k.slice(0, h)); if (h === k.length) { sil = true; t = setTimeout(adim, 1400); return; } } else { h--; setHeroYazi(k.slice(0, h)); if (h === 0) { sil = false; ki = (ki + 1) % kel.length; } } t = setTimeout(adim, sil ? 45 : 95); } adim(); return () => clearTimeout(t); }, []); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
   const [formOpen, setFormOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
+  const [aramaMetni, setAramaMetni] = useState('')
   const [aktifFiltre, setAktifFiltre] = useState(null)
   const [katSeviye, setKatSeviye] = useState(1)
   const [aktifAnaKat, setAktifAnaKat] = useState('')
+  const [aktifIslemTuru, setAktifIslemTuru] = useState(null)
   const [mobilPanelAcik, setMobilPanelAcik] = useState(false)
   const [panelIpucu, setPanelIpucu] = useState(false)
   const [sayfa, setSayfa] = useState(1)
@@ -137,16 +141,23 @@ export default function Home() {
     const markaFiltre = (ozelKolon === 'marka' && aktifAnaKat === 'vasita') ? ozelDeger : null
 
     // ── SQL sorgusu ──────────────────────────────────────────────────────────
+    // Önemli: özel kolon filtresi (islem_turu/emlak_tip) aktifken bile
+    // sorgu HANGİ ana kategoriye ait olduğunu bilmeli — yoksa "Satılık" gibi
+    // bir filtre tüm kategorilerdeki ilanları getirir (emlak, vasıta, hayvan...).
     const { data } = await ilanListele({
-      // Ana kategori (sv1)
-      kategori:    (!isAltKat && activeCategory) ? activeCategory : undefined,
+      // Ana kategori (sv1) — doğrudan sv1 seçiliyse VEYA alt seviyede bir
+      // özel-kolon filtresi (Satılık/Kiralık/Daire vb.) aktifse, o filtrenin
+      // bağlı olduğu ana kategoriye sorguyu sabitle.
+      kategori: (!isAltKat && activeCategory)
+        ? activeCategory
+        : (isAltKat && ozelKolon && aktifAnaKat) ? aktifAnaKat : undefined,
       // Alt kategori (sv2+): özel kolon filtresi YOKSA slug ile filtrele
       altKategori: (isAltKat && !ozelKolon) ? activeCategory : undefined,
       // Alt kategori seçiliyken bağlı olduğu ana kategori (kategori_yol JS filtresi + islem_turu için)
       anaKatSlug:  aktifAnaKat || undefined,
       // Özel kolon filtreleri
       emlakTip:    ozelKolon === 'emlak_tip'  ? ozelDeger : undefined,
-      islemTuru:   ozelKolon === 'islem_turu' ? ozelDeger : undefined,
+      islemTuru:   ozelKolon === 'islem_turu' ? ozelDeger : (aktifIslemTuru || undefined),
       marka:       markaFiltre || undefined,
       // Konum
       sehir:       filterSehir || undefined,
@@ -263,7 +274,7 @@ export default function Home() {
     } else {
       setIlanlar([])
     }
-  }, [activeCategory, aktifFiltre, filterSehir, filterIlce, user, katSeviye, yenile])
+  }, [activeCategory, aktifFiltre, aktifIslemTuru, filterSehir, filterIlce, user, katSeviye, yenile])
 
   useEffect(() => {
     async function loadStats() {
@@ -279,7 +290,7 @@ export default function Home() {
   }, [yukle])
 
   const filtered = ilanlar
-    .filter(i => !filterSehir || i.sehir === filterSehir)
+    .filter(i => !filterSehir || i.sehir === filterSehir || !i.sehir)
     .filter(i => !filterIlce || !i.ilce || i.ilce === filterIlce)
     .filter(i => {
       if (!filterTarih) return true
@@ -288,8 +299,18 @@ export default function Home() {
       if (filterTarih === 'hafta') return t >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       return true
     })
+    .filter(i => {
+      if (!aramaMetni.trim()) return true
+      const q = aramaMetni.trim().toLocaleLowerCase('tr-TR')
+      return [i.baslik,i.aciklama,i.sehir,i.ilce,i.kategoriYol,(i.markalar||'')].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR').includes(q)
+    })
     .sort((a, b) => {
       if (sort === 'cok-goruntulenen') return (b.goruntuleme || 0) - (a.goruntuleme || 0)
+      if (sort === 'az-goruntulenen') return (a.goruntuleme || 0) - (b.goruntuleme || 0)
+      if (sort === 'eski') return String(a.created_at || a.id || '') > String(b.created_at || b.id || '') ? 1 : -1
+      if (sort === 'ucuz') return (Number(a.fiyat_min) || 0) - (Number(b.fiyat_min) || 0)
+      if (sort === 'pahali') return (Number(b.fiyat_max) || 0) - (Number(a.fiyat_max) || 0)
+      // varsayılan: en yeni
       return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
     })
 
@@ -299,7 +320,7 @@ export default function Home() {
   const sayfaliIlanlar = filtered.slice((aktifSayfa - 1) * SAYFA_BOYUT, aktifSayfa * SAYFA_BOYUT)
 
   // Filtre/sıralama değişince ilk sayfaya dön
-  useEffect(() => { setSayfa(1) }, [activeCategory, filterSehir, filterIlce, filterTarih, sort, aktifFiltre])
+  useEffect(() => { setSayfa(1) }, [activeCategory, filterSehir, filterIlce, filterTarih, sort, aktifFiltre, aramaMetni])
 
   // Sayfa değişince ilan listesinin başına yumuşak kaydır
   const sayfayaGit = useCallback((yeniSayfa) => {
@@ -325,14 +346,74 @@ export default function Home() {
     return sonuc
   }
 
-  const handleKatChange = useCallback((slug, filtre = null, seviye = 1) => {
+  const slugZinciriBul = useCallback((hedefSlug) => {
+    function ara(liste, yol) {
+      for (const kat of (liste || [])) {
+        const yeniYol = yol.concat([kat])
+        if (kat.slug === hedefSlug) return yeniYol
+        if (kat.altKategoriler && kat.altKategoriler.length > 0) {
+          const sonuc = ara(kat.altKategoriler, yeniYol)
+          if (sonuc) return sonuc
+        }
+      }
+      return null
+    }
+    return ara(kategoriAgaci, [])
+  }, [kategoriAgaci])
+
+  const handleKatChange = useCallback((slug, filtre = null, seviye = 1, fromUrl = false) => {
+    // Aynı kategori zaten aktifse hiçbir şey yapma (URL<->state sonsuz döngü engeli)
+    if (slug === activeCategory) return
+
     setActiveCategory(slug)
     setAktifFiltre(filtre)
     setKatSeviye(seviye)
     // Ana kategori (sv1) tıklandığında hangi üst kategori altında olduğumuzu sakla
     // Alt kategorilerde (sv2+) bu değer değişmez — böylece vasıta/hayvan ayrımı korunur
     if (seviye === 1 || !slug) setAktifAnaKat(slug || '')
-  }, [])
+
+    if (!slug) {
+      setAktifIslemTuru(null)
+    } else {
+      const zincir = slugZinciriBul(slug) || []
+      const islemNode = zincir.find(k => k.filtre_tip === 'islem_turu')
+      setAktifIslemTuru(islemNode ? islemNode.filtre_deger : null)
+    }
+
+    // Kullanıcı tıklamasıysa URL'yi sessizce güncelle (sayfa yenilenmez, shallow)
+    if (!fromUrl) {
+      const yeniQuery = slug ? { kategori: slug } : {}
+      router.push({ pathname: '/', query: yeniQuery }, undefined, { shallow: true })
+    }
+  }, [slugZinciriBul, activeCategory, router])
+
+  // URL'den gelen kategori parametresini (ornegin /kategori/X -> /?kategori=Xçden)
+  // kategori ağacı yüklendikten sonra bulup state'e uygular.
+  // SidebarKategoriler/KatDugum ile AYNI mantık: filtre_tip/filtre_deger + seviye + aktifAnaKat.
+  useEffect(() => {
+    if (!router.isReady) return
+    const slugParam = router.query.kategori
+    if (!slugParam || !kategoriAgaci || kategoriAgaci.length === 0) return
+
+    function slugBul(liste, hedefSlug, yol) {
+      for (const kat of (liste || [])) {
+        const yeniYol = yol.concat([kat])
+        if (kat.slug === hedefSlug) return yeniYol
+        if (kat.altKategoriler && kat.altKategoriler.length > 0) {
+          const sonuc = slugBul(kat.altKategoriler, hedefSlug, yeniYol)
+          if (sonuc) return sonuc
+        }
+      }
+      return null
+    }
+
+    const yol = slugBul(kategoriAgaci, slugParam, [])
+    if (!yol || yol.length === 0) return
+    const node = yol[yol.length - 1]
+    const filtre = node.filtre_tip ? { tip: node.filtre_tip, deger: node.filtre_deger } : (node.filtre || null)
+    const seviye = node.seviye || yol.length
+    handleKatChange(node.slug, filtre, seviye, true)
+  }, [router.isReady, router.query.kategori, kategoriAgaci, handleKatChange])
 
   async function handleSubmit(data) {
     const sonuc = await ilanOlustur(data, user)
@@ -363,22 +444,91 @@ export default function Home() {
       {/* viewport ayrıca korunuyor çünkü maximum-scale=1 SeoMeta'da yok */}
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} kategoriAgaci={kategoriAgaci} />
+      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} kategoriAgaci={kategoriAgaci} onArama={setAramaMetni} />
 
-      <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <h1 className={styles.heroH1}>
-            <span className={styles.heroUst}>NE ALMAK İSTİYORSUN?</span><span className={styles.heroSatir}><span className={styles.heroKelime}>{heroYazi}</span><span className={styles.heroImlec}>|</span> <strong>almak</strong><span className={styles.heroIstiyor}>istiyor</span></span>
+      <section className={styles.hero} style={{paddingTop:16,paddingBottom:0}}>
+        <div className={styles.heroInner} style={{paddingTop:0,paddingBottom:0}}>
+          {/* Masaüstü: normal h1 */}
+          <h1 className={styles.heroH1} style={{marginBottom:4}} id="ak-hero-desktop">
+            <span className={styles.heroUst} style={{fontSize:'clamp(16px,4vw,28px)',letterSpacing:'2px',fontWeight:800,display:'block',marginBottom:2}}>NE ALMAK İSTİYORSUN?</span>
+            <span className={styles.heroSatir} style={{fontSize:'clamp(16px,3.5vw,22px)'}}><span className={styles.heroKelime}>{heroYazi}</span><span className={styles.heroImlec}>|</span> <strong>almak</strong><span className={styles.heroIstiyor}>istiyor</span><span style={{color:'#F5A623',fontWeight:400}}>.com</span></span>
           </h1>
-          <p className={styles.heroSub}>
-            Ne almak istediğinizi yazın; ev, araba, telefon ne olursa. Satıcılar size özel teklif göndersin.
-          </p>
-          <button className={styles.heroArama} onClick={formAc}>
-            <span className={styles.heroAramaSol}>
-              <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyor</span>
-            </span>
-            <span className={styles.heroAramaBtn}>+ Talep Oluştur</span>
-          </button>
+          {/* Mobil: APK ile aynı iki satır yapısı */}
+          <div className="ak-mobil-hero">
+            <div className="ak-mobil-ust">NE ALMAK İSTİYORSUN?</div>
+            <div className="ak-mobil-daktilo">
+              <span className="ak-mobil-kelime">{heroYazi}</span><span className={styles.heroImlec}>|</span>
+            </div>
+            <div className="ak-mobil-logo"><strong>almak</strong>istiyor<span className="ak-mobil-com">.com</span></div>
+          </div>
+          <style>{`
+            .ak-mobil-hero{display:none}
+            #ak-hero-desktop{display:block}
+            @media(max-width:768px){
+              .ak-mobil-hero{display:block;text-align:center;margin-bottom:8px}
+              #ak-hero-desktop{display:none}
+              .ak-mobil-ust{font-size:13px;font-weight:800;color:#F5A623;letter-spacing:1.8px;margin-bottom:6px}
+              .ak-mobil-daktilo{font-size:22px;font-weight:700;color:#F5A623;line-height:1.2;min-height:28px}
+              .ak-mobil-logo{font-size:22px;font-weight:700;color:#fff;margin-top:2px}
+              .ak-mobil-com{color:#F5A623;font-weight:400;font-size:18px}
+            }
+            .ak-flow{display:flex;align-items:stretch;margin:10px auto 0;max-width:660px;width:100%;gap:1px}
+            .ak-adim{
+              flex:1;min-height:60px;
+              display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;
+              padding:0 14px 0 24px;
+              clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);
+            }
+            .ak-adim:first-child{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%);padding-left:12px}
+            .ak-a1{background:#0D7A6B}.ak-a2{background:#0f8f7e}.ak-a3{background:#12a48f}.ak-a4{background:#F5A623}
+            .ak-ikon{font-size:16px;flex-shrink:0;line-height:1}
+            .ak-yazi{font-size:11px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.3;text-align:left}
+            .ak-a4 .ak-yazi{color:#7a4d00}
+            @media(max-width:640px){
+              .ak-flow{display:flex!important;grid-template-columns:unset;gap:1px;margin-top:8px;max-width:100%;padding:0}
+              .ak-adim{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%,8px 50%)!important;border-radius:0;padding:10px 4px 10px 12px;flex-direction:column;align-items:center;gap:3px;min-height:56px}
+              .ak-adim:first-child{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)!important;padding-left:6px}
+              .ak-ikon{font-size:16px}
+              .ak-yazi{text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.1px;line-height:1.25}
+              .ak-a4 .ak-yazi{color:#7a4d00}
+            }
+            .ak-mobil-hero{margin-bottom:4px!important}
+          `}</style>
+          <div className="ak-flow">
+            <div className="ak-adim ak-a1"><div className="ak-ikon">🛒</div><div className="ak-yazi">Ne istediğini yaz</div></div>
+            <div className="ak-adim ak-a2"><div className="ak-ikon">📣</div><div className="ak-yazi">İlanın yayına girer</div></div>
+            <div className="ak-adim ak-a3"><div className="ak-ikon">📲</div><div className="ak-yazi">Satıcılar seni bulur</div></div>
+            <div className="ak-adim ak-a4"><div className="ak-ikon">🏆</div><div className="ak-yazi">En iyisini seç</div></div>
+          </div>
+
+          {/* Büyük İlan Ver butonu + arama — sadece mobilde */}
+          <div style={{margin:'12px auto 0',maxWidth:520,width:'100%',display:'flex',flexDirection:'column',gap:10}}>
+            <button
+              onClick={formAc}
+              className="ak-mobil-btn"
+              style={{width:'100%',background:'#F5A623',color:'#7a4d00',border:'none',borderRadius:14,padding:'15px 0',fontSize:17,fontWeight:800,cursor:'pointer',letterSpacing:.3,boxShadow:'0 2px 12px rgba(245,166,35,0.3)'}}>
+              + Ücretsiz Alım İlanı Ver
+            </button>
+            {/* Mobil arama — sadece küçük ekranda */}
+            <div className="ak-mobil-arama">
+              <input
+                type="text"
+                value={aramaMetni}
+                onChange={e => setAramaMetni(e.target.value)}
+                placeholder="İlan ara: kategori, şehir..."
+                style={{width:'100%',boxSizing:'border-box',padding:'14px 18px',fontSize:14,border:'2px solid rgba(255,255,255,0.55)',borderRadius:12,outline:'none',background:'rgba(255,255,255,0.18)',color:'#fff',fontWeight:500}}
+              />
+            </div>
+          </div>
+          <style>{`
+            .ak-mobil-arama{display:none}
+            .ak-mobil-btn{display:none}
+            @media(max-width:768px){
+              .ak-mobil-arama{display:block}
+              .ak-mobil-btn{display:block!important}
+            }
+            @media(max-width:768px){.ak-mobil-arama input::placeholder{color:rgba(255,255,255,0.7)}}
+          `}</style>
           {stats.ilanSayisi >= 10 && (
           <div className={styles.heroStats}>
             <div className={styles.stat}>
@@ -444,19 +594,6 @@ export default function Home() {
         </div>
       )}
 
-      <div className={styles.trustBar}>
-        <div className={`container ${styles.trustInner}`}>
-          {[
-            { icon: '📢', text: 'İlanı siz verin, satıcılar size gelsin' },
-            { icon: '🔍', text: 'Aramakla vakit kaybetmeyin' },
-            { icon: '💰', text: 'Satıcılar yarışsın, en iyi fiyatı siz seçin' },
-            { icon: '📵', text: 'Numaranız gizli kalır' },
-          ].map(t => (
-            <div key={t.text} className={styles.trustItem}><span>{t.icon}</span> {t.text}</div>
-          ))}
-        </div>
-      </div>
-
       {user && (
         <div className={styles.welcomeBar}>
           <div className={styles.welcomeInner}>
@@ -479,6 +616,18 @@ export default function Home() {
 
           <div className={styles.filterCard}>
             <div className={styles.filterTitle}>🔍 Filtrele</div>
+
+            <div className={styles.filterGroup}>
+              <label className="form-label">🔎 İlan Ara</label>
+              <input
+                className="form-control"
+                type="text"
+                value={aramaMetni}
+                onChange={e => setAramaMetni(e.target.value)}
+                placeholder="Kategori, şehir veya açıklama..."
+                style={{width:'100%',padding:'8px 10px',fontSize:13,borderRadius:8,border:'1.5px solid #e0e0e0',outline:'none',boxSizing:'border-box'}}
+              />
+            </div>
 
             <div className={styles.filterGroup}>
               <label className="form-label">📍 Şehir</label>
@@ -535,7 +684,11 @@ export default function Home() {
             <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
             <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>
               <option value="yeni">En yeni</option>
+              <option value="eski">En eski</option>
               <option value="cok-goruntulenen">En çok görüntülenen</option>
+              <option value="az-goruntulenen">En az görüntülenen</option>
+              <option value="ucuz">En düşük bütçe</option>
+              <option value="pahali">En yüksek bütçe</option>
             </select>
           </div>
           <div className={styles.listGrid}>

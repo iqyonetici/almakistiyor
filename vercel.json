@@ -3,6 +3,10 @@
     {
       "path": "/api/ilan-suresi-kontrol",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/pro-kontrol",
+      "schedule": "0 9 * * *"
     }
   ]
 }

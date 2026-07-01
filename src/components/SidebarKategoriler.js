@@ -21,19 +21,25 @@ const S = {
 }
 
 // Tek bir kategori düğümü — kendini recursive çağırır
-function KatDugum({ kat, derinlik, acikSet, toggleAcik, activeCategory, onSec }) {
+function KatDugum({ kat, derinlik, acikSet, toggleAcik, activeCategory, onSec, kardesAnahtarlar }) {
   const cocukVar = kat.altKategoriler && kat.altKategoriler.length > 0
-  const acik = acikSet.has(kat.id || kat.slug)
+  const anahtar = kat.id || kat.slug
+  const acik = acikSet.has(anahtar)
   const aktif = activeCategory === kat.slug
 
   const tikla = () => {
-    if (cocukVar) toggleAcik(kat.id || kat.slug)
-    // filtre bilgisi (3.+ seviye için)
+    // Accordion: bu düğümü aç/kapat, aynı seviyedeki kardeşleri kapat
+    if (cocukVar) toggleAcik(anahtar, kardesAnahtarlar)
     const filtre = kat.filtre_tip ? { tip: kat.filtre_tip, deger: kat.filtre_deger } : (kat.filtre || null)
     // DB'deki gerçek seviye (1=ana, 2=alt, 3=marka, 4=model). Yoksa derinlik+1 kullan.
     const seviye = kat.seviye || (derinlik + 1)
     onSec(kat.slug, filtre, seviye)
   }
+
+  // Bu düğümün çocuklarının anahtar listesi (çocuklara kardeş bilgisi olarak geçilir)
+  const cocukAnahtarlari = cocukVar
+    ? kat.altKategoriler.map(a => a.id || a.slug)
+    : []
 
   return (
     <div>
@@ -46,7 +52,8 @@ function KatDugum({ kat, derinlik, acikSet, toggleAcik, activeCategory, onSec })
           {kat.altKategoriler.map(alt => (
             <KatDugum key={alt.id || alt.slug} kat={alt} derinlik={derinlik + 1}
               acikSet={acikSet} toggleAcik={toggleAcik}
-              activeCategory={activeCategory} onSec={onSec} />
+              activeCategory={activeCategory} onSec={onSec}
+              kardesAnahtarlar={cocukAnahtarlari} />
           ))}
         </div>
       )}
@@ -58,10 +65,16 @@ function SidebarKategoriler({ KATEGORILER, activeCategory, onKatChange }) {
   // Açık olan düğümlerin id/slug seti
   const [acikSet, setAcikSet] = useState(new Set())
 
-  const toggleAcik = useCallback((anahtar) => {
+  // anahtar: açılan/kapatılan düğüm. kardesAnahtarlar: aynı seviyedeki diğer düğümler (kapatılacak)
+  const toggleAcik = useCallback((anahtar, kardesAnahtarlar = []) => {
     setAcikSet(prev => {
       const yeni = new Set(prev)
-      yeni.has(anahtar) ? yeni.delete(anahtar) : yeni.add(anahtar)
+      const acikMiydi = yeni.has(anahtar)
+      // Kardeşleri (ve onların tüm alt ağacını) kapat
+      if (kardesAnahtarlar.length > 0) {
+        kardesAnahtarlar.forEach(k => { if (k !== anahtar) yeni.delete(k) })
+      }
+      acikMiydi ? yeni.delete(anahtar) : yeni.add(anahtar)
       return yeni
     })
   }, [])

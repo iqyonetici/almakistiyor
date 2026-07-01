@@ -56,17 +56,18 @@ export async function kullaniciEngelle(id, engelli) {
   return await supabase.from('kullanicilar').update({ engelli }).eq('id', id)
 }
 
-export async function kullaniciPaketDegistir(id, paket) {
+export async function kullaniciPaketDegistir(id, paket, periyot = 'aylik') {
   if (!supabase) return
   // Paketin ilan + mesaj haklarını DB'den çek (admin panelden değiştirilebilir)
   const { data: p } = await supabase.from('paketler').select('gunluk_ilan, gunluk_mesaj').eq('kod', paket).single()
   const gunlukIlan = p?.gunluk_ilan ?? 3
   const gunlukMesaj = p?.gunluk_mesaj ?? 1
+  const gunSayisi = periyot === 'yillik' ? 365 : 30
   return await supabase.from('kullanicilar').update({
     paket,
     gunluk_ilan_hakki: gunlukIlan,
     gunluk_mesaj_hakki: gunlukMesaj,
-    paket_bitis: paket === 'ucretsiz' ? null : new Date(Date.now()+30*24*60*60*1000).toISOString(),
+    paket_bitis: paket === 'ucretsiz' ? null : new Date(Date.now()+gunSayisi*24*60*60*1000).toISOString(),
   }).eq('id', id)
 }
 
@@ -119,4 +120,23 @@ export async function adminDestekYanitla(id, yanit, durum) {
 export async function adminDestekDurum(id, durum) {
   if (!supabase) return
   return await supabase.from('destek_talepleri').update({ durum }).eq('id', id)
+}
+
+// ===== DESTEK TALEBİ OLUŞTURMA (kullanıcı tarafı / iletişim formu) =====
+// İletişim sayfasından gönderilir, admin panelinde "Yeni" olarak görünür.
+export async function destekTalebiOlustur({ tur, konu, ad, email, mesaj }) {
+  if (!supabase) return { hata: 'Bağlantı yok' }
+  if (!konu?.trim() || !mesaj?.trim() || !email?.trim()) {
+    return { hata: 'Konu, e-posta ve mesaj zorunludur' }
+  }
+  const { error } = await supabase.from('destek_talepleri').insert({
+    tur: tur || 'soru',
+    konu: konu.trim(),
+    kullanici_ad: ad?.trim() || 'Anonim',
+    kullanici_email: email.trim(),
+    mesaj: mesaj.trim(),
+    durum: 'yeni',
+  })
+  if (error) return { hata: error.message }
+  return { basarili: true }
 }

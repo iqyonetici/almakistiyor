@@ -140,11 +140,29 @@ export default function Panel() {
             ))}
           </nav>
 
-          <div className={styles.proKart}>
-            <div className={styles.proIcon}>🏢</div>
-            <div className={styles.proText}>Emlakçı veya galericiyseniz alıcı ilanlarına erişin</div>
-            <a href="/pro" className={styles.proBtn}>Profesyonel Erişim →</a>
-          </div>
+          {user.paket && user.paket !== 'ucretsiz' ? (
+            <div className={styles.proKart}>
+              <div className={styles.proIcon}>✓</div>
+              <div className={styles.proText}>
+                <strong>{user.paket}</strong> üyeliğiniz aktif
+                {user.paket_bitis && (
+                  <><br />Bitiş: {new Date(user.paket_bitis).toLocaleDateString('tr-TR')}</>
+                )}
+              </div>
+              {user.paket_bitis && (Math.ceil((new Date(user.paket_bitis) - new Date()) / (24*60*60*1000)) <= 5) && (
+                <div style={{fontSize:12.5, color:'#B91C1C', fontWeight:600, marginTop:6}}>
+                  ⚠️ Üyeliğiniz yakında sona eriyor
+                </div>
+              )}
+              <a href="/pro" className={styles.proBtn}>Üyeliğimi Yönet →</a>
+            </div>
+          ) : (
+            <div className={styles.proKart}>
+              <div className={styles.proIcon}>🏢</div>
+              <div className={styles.proText}>Emlakçı veya galericiyseniz alıcı ilanlarına erişin</div>
+              <a href="/pro" className={styles.proBtn}>Profesyonel Erişim →</a>
+            </div>
+          )}
 
           <button className={styles.cikisBtn} onClick={() => { cikisYap(); router.push('/') }}>← Çıkış Yap</button>
         </aside>

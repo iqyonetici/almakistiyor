@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
+    "gray-matter": "^4.0.3",
     "next": "^15.3.3",
     "react": "^19",
     "react-dom": "^19",
+    "reading-time": "^1.5.0",
     "resend": "^6.12.4"
   },
   "devDependencies": {

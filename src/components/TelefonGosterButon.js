@@ -91,9 +91,10 @@ export default function TelefonGosterButon({ ilanId, kullaniciEmail }) {
 
   const baseBtn = {
     display: 'flex', alignItems: 'center', gap: 8,
-    padding: '9px 16px', borderRadius: 8, fontSize: 13,
+    padding: '9px 18px', borderRadius: 999, fontSize: 13.5,
     fontWeight: 600, cursor: 'pointer', border: '1.5px solid',
     transition: 'all 0.15s', fontFamily: 'inherit',
+    pointerEvents: 'auto',
   }
 
   // İlk yüklenirken küçük spinner
@@ -132,9 +133,8 @@ export default function TelefonGosterButon({ ilanId, kullaniciEmail }) {
 
   // Gizli
   return (
-    <button style={{...baseBtn, background:'#fff', color:'#374151', borderColor:'#d1d5db'}} onClick={telefonuGoster}>
-      📞 <span style={{fontFamily:'monospace',letterSpacing:1}}>0___ ___ ** **</span>
-      <span style={{fontSize:11,color:'#9ca3af',marginLeft:4}}>Göster</span>
+    <button style={{...baseBtn, background:'#fff', color:'#1f2937', borderColor:'#e5e7eb'}} onClick={telefonuGoster}>
+      <span style={{fontSize:15}}>📞</span> Telefonu Göster
     </button>
   )
 }

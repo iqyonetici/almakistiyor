@@ -199,8 +199,9 @@ function Kullanicilar() {
   const [paketler, setPaketler] = useState([])
   async function yukle() { setYukleniyor(true); setListe(await kullanicilariGetir(arama)); setYukleniyor(false) }
   useEffect(() => { yukle(); paketleriGetir().then(setPaketler) }, [])
+  const [periyotlar, setPeriyotlar] = useState({}) // { kullaniciId: 'aylik' | 'yillik' }
   async function engelleDegistir(k) { await kullaniciEngelle(k.id, !k.engelli); yukle() }
-  async function paketYap(k, paket) { await kullaniciPaketDegistir(k.id, paket); yukle() }
+  async function paketYap(k, paket) { await kullaniciPaketDegistir(k.id, paket, periyotlar[k.id] || 'aylik'); yukle() }
   return (
     <div>
       <h1 className={styles.baslik}>Kullanicilar</h1>
@@ -221,6 +222,11 @@ function Kullanicilar() {
               <div className={styles.ilanTarih}>{k.gunluk_ilan_hakki||3} ilan/gun - {k.gunluk_mesaj_hakki||1} mesaj/gun - Uyelik: {new Date(k.created_at).toLocaleDateString('tr-TR')}</div>
             </div>
             <div className={styles.ilanAksiyon}>
+              <select className={styles.miniSelect} value={periyotlar[k.id] || 'aylik'}
+                onChange={e=>setPeriyotlar(s=>({...s, [k.id]: e.target.value}))}>
+                <option value="aylik">Aylık (30 gün)</option>
+                <option value="yillik">Yıllık (365 gün)</option>
+              </select>
               <select className={styles.miniSelect} value={k.paket||'ucretsiz'} onChange={e=>paketYap(k, e.target.value)}>
                 {paketler.length > 0 ? paketler.map(p => (
                   <option key={p.kod} value={p.kod}>

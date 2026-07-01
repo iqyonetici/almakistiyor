@@ -1,0 +1,710 @@
+function lokEk(k){if(!k)return 'da';const un=['a','e',String.fromCharCode(305),'i','o',String.fromCharCode(246),'u',String.fromCharCode(252)];const ka=['a',String.fromCharCode(305),'o','u'];const sr=[String.fromCharCode(231),'f','h','k','p','s',String.fromCharCode(351),'t'];let u='';for(let i=k.length-1;i>=0;i--){const h=k[i].toLowerCase();if(un.includes(h)){u=h;break}}const sn=k.slice(-1).toLowerCase();return(ka.includes(u)?(sr.includes(sn)?'ta':'da'):(sr.includes(sn)?'te':'de'))}
+
+function lokasyonEki(k) {
+  if (!k) return 'da'
+  const unlu = ['a','e','\u0131','i','o','\u00f6','u','\u00fc']
+  const kalin = ['a','\u0131','o','u']
+  const sert = ['\u00e7','f','h','k','p','s','\u015f','t']
+  let u = ''
+  for (let i = k.length-1; i >= 0; i--) { const h=k[i].toLowerCase(); if(unlu.includes(h)){u=h;break} }
+  const son = k.slice(-1).toLowerCase()
+  return (kalin.includes(u) ? (sert.includes(son)?'ta':'da') : (sert.includes(son)?'te':'de'))
+}
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from '../context/AuthContext'
+import SeoMeta from '../components/SeoMeta'
+import { websiteStructuredData } from '../lib/seoHelpers'
+import Navbar, { kategoriler as navKategoriler } from '../components/Navbar'
+import IlanKarti from '../components/IlanKarti'
+import dynamic from 'next/dynamic'
+const IlanForm = dynamic(() => import('../components/IlanForm'), { ssr: false })
+import Footer from '../components/Footer'
+import SidebarKategoriler from '../components/SidebarKategoriler'
+import { sehirler } from '../data/sehirler'
+import { kategorileriGetir } from '../lib/kategoriDB'
+import { ilanListele, ilanOlustur } from '../lib/db'
+import { ilanHakkiVarMi, mesajHakkiVarMi, kullaniciHaklari, bugunkuMesajSayisi } from '../lib/limitDB'
+import { supabase } from '../lib/supabase'
+import styles from './index.module.css'
+
+const demoIlanlar = [
+  { id: 1, kategori: 'emlak', ad: 'Mehmet Arslan', sehir: 'İstanbul', ilce: 'Kadıköy', baslik: "Kadıköy'de 3+1 kiralık daire arıyorum", fiyatMin: 25000, fiyatMax: 35000, tags: [{label:'3+1',variant:'tag-gray'},{label:'Eşyalı',variant:'tag-amber'}], aciklama: 'Asansörlü, otoparkı tercih ederim.', tarih: '3 saat önce', goruntuleme: 47 },
+  { id: 2, kategori: 'vasita', ad: 'Zeynep Koçak', sehir: 'İstanbul', ilce: 'Beşiktaş', baslik: 'BMW veya Mercedes arıyorum', fiyatMin: 800000, fiyatMax: 1200000, tags: [{label:'Otomatik',variant:'tag-gray'}], aciklama: 'Kazasız tercih ederim.', tarih: '8 saat önce', goruntuleme: 128 },
+  { id: 3, kategori: 'alisveris', ad: 'Ayşe Yılmaz', sehir: 'İstanbul', ilce: 'Şişli', baslik: 'Köşe koltuk takımı arıyorum', fiyatMin: 15000, fiyatMax: 30000, tags: [], aciklama: 'Taşıma imkânım var.', tarih: '1 gün önce', goruntuleme: 31 },
+]
+
+const KELIMELER = ['ev', 'araba', 'özel ders', 'yazlık', 'motosiklet', 'daire', 'arsa', 'iPhone', 'villa', 'koltuk']
+
+export default function Home() {
+  const router = useRouter()
+  const { user } = useAuth(); const [anaOkunmamis, setAnaOkunmamis] = useState(0); const [heroYazi, setHeroYazi] = useState(''); useEffect(() => { const kel = ['Kiralık ev','İkinci el araba','Uygun telefon','Hasta bakıcı','İngilizce öğretmeni','Nakliyeci','Yavru köpek','Temizlikçi','Spor aleti','Çamaşır makinesi']; let ki = 0, h = 0, sil = false, t; function adim() { const k = kel[ki]; if (!sil) { h++; setHeroYazi(k.slice(0, h)); if (h === k.length) { sil = true; t = setTimeout(adim, 1400); return; } } else { h--; setHeroYazi(k.slice(0, h)); if (h === 0) { sil = false; ki = (ki + 1) % kel.length; } } t = setTimeout(adim, sil ? 45 : 95); } adim(); return () => clearTimeout(t); }, []); useEffect(() => { let aktif = true; async function say() { if (!user?.email) { setAnaOkunmamis(0); return; } try { const { supabase } = await import('../lib/supabase'); if (!supabase) return; const { data: a } = await supabase.from('konusmalar').select('okunmamis_alici').eq('alici_email', user.email); const { data: s } = await supabase.from('konusmalar').select('okunmamis_satici').eq('satici_email', user.email); const t = (a||[]).reduce((x,k)=>x+(k.okunmamis_alici||0),0) + (s||[]).reduce((x,k)=>x+(k.okunmamis_satici||0),0); if (aktif) setAnaOkunmamis(t); } catch (e) {} } say(); const z = setInterval(say, 60000); return () => { aktif = false; clearInterval(z); }; }, [user]);
+  const [formOpen, setFormOpen] = useState(false)
+  const [activeCategory, setActiveCategory] = useState('')
+  const [aktifFiltre, setAktifFiltre] = useState(null)
+  const [katSeviye, setKatSeviye] = useState(1)
+  const [aktifAnaKat, setAktifAnaKat] = useState('')
+  const [aktifIslemTuru, setAktifIslemTuru] = useState(null)
+  const [mobilPanelAcik, setMobilPanelAcik] = useState(false)
+  const [panelIpucu, setPanelIpucu] = useState(false)
+  const [sayfa, setSayfa] = useState(1)
+  const SAYFA_BOYUT = 12
+  useEffect(() => {
+    // İlk girişte kategori butonuna dikkat çek (kısa ipucu animasyonu)
+    const t1 = setTimeout(() => setPanelIpucu(true), 900)
+    const t2 = setTimeout(() => setPanelIpucu(false), 2600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+  const [yenile, setYenile] = useState(0)
+  const [filterSehir, setFilterSehir] = useState('')
+  const [filterIlce, setFilterIlce] = useState('')
+  const [filterTarih, setFilterTarih] = useState('')
+  const [ilanlar, setIlanlar] = useState(demoIlanlar)
+  const [sort, setSort] = useState('yeni')
+  const [mesajHaklari, setMesajHaklari] = useState({})
+  const [kalanGenel, setKalanGenel] = useState(0)
+  const [telefonYetkisi, setTelefonYetkisi] = useState(false)
+  const [paketModal, setPaketModal] = useState(false)
+  const [limitUyari, setLimitUyari] = useState(null)
+  const [misafirIlanSayisi, setMisafirIlanSayisi] = useState(0)
+
+  // İlan formunu açmadan önce hak kontrolü
+  async function formAc() {
+    // Misafir (üye değil): localStorage'da kaç ilan verdiğini say
+    if (!user?.email) {
+      const verilen = Number(localStorage.getItem('misafir_ilan') || 0)
+      if (verilen >= 1) {
+        setLimitUyari({
+          tip: 'misafir',
+          mesaj: 'Misafir olarak 1 ilan verebilirsiniz. Daha fazla ilan için ücretsiz üye olun (mail onayı ile günde 3 ilan).'
+        })
+        return
+      }
+      setFormOpen(true)
+      return
+    }
+    // Üye: DB'den hak kontrolü
+    const sonuc = await ilanHakkiVarMi(user)
+    if (!sonuc.izin) {
+      setLimitUyari({ tip: sonuc.sebep, mesaj: sonuc.mesaj, paket: sonuc.paket })
+      return
+    }
+    setFormOpen(true)
+  }
+  const [stats, setStats] = useState({ ilanSayisi: 0, kullaniciSayisi: 0 })
+  const [kategoriAgaci, setKategoriAgaci] = useState([])
+  const [kelimeIndex, setKelimeIndex] = useState(0)
+  const [kelimeFade, setKelimeFade] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setKelimeFade(false)
+      setTimeout(() => { setKelimeIndex(i => (i + 1) % KELIMELER.length); setKelimeFade(true) }, 300)
+    }, 2200)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Kullanıcı giriş yapınca mesaj hakkını yükle (user değişince tekrar çalışır)
+  useEffect(() => {
+    if (!user?.email) { setKalanGenel(0); setTelefonYetkisi(false); return }
+    let iptal = false
+    ;(async () => {
+      const h = await kullaniciHaklari(user.email)
+      const kullanilan = await bugunkuMesajSayisi(user.email)
+      if (!iptal) {
+        setKalanGenel(Math.max(0, h.gunlukMesaj - kullanilan))
+        setTelefonYetkisi(h.telefonGoster)
+      }
+    })()
+    return () => { iptal = true }
+  }, [user])
+
+  // İlanları yükle — hem effect hem ilan oluşturma sonrası çağrılır
+  const yukle = useCallback(async () => {
+    // ── Kategori durumunu belirle ────────────────────────────────────────────
+    const ANA_KATEGORILER = ['emlak','vasita','ikinci-el-sifir-alisveris','is-makineleri','hizmetler','ozel-ders','is-ilanlari','hayvanlar','yedek-parca-aksesuar-donanim-tuning']
+    const isAltKat = !!(activeCategory && !ANA_KATEGORILER.includes(activeCategory))
+
+    // filtre_tip değerleri ve anlamları:
+    //   'emlak_tip'  → ÖZEL KOLON: emlak_tip   (Daire, Villa...)
+    //   'islem_turu' → ÖZEL KOLON: islem_turu  (Satılık, Kiralık)
+    //   'marka'      → ÖZEL KOLON: markalar    (Toyota, BMW... sadece vasıta)
+    //   'select'     → ÖZEL DEĞİL: sadece "alt kategorileri var" demek, slug ile filtrele
+    //   null         → slug ile filtrele
+    const filtreTip = aktifFiltre?.tip || null
+    const ozelKolonFiltreleri = ['emlak_tip', 'islem_turu', 'marka']
+    const ozelKolon = ozelKolonFiltreleri.includes(filtreTip) ? filtreTip : null
+    const ozelDeger = ozelKolon ? (aktifFiltre?.deger || null) : null
+
+    // Vasıta marka filtresi: sadece vasıta ana kategorisi altında
+    const markaFiltre = (ozelKolon === 'marka' && aktifAnaKat === 'vasita') ? ozelDeger : null
+
+    // ── SQL sorgusu ──────────────────────────────────────────────────────────
+    // Önemli: özel kolon filtresi (islem_turu/emlak_tip) aktifken bile
+    // sorgu HANGİ ana kategoriye ait olduğunu bilmeli — yoksa "Satılık" gibi
+    // bir filtre tüm kategorilerdeki ilanları getirir (emlak, vasıta, hayvan...).
+    const { data } = await ilanListele({
+      // Ana kategori (sv1) — doğrudan sv1 seçiliyse VEYA alt seviyede bir
+      // özel-kolon filtresi (Satılık/Kiralık/Daire vb.) aktifse, o filtrenin
+      // bağlı olduğu ana kategoriye sorguyu sabitle.
+      kategori: (!isAltKat && activeCategory)
+        ? activeCategory
+        : (isAltKat && ozelKolon && aktifAnaKat) ? aktifAnaKat : undefined,
+      // Alt kategori (sv2+): özel kolon filtresi YOKSA slug ile filtrele
+      altKategori: (isAltKat && !ozelKolon) ? activeCategory : undefined,
+      // Alt kategori seçiliyken bağlı olduğu ana kategori (kategori_yol JS filtresi + islem_turu için)
+      anaKatSlug:  aktifAnaKat || undefined,
+      // Özel kolon filtreleri
+      emlakTip:    ozelKolon === 'emlak_tip'  ? ozelDeger : undefined,
+      islemTuru:   ozelKolon === 'islem_turu' ? ozelDeger : (aktifIslemTuru || undefined),
+      marka:       markaFiltre || undefined,
+      // Konum
+      sehir:       filterSehir || undefined,
+      ilce:        filterIlce  || undefined,
+      kullaniciEmail: user?.email || undefined,
+    })
+
+    // ── Sonuç ────────────────────────────────────────────────────────────────
+    // SQL artık alt_kategori, alt_kategori2 VE kategori_yol'u kontrol ediyor;
+    // ek JS filtresine gerek yok.
+    let veri = data || []
+    if (veri && veri.length > 0) {
+      setIlanlar(veri.map(d => ({
+        id: d.id, kategori: d.kategori || 'alisveris', altKategori: d.alt_kategori || '',
+        ad: (d.kullanici_ad || 'Kullanıcı') + ' ' + (d.kullanici_soyad || ''),
+        sehir: d.sehir || '', ilce: d.ilce || '',
+        baslik: (() => {
+          const ilkKonum = (d.konumlar && d.konumlar.length > 0) ? d.konumlar[0] : null
+          const bsehir = ilkKonum ? ilkKonum.sehir : d.sehir
+          const bilce = ilkKonum ? ilkKonum.ilce : d.ilce
+          const yer = bilce || bsehir || ''
+          const yerOnek = yer ? `${yer}'${lokEk(yer)} ` : ''
+          const yol = Array.isArray(d.kategori_yol) ? d.kategori_yol : []
+
+          // VASITA: marka + model birlikte (örn. "Audi A4 arıyorum"), konum öneki yok
+          if (d.kategori === 'vasita') {
+            // kategori_yol: [Vasıta, Otomobil, Audi(sv3), A4(sv4)]
+            // sv3 ve sv4 etiketlerini birleştir; yoksa markalar kolonunu kullan
+            const sonIki = yol.slice(-2).map(k => k?.label).filter(Boolean)
+            // İlk eleman ana kategori değilse (yani gerçek marka/model ise) birleştir
+            let aracAdi = ''
+            if (yol.length >= 4) {
+              // [Vasıta, Otomobil, Marka, Model] → "Marka Model"
+              aracAdi = yol.slice(2).map(k => k?.label).filter(Boolean).join(' ')
+            } else if (yol.length === 3) {
+              // [Vasıta, Otomobil, Marka] → "Marka"
+              aracAdi = yol[2]?.label || ''
+            } else {
+              aracAdi = d.markalar || (yol[yol.length-1]?.label) || 'Araç'
+            }
+            return `${aracAdi || 'Araç'} arıyorum`
+          }
+
+          // İşlem türü öneki (sadece emlak): "Kiralık" / "Satılık"
+          const islemOnek = d.kategori === 'emlak'
+            ? (d.islem_turu === 'kirala' ? 'Kiralık ' : d.islem_turu === 'satin-al' ? 'Satılık ' : '')
+            : ''
+
+          // En spesifik kategori adı (sv3/sv4 — Daire, Labrador vb.)
+          let neAraniyor = ''
+          if (yol.length > 0) {
+            neAraniyor = yol[yol.length - 1]?.label || ''
+          } else if (d.kategori === 'emlak') {
+            neAraniyor = d.emlak_tip || 'Emlak'
+          }
+
+          // İŞ MAKİNELERİ: "Satılık Ekskavatör arıyorum" gibi
+          if (d.kategori === 'is-makineleri' && neAraniyor) {
+            const onek = d.islem_turu === 'kirala' ? 'Kiralık ' : d.islem_turu === 'satin-al' ? 'Satılık ' : ''
+            return `${onek}${neAraniyor} arıyorum`
+          }
+
+          // İŞ İLANLARI: "Kadın Kuaförü işi arıyorum" gibi
+          if (d.kategori === 'is-ilanlari' && neAraniyor) {
+            return `${neAraniyor} işi arıyorum`
+          }
+
+          // HİZMETLER: "Boyacı hizmeti arıyorum" gibi
+          if (d.kategori === 'hizmetler' && neAraniyor) {
+            return `${neAraniyor} hizmeti arıyorum`
+          }
+
+          // YEDEK PARÇA: "Jant & Lastik arıyorum" (konum öneki yok)
+          if (d.kategori === 'yedek-parca-aksesuar-donanim-tuning' && neAraniyor) {
+            return `${neAraniyor} arıyorum`
+          }
+
+          if (neAraniyor) {
+            return `${yerOnek}${islemOnek}${neAraniyor} arıyorum`
+          }
+          // Fallback
+          const s = [bsehir, bilce].filter(Boolean).join(' ')
+          return (s ? s + ' — ' : '') + (d.aciklama?.slice(0, 50) || 'İlan')
+        })(),
+        islemTuru: d.islem_turu || null,
+        fiyatMin: d.fiyat_min, fiyatMax: d.fiyat_max,
+        tags: (() => {
+          // "Fark etmez" ve boş değerleri ele
+          const temiz = (v) => v && String(v).trim() && String(v).toLowerCase() !== 'fark etmez'
+          // tercihler/yakit/vites virgülle kayıtlı → diziye çevir, Fark etmez'i çıkar
+          const cokluParse = (str) => String(str || '').split(',').map(s => s.trim()).filter(temiz)
+
+          const t = []
+          if (d.oda) t.push({ label: d.oda, variant: 'tag-gray' })
+          if (d.m2_min && d.m2_max) t.push({ label: d.m2_min + '–' + d.m2_max + ' m²', variant: 'tag-gray' })
+          if (d.emlak_tip) t.push({ label: d.emlak_tip, variant: 'tag-gray' })
+          if (d.markalar && d.kategori === 'vasita') t.push({ label: d.markalar, variant: 'tag-gray' })
+          if (d.yil_min && d.yil_max) t.push({ label: d.yil_min + '–' + d.yil_max, variant: 'tag-gray' })
+          if (d.km_max) t.push({ label: 'Max ' + Number(d.km_max).toLocaleString('tr-TR') + ' km', variant: 'tag-gray' })
+          // Kullanıcının seçtiği özellikler (yakıt, vites, çekiş, motor hacmi, menzil vb.)
+          cokluParse(d.yakit).forEach(v => t.push({ label: v, variant: 'tag-gray' }))
+          cokluParse(d.vites).forEach(v => t.push({ label: v, variant: 'tag-gray' }))
+          cokluParse(d.tercihler).forEach(v => t.push({ label: v, variant: 'tag-gray' }))
+          return t
+        })(),
+        kategoriYol: d.kategori_yol || [],
+        konumlar: d.konumlar || [],
+        aciklama: d.aciklama || '', tarih: new Date(d.created_at).toLocaleDateString('tr-TR'),
+        goruntuleme: d.goruntuleme || 0, telefon: d.kullanici_telefon || '',
+        email: d.kullanici_email || '', iletisimTercihi: d.iletisim_tercihi || 'mesaj',
+        created_at: d.created_at, emlak_tip: d.emlak_tip, kullanici_pro: d.kullanici_pro,
+        onayDurumu: d.onay_durumu || 'onaylandi', durum: d.durum || 'aktif',
+      })))
+    } else {
+      setIlanlar([])
+    }
+  }, [activeCategory, aktifFiltre, aktifIslemTuru, filterSehir, filterIlce, user, katSeviye, yenile])
+
+  useEffect(() => {
+    async function loadStats() {
+      if (supabase) {
+        const { count: ilanCount } = await supabase.from('ilanlar').select('*', { count: 'exact', head: true }).eq('durum', 'aktif')
+        const { count: kullaniciCount } = await supabase.from('kullanicilar').select('*', { count: 'exact', head: true })
+        setStats({ ilanSayisi: ilanCount || 0, kullaniciSayisi: kullaniciCount || 0 })
+      }
+    }
+    loadStats()
+    kategorileriGetir().then(setKategoriAgaci)
+    yukle()
+  }, [yukle])
+
+  const filtered = ilanlar
+    .filter(i => !filterSehir || i.sehir === filterSehir)
+    .filter(i => !filterIlce || !i.ilce || i.ilce === filterIlce)
+    .filter(i => {
+      if (!filterTarih) return true
+      const t = new Date(i.created_at || Date.now()), now = new Date()
+      if (filterTarih === 'bugun') return t.toDateString() === now.toDateString()
+      if (filterTarih === 'hafta') return t >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      return true
+    })
+    .sort((a, b) => {
+      if (sort === 'cok-goruntulenen') return (b.goruntuleme || 0) - (a.goruntuleme || 0)
+      return String(b.created_at || b.id || '') > String(a.created_at || a.id || '') ? 1 : -1
+    })
+
+  // ── Sayfalama ──────────────────────────────────────────────
+  const toplamSayfa = Math.max(1, Math.ceil(filtered.length / SAYFA_BOYUT))
+  const aktifSayfa = Math.min(sayfa, toplamSayfa)
+  const sayfaliIlanlar = filtered.slice((aktifSayfa - 1) * SAYFA_BOYUT, aktifSayfa * SAYFA_BOYUT)
+
+  // Filtre/sıralama değişince ilk sayfaya dön
+  useEffect(() => { setSayfa(1) }, [activeCategory, filterSehir, filterIlce, filterTarih, sort, aktifFiltre])
+
+  // Sayfa değişince ilan listesinin başına yumuşak kaydır
+  const sayfayaGit = useCallback((yeniSayfa) => {
+    setSayfa(yeniSayfa)
+    if (typeof window !== 'undefined') {
+      const el = document.getElementById('ilan-listesi')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [])
+
+  // Gösterilecek sayfa numaraları (akıllı: 1 … aktif-1 aktif aktif+1 … son)
+  function sayfaNumaralari() {
+    const sayfalar = []
+    const goster = new Set([1, toplamSayfa, aktifSayfa, aktifSayfa - 1, aktifSayfa + 1])
+    for (let i = 1; i <= toplamSayfa; i++) if (goster.has(i)) sayfalar.push(i)
+    const sonuc = []
+    let onceki = 0
+    for (const s of sayfalar) {
+      if (s - onceki > 1) sonuc.push('...')
+      sonuc.push(s)
+      onceki = s
+    }
+    return sonuc
+  }
+
+  const slugZinciriBul = useCallback((hedefSlug) => {
+    function ara(liste, yol) {
+      for (const kat of (liste || [])) {
+        const yeniYol = yol.concat([kat])
+        if (kat.slug === hedefSlug) return yeniYol
+        if (kat.altKategoriler && kat.altKategoriler.length > 0) {
+          const sonuc = ara(kat.altKategoriler, yeniYol)
+          if (sonuc) return sonuc
+        }
+      }
+      return null
+    }
+    return ara(kategoriAgaci, [])
+  }, [kategoriAgaci])
+
+  const handleKatChange = useCallback((slug, filtre = null, seviye = 1) => {
+    setActiveCategory(slug)
+    setAktifFiltre(filtre)
+    setKatSeviye(seviye)
+    // Ana kategori (sv1) tıklandığında hangi üst kategori altında olduğumuzu sakla
+    // Alt kategorilerde (sv2+) bu değer değişmez — böylece vasıta/hayvan ayrımı korunur
+    if (seviye === 1 || !slug) setAktifAnaKat(slug || '')
+
+    if (!slug) {
+      setAktifIslemTuru(null)
+    } else {
+      const zincir = slugZinciriBul(slug) || []
+      const islemNode = zincir.find(k => k.filtre_tip === 'islem_turu')
+      setAktifIslemTuru(islemNode ? islemNode.filtre_deger : null)
+    }
+  }, [slugZinciriBul])
+
+  // URL'den gelen kategori parametresini (ornegin /kategori/X -> /?kategori=Xçden)
+  // kategori ağacı yüklendikten sonra bulup state'e uygular.
+  // SidebarKategoriler/KatDugum ile AYNI mantık: filtre_tip/filtre_deger + seviye + aktifAnaKat.
+  useEffect(() => {
+    if (!router.isReady) return
+    const slugParam = router.query.kategori
+    if (!slugParam || !kategoriAgaci || kategoriAgaci.length === 0) return
+
+    function slugBul(liste, hedefSlug, yol) {
+      for (const kat of (liste || [])) {
+        const yeniYol = yol.concat([kat])
+        if (kat.slug === hedefSlug) return yeniYol
+        if (kat.altKategoriler && kat.altKategoriler.length > 0) {
+          const sonuc = slugBul(kat.altKategoriler, hedefSlug, yeniYol)
+          if (sonuc) return sonuc
+        }
+      }
+      return null
+    }
+
+    const yol = slugBul(kategoriAgaci, slugParam, [])
+    if (!yol || yol.length === 0) return
+    const node = yol[yol.length - 1]
+    const filtre = node.filtre_tip ? { tip: node.filtre_tip, deger: node.filtre_deger } : (node.filtre || null)
+    const seviye = node.seviye || yol.length
+    handleKatChange(node.slug, filtre, seviye)
+  }, [router.isReady, router.query.kategori, kategoriAgaci, handleKatChange])
+
+  async function handleSubmit(data) {
+    const sonuc = await ilanOlustur(data, user)
+    // Misafir ilan sayacını artır
+    if (!user?.email) {
+      const v = Number(localStorage.getItem('misafir_ilan') || 0) + 1
+      localStorage.setItem('misafir_ilan', String(v))
+    }
+    // Filtreleri temizle ki yeni ilan (kategori/marka filtresine takılmadan) görünsün.
+    // Filtreler değişince yukle effect ile otomatik tetiklenir ve yeni ilan gelir.
+    setActiveCategory('')
+    setAktifFiltre(null)
+    setKatSeviye(1)
+    setFilterSehir('')
+    setFilterIlce('')
+    setFilterTarih('')
+    setYenile(y => y + 1)
+  }
+
+  return (
+    <>
+      <SeoMeta
+        title="Ne Arıyorsunuz? Söyleyin, Satıcılar Bulsun"
+        description="Almak istediğinizi ilan açın, emlakçılar ve satıcılar sizi bulsun. Türkiye'nin ters-ilan platformu — emlak, araç, ikinci el ve daha fazlası."
+        canonical="/"
+        structuredData={websiteStructuredData}
+      />
+      {/* viewport ayrıca korunuyor çünkü maximum-scale=1 SeoMeta'da yok */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+      <Navbar activeCategory={activeCategory} onCategoryChange={handleKatChange} onIlanVer={formAc} kategoriAgaci={kategoriAgaci} />
+
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <h1 className={styles.heroH1}>
+            <span className={styles.heroUst}>NE ALMAK İSTİYORSUN?</span><span className={styles.heroSatir}><span className={styles.heroKelime}>{heroYazi}</span><span className={styles.heroImlec}>|</span> <strong>almak</strong><span className={styles.heroIstiyor}>istiyor</span></span>
+          </h1>
+          <p className={styles.heroSub}>
+            Ne almak istediğinizi yazın; ev, araba, telefon ne olursa. Satıcılar size özel teklif göndersin.
+          </p>
+          <button className={styles.heroArama} onClick={formAc}>
+            <span className={styles.heroAramaSol}>
+              <strong>Almak</strong><span className={styles.heroAramaPlaceholder}>istiyor</span>
+            </span>
+            <span className={styles.heroAramaBtn}>+ Talep Oluştur</span>
+          </button>
+          {stats.ilanSayisi >= 10 && (
+          <div className={styles.heroStats}>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>{stats.ilanSayisi.toLocaleString('tr-TR')}</span>
+              <span className={styles.statLabel}>aktif talep</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>{stats.kullaniciSayisi.toLocaleString('tr-TR')}</span>
+              <span className={styles.statLabel}>kullanıcı</span>
+            </div>
+          </div>
+          )}
+        </div>
+      </section>
+
+      {/* Mobil: Sol kenar dikey KATEGORİLER şeridi */}
+      <button
+        className={`${styles.kenarSerit} ${panelIpucu ? styles.kenarSeritIpucu : ''}`}
+        onClick={() => setMobilPanelAcik(true)}
+        aria-label="Kategorileri aç"
+      >
+        <span className={styles.kenarSeritIkon}>☰</span>
+        <span className={styles.kenarSeritYazi}>KATEGORİLER</span>
+        <span className={styles.kenarSeritOk}>›</span>
+      </button>
+
+      {/* Soldan kayan panel + arka plan */}
+      {mobilPanelAcik && (
+        <div className={styles.mobilPanelOverlay} onClick={() => setMobilPanelAcik(false)}>
+          <div className={styles.mobilPanel} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.mobilPanelBaslik}>
+              <span>Kategoriler</span>
+              <button className={styles.mobilPanelKapat} onClick={() => setMobilPanelAcik(false)}>✕</button>
+            </div>
+            {activeCategory && (
+              <button className={styles.filtreTemizle} style={{margin:'0 14px 10px'}}
+                onClick={() => { handleKatChange('', null); setMobilPanelAcik(false) }}>
+                ✕ Filtreyi temizle
+              </button>
+            )}
+            <div className={`${styles.mobilPanelIcerik} ${styles.mobilPanelAnim}`}>
+              <SidebarKategoriler
+                KATEGORILER={kategoriAgaci}
+                activeCategory={activeCategory}
+                onKatChange={(slug, filtre, seviye) => {
+                  // Panel açık kalır; kullanıcı istediği seviyede durup
+                  // sağdaki ok veya alttaki buton ile kapatır.
+                  handleKatChange(slug, filtre, seviye)
+                  if (!slug) setMobilPanelAcik(false)
+                }}
+              />
+            </div>
+            {/* Alt sabit buton — son seçilen filtreyle sonuçları göster */}
+            <button className={styles.mobilPanelGoster} onClick={() => setMobilPanelAcik(false)}>
+              {activeCategory ? 'Bu kategorideki ilanları gör' : 'Tüm ilanları gör'} →
+            </button>
+          </div>
+
+          {/* Sağ kenar — hareketli kapatma oku */}
+          <button className={styles.mobilPanelKenarOk} onClick={() => setMobilPanelAcik(false)} aria-label="Kapat ve sonuçları gör">
+            ‹
+          </button>
+        </div>
+      )}
+
+      <div className={styles.trustBar}>
+        <div className={`container ${styles.trustInner}`}>
+          {[
+            { icon: '📢', text: 'İlanı siz verin, satıcılar size gelsin' },
+            { icon: '🔍', text: 'Aramakla vakit kaybetmeyin' },
+            { icon: '💰', text: 'Satıcılar yarışsın, en iyi fiyatı siz seçin' },
+            { icon: '📵', text: 'Numaranız gizli kalır' },
+          ].map(t => (
+            <div key={t.text} className={styles.trustItem}><span>{t.icon}</span> {t.text}</div>
+          ))}
+        </div>
+      </div>
+
+      {user && (
+        <div className={styles.welcomeBar}>
+          <div className={styles.welcomeInner}>
+            <span className={styles.welcomeText}>Merhaba, {user.ad}!</span>
+            <div className={styles.welcomeBtns}>
+              <a href="/panel" className={styles.welcomeBtnPrimary}>📋 İlanlarım</a>
+              <a href="/panel?tab=mesajlar" className={styles.welcomeBtnSecondary}>💬 Mesajlarım{anaOkunmamis > 0 && <span style={{marginLeft:5,background:'#E53E3E',color:'white',borderRadius:9,padding:'1px 7px',fontSize:11,fontWeight:700}}>{anaOkunmamis}</span>}</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`container ${styles.main}`}>
+        <aside className={styles.sidebar}>
+          <div className={styles.ctaCard}>
+            <h4>Talep ver, satıcılar seni bulsun</h4>
+            <p className={styles.ctaCardAlt}>Ücretsiz ilan oluştur, teklifler gelsin.</p>
+            <button className={styles.ctaWhite} onClick={formAc}>+ İlan Oluştur</button>
+          </div>
+
+          <div className={styles.filterCard}>
+            <div className={styles.filterTitle}>🔍 Filtrele</div>
+
+            <div className={styles.filterGroup}>
+              <label className="form-label">📍 Şehir</label>
+              <select className="form-select" value={filterSehir}
+                onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
+                <option value="">Tüm şehirler</option>
+                {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
+              </select>
+            </div>
+            {filterSehir && (
+              <div className={styles.filterGroup}>
+                <label className="form-label">📎 İlçe</label>
+                <select className="form-select" value={filterIlce} onChange={e => setFilterIlce(e.target.value)}>
+                  <option value="">Tüm ilçeler</option>
+                  {(sehirler.find(s => s.il === filterSehir)?.ilceler || []).map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </div>
+            )}
+
+            <div className={styles.filterGroup}>
+              <label className="form-label">📅 Tarih</label>
+              <div className={styles.chips}>
+                {[{ v: '', l: 'Tümü' }, { v: 'bugun', l: 'Bugün' }, { v: 'hafta', l: 'Bu hafta' }].map(d => (
+                  <button key={d.v} className={`${styles.chip} ${filterTarih === d.v ? styles.chipActive : ''}`}
+                    onClick={() => setFilterTarih(d.v)}>{d.l}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className="form-label">🗂️ Kategori</label>
+              {(activeCategory || aktifFiltre) && (
+                <button className={styles.filtreTemizle} onClick={() => handleKatChange('', null)}>
+                  ✕ Filtreyi temizle
+                </button>
+              )}
+              <div className={styles.kategoriDogal}>
+                <SidebarKategoriler KATEGORILER={kategoriAgaci} activeCategory={activeCategory} onKatChange={handleKatChange} />
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main className={styles.listings} id="ilan-listesi">
+          {/* Mobil şehir filtresi (masaüstünde sidebar'da var) */}
+          <div className={styles.mobilFiltre}>
+            <select className={styles.mobilFiltreSelect} value={filterSehir}
+              onChange={e => { setFilterSehir(e.target.value); setFilterIlce('') }}>
+              <option value="">📍 Tüm şehirler</option>
+              {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
+            </select>
+          </div>
+          <div className={styles.listHeader}>
+            <div className={styles.listCount}><strong>{filtered.length.toLocaleString('tr-TR')}</strong> talep ilanı</div>
+            <select className={styles.sortSelect} value={sort} onChange={e => setSort(e.target.value)}>
+              <option value="yeni">En yeni</option>
+              <option value="cok-goruntulenen">En çok görüntülenen</option>
+            </select>
+          </div>
+          <div className={styles.listGrid}>
+            {filtered.length === 0 ? (
+              <div className={styles.empty}>
+                <p>Bu kriterlere uygun ilan bulunamadı.</p>
+                <button className="btn-primary" onClick={formAc}>İlk ilanı siz verin →</button>
+              </div>
+            ) : (
+              sayfaliIlanlar.map(ilan => (
+                <IlanKarti key={ilan.id} ilan={ilan} user={user} proUye={!!ilan.kullanici_pro}
+                  mesajHaklari={{ kalanGenel, gonderilenBuKisiye: mesajHaklari[ilan.id]?.gonderilenBuKisiye || 0 }}
+                  onMesajGonder={async ({ ilan: il, mesaj }) => {
+                    // Mesaj göndermeden önce paket limit kontrolü
+                    const kontrol = await mesajHakkiVarMi(user)
+                    if (!kontrol.izin) {
+                      setLimitUyari({ tip: kontrol.sebep === 'limit' ? 'mesaj-limit' : kontrol.sebep, mesaj: kontrol.mesaj, paket: kontrol.paket })
+                      return false
+                    }
+                    const { konusmaBaslatVeyaGetir: kBVG, konusmaMesajGonder: kMG } = await import('../lib/db')
+                    const { data: konusma } = await kBVG({ ilanId: il.id, ilanBaslik: il.baslik, ilanKategori: il.kategori, aliciEmail: il.kullanici_email || il.email || '', aliciAd: il.kullanici_ad || il.ad || '', saticiEmail: user?.email || 'anonim', saticiAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', saticiIfirma: user?.firma || null })
+                    if (konusma) await kMG({ konusmaId: konusma.id, gonderenEmail: user?.email || 'anonim', gonderenAd: user ? `${user.ad || ''} ${user.soyad || ''}`.trim() : 'Anonim', metin: mesaj, gonderenAliciMi: false })
+                    // Alıcıya bildirim maili (hata olsa engellemez)
+                    
+                    setMesajHaklari(p => ({ ...p, [il.id]: { gonderilenBuKisiye: (p[il.id]?.gonderilenBuKisiye || 0) + 1 } }))
+                    setKalanGenel(p => Math.max(0, p - 1))
+                    return true
+                  }}
+                  onTelefonGoster={() => setPaketModal(true)}
+                  onKatTikla={(slug, filtre, seviye) => {
+                    handleKatChange(slug, filtre, seviye)
+                    if (typeof window !== 'undefined') {
+                      const el = document.getElementById('ilan-listesi')
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                />
+              ))
+            )}
+          </div>
+          {filtered.length > SAYFA_BOYUT && (
+            <div className={styles.pagination}>
+              <button
+                className={styles.pageBtn}
+                onClick={() => sayfayaGit(aktifSayfa - 1)}
+                disabled={aktifSayfa === 1}
+                aria-label="Önceki sayfa"
+              >←</button>
+              {sayfaNumaralari().map((p, i) =>
+                p === '...' ? (
+                  <span key={`nokta-${i}`} className={styles.pageNokta}>…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`${styles.pageBtn} ${p === aktifSayfa ? styles.pageBtnActive : ''}`}
+                    onClick={() => sayfayaGit(p)}
+                  >{p}</button>
+                )
+              )}
+              <button
+                className={styles.pageBtn}
+                onClick={() => sayfayaGit(aktifSayfa + 1)}
+                disabled={aktifSayfa === toplamSayfa}
+                aria-label="Sonraki sayfa"
+              >→</button>
+            </div>
+          )}
+        </main>
+      </div>
+
+      <Footer />
+
+      {limitUyari && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setLimitUyari(null)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 380, maxWidth: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>{limitUyari.tip === 'misafir' ? '📧' : '⏳'}</div>
+            <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              {limitUyari.tip === 'misafir' ? 'Üye Olun' : limitUyari.tip === 'engelli' ? 'Hesap Askıda' : limitUyari.tip === 'mesaj-limit' ? 'Mesaj Hakkınız Doldu' : 'Günlük Limit Doldu'}
+            </h3>
+            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>{limitUyari.mesaj}</p>
+            {limitUyari.tip === 'misafir' ? (
+              <>
+                <a href="/kayit" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>Ücretsiz Üye Ol →</a>
+                <a href="/giris" style={{ display: 'block', padding: '10px', borderRadius: 9, border: '1.5px solid #e2e8f0', color: '#4a5568', fontWeight: 500, fontSize: 14, textDecoration: 'none' }}>Zaten üyeyim, Giriş yap</a>
+              </>
+            ) : limitUyari.paket === 'ucretsiz' && (limitUyari.tip === 'limit' || limitUyari.tip === 'mesaj-limit') ? (
+              <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 8, textDecoration: 'none' }}>💎 Pro Üyeliğe Geç →</a>
+            ) : null}
+            <button onClick={() => setLimitUyari(null)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>Kapat</button>
+          </div>
+        </div>
+      )}
+
+      {paketModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setPaketModal(false)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 28, width: 360, maxWidth: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>🔒</div>
+            <h3 style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Telefon için paket gerekli</h3>
+            <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 18, lineHeight: 1.6 }}>Alıcının numarasını görmek için Starter paketi gerekiyor.</p>
+            <a href="/pro" style={{ display: 'block', padding: '12px', borderRadius: 9, background: '#0D7A6B', color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Paketlere Bak →</a>
+            <button onClick={() => setPaketModal(false)} style={{ background: 'none', border: 'none', color: '#8a95a3', fontSize: 13, cursor: 'pointer' }}>Şimdilik geç</button>
+          </div>
+        </div>
+      )}
+
+      <IlanForm open={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} user={user} kategoriAgaci={kategoriAgaci} />
+    </>
+  )
+}

@@ -4,6 +4,12 @@ export default function Document() {
   return (
     <Html lang="tr">
       <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+        />
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="description" content="Ne arıyorsunuz? Söyleyin, satıcılar sizi bulsun. Gayrimenkul, araç ve ikinci el talep platformu." />

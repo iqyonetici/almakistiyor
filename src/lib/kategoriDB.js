@@ -1,16 +1,18 @@
 // src/lib/kategoriDB.js — kategorileri Supabase'den çek ve ağaç yap
 import { supabase } from './supabase'
 
+// ---- Önbellek ayarları (kategori ağacı nadiren değişir) ----
+const ONBELLEK_ANAHTAR = 'almak_kategori_duz_v1'
+const ONBELLEK_OMUR = 24 * 60 * 60 * 1000 // 24 saat (ms)
+
 // Düz listeyi parent_id'ye göre ağaca dönüştür
 function agacYap(duzListe) {
   const harita = {}
   const kokler = []
-
   // Önce hepsini haritaya koy
   duzListe.forEach(k => {
     harita[k.id] = { ...k, altKategoriler: [] }
   })
-
   // Parent-child ilişkisini kur
   duzListe.forEach(k => {
     if (k.parent_id && harita[k.parent_id]) {
@@ -19,25 +21,56 @@ function agacYap(duzListe) {
       kokler.push(harita[k.id])
     }
   })
-
   // Sıralama
   const sirala = (liste) => {
     liste.sort((a, b) => (a.sira || 0) - (b.sira || 0))
     liste.forEach(x => x.altKategoriler.length && sirala(x.altKategoriler))
   }
   sirala(kokler)
-
   return kokler
 }
 
-// Tüm aktif kategorileri ağaç olarak getir
-export async function kategorileriGetir() {
-  if (!supabase) return []
-  // Supabase tek sorguda max 1000 satır döndürür.
-  // Kategoriler 1000'i aştığı için sayfalama ile hepsini çekiyoruz.
+// Aktif kategorilerin DÜZ listesini DB'den çek — sayfaları PARALEL ister
+async function aktifKategorileriCek() {
+  const boyut = 1000
+
+  // 1) Toplam aktif kayıt sayısını öğren (tek, hafif sorgu — satır döndürmez)
+  let toplam = null
+  try {
+    const { count } = await supabase
+      .from('kategoriler')
+      .select('id', { count: 'exact', head: true })
+      .eq('aktif', true)
+    toplam = count
+  } catch (e) { toplam = null }
+
+  // 2a) Sayı biliniyorsa: tüm sayfaları AYNI ANDA iste
+  if (typeof toplam === 'number' && toplam >= 0) {
+    const sayfaSayisi = Math.max(1, Math.ceil(toplam / boyut))
+    const istekler = []
+    for (let s = 0; s < sayfaSayisi; s++) {
+      istekler.push(
+        supabase
+          .from('kategoriler')
+          .select('*')
+          .eq('aktif', true)
+          .order('sira', { ascending: true })
+          .order('label', { ascending: true })
+          .range(s * boyut, s * boyut + boyut - 1)
+      )
+    }
+    const sonuclar = await Promise.all(istekler)
+    let tum = []
+    for (const r of sonuclar) {
+      if (r?.error) { console.error('Kategori çekme hatası:', r.error?.message) }
+      if (r?.data) tum = tum.concat(r.data)
+    }
+    return tum
+  }
+
+  // 2b) Sayı alınamadıysa (eski yöntem, güvenli yedek): sıralı sayfalama
   let tumKayitlar = []
   let sayfa = 0
-  const boyut = 1000
   while (true) {
     const { data, error } = await supabase
       .from('kategoriler')
@@ -49,13 +82,59 @@ export async function kategorileriGetir() {
     if (error) { console.error('Kategori çekme hatası:', error?.message); break }
     if (!data || data.length === 0) break
     tumKayitlar = tumKayitlar.concat(data)
-    if (data.length < boyut) break  // son sayfa
+    if (data.length < boyut) break
     sayfa++
   }
-  return agacYap(tumKayitlar)
+  return tumKayitlar
 }
 
-// Admin için: aktif/pasif tüm kategoriler
+// DB'den taze çek + önbelleğe yaz
+async function tazeCekVeOnbellekle() {
+  const duz = await aktifKategorileriCek()
+  if (typeof window !== 'undefined' && duz && duz.length) {
+    try {
+      localStorage.setItem(ONBELLEK_ANAHTAR, JSON.stringify({ ts: Date.now(), duz }))
+    } catch (e) { /* localStorage dolu/erişilemez — sorun değil */ }
+  }
+  return agacYap(duz)
+}
+
+// Tüm aktif kategorileri ağaç olarak getir
+// - Önce localStorage önbelleğinden ANINDA döner (varsa)
+// - Önbellek bayatsa arka planda sessizce tazeler
+// - tazele:true verilirse önbelleği yok sayıp DB'den çeker
+export async function kategorileriGetir({ tazele = false } = {}) {
+  if (!supabase) return []
+
+  // 1) Tarayıcıdaysak ve taze isteği yoksa: önbelleğe bak
+  if (!tazele && typeof window !== 'undefined') {
+    try {
+      const ham = localStorage.getItem(ONBELLEK_ANAHTAR)
+      if (ham) {
+        const { ts, duz } = JSON.parse(ham)
+        if (Array.isArray(duz) && duz.length) {
+          // Bayatsa arka planda tazele (kullanıcı beklemez)
+          if (Date.now() - ts > ONBELLEK_OMUR) {
+            tazeCekVeOnbellekle().catch(() => {})
+          }
+          return agacYap(duz) // anında dön
+        }
+      }
+    } catch (e) { /* bozuk önbellek — yok say, DB'den çek */ }
+  }
+
+  // 2) Önbellek yok / taze isteniyor → DB'den çek
+  return tazeCekVeOnbellekle()
+}
+
+// Önbelleği temizle (örn. admin kategori ekleyip/sildikten sonra çağrılabilir)
+export function kategoriOnbelleginiTemizle() {
+  if (typeof window !== 'undefined') {
+    try { localStorage.removeItem(ONBELLEK_ANAHTAR) } catch (e) {}
+  }
+}
+
+// Admin için: aktif/pasif tüm kategoriler (önbelleksiz — her zaman taze)
 export async function tumKategorileriGetir() {
   if (!supabase) return []
   let tumKayitlar = []

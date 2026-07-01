@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
@@ -47,11 +47,19 @@ export const kategoriler = [
   { label: "İş İlanları", slug: "is-ilanlari", icon: "💼", altkategoriler: [] },
 ];
 
-export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, kategoriAgaci }) {
+export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, kategoriAgaci, onArama }) {
   const router = useRouter();
   const { user, cikisYap } = useAuth();
   const isAnasayfa = router.pathname === "/";
   const [mobilMenuAcik, setMobilMenuAcik] = useState(false);
+  const [aramaMetni, setAramaMetni] = useState('');
+  const aramaRef = useRef(null);
+  const aramaGonder = useCallback((deger) => {
+    setAramaMetni(deger);
+    onArama && onArama(deger);
+  }, [onArama]);
+
+  const [drawerModu, setDrawerModu] = useState("kategori"); // "kategori" | "profil"
   const [profilAcik, setProfilAcik] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [paketModal, setPaketModal] = useState(false);
@@ -96,6 +104,8 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
     if (e && e.preventDefault) e.preventDefault();
     setMobilMenuAcik(false);
     if (isAnasayfa && onCategoryChange) {
+      // URL güncellemesi artık index.js içindeki handleKatChange tarafından yapılıyor
+      // (state + URL tek kaynaktan yönetiliyor, burada ayrıca router.push/replace yapmıyoruz)
       onCategoryChange(slug);
       setTimeout(() => {
         document.getElementById("ilan-listesi")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -104,13 +114,6 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
       router.push(`/?kategori=${slug}`);
     }
   };
-
-  useEffect(() => {
-    if (isAnasayfa && router.query.kategori !== undefined && onCategoryChange) {
-      onCategoryChange(router.query.kategori);
-      router.replace("/", undefined, { shallow: true });
-    }
-  }, [router.query.kategori]);
 
   useEffect(() => {
     document.body.style.overflow = mobilMenuAcik ? "hidden" : "";
@@ -127,17 +130,32 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
               <span className={styles.logoText}><strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span></span>
             </Link>
 
-            {/* Kategori menüsü (masaüstü) */}
-            <nav className={styles.katNav}>
-              {(kategoriAgaci && kategoriAgaci.length ? kategoriAgaci : kategoriler).slice(0, 6).map(k => (
-                <a key={k.slug} href={`/?kategori=${k.slug}`}
-                  className={`${styles.katNavItem} ${activeCategory === k.slug ? styles.katNavAktif : ''}`}
-                  onClick={(e) => handleKatClick(e, k.slug)}>
-                  {k.icon && <span className={styles.katNavIcon}>{k.icon}</span>}
-                  {k.label}
-                </a>
-              ))}
-            </nav>
+            {/* Arama + İlan Ver — sadece masaüstü */}
+            <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,maxWidth:680,margin:'0 12px'}} className="ak-desktop-only">
+              <div style={{flex:1,maxWidth:420,position:'relative'}}>
+                <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',color:'#9ca3af',fontSize:15}}>🔍</span>
+                <input
+                  ref={aramaRef}
+                  type="text"
+                  value={aramaMetni}
+                  onChange={e => aramaGonder(e.target.value)}
+                  placeholder="İlan ara: kategori, şehir veya açıklama..."
+                  style={{width:'100%',boxSizing:'border-box',padding:'9px 36px 9px 36px',fontSize:13,border:'1.5px solid #e0e0e0',borderRadius:8,outline:'none',background:'#f9f9f9',color:'#111',transition:'border-color .15s'}}
+                  onFocus={e=>e.target.style.borderColor='#0D7A6B'}
+                  onBlur={e=>e.target.style.borderColor='#e0e0e0'}
+                />
+                {aramaMetni && (
+                  <button onClick={() => aramaGonder('')}
+                    style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9ca3af',fontSize:16,lineHeight:1,padding:2}}>✕</button>
+                )}
+              </div>
+              <button
+                onClick={() => onIlanVer ? onIlanVer() : null}
+                style={{whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:6,background:'#F5A623',color:'#7a4d00',border:'none',borderRadius:8,padding:'9px 16px',fontSize:13,fontWeight:700,cursor:'pointer',flexShrink:0}}>
+                + Ücretsiz Alım İlanı Ver
+              </button>
+            </div>
+            <style>{`.ak-desktop-only{display:flex}@media(max-width:768px){.ak-desktop-only{display:none!important}}`}</style>
 
             <div className={styles.topActions}>
               {user ? (
@@ -192,7 +210,8 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
 
       {mobilMenuAcik && (
         <div className={styles.overlay} onClick={() => setMobilMenuAcik(false)}>
-          <div className={styles.drawer} onClick={e => e.stopPropagation()}>
+          <div className={styles.drawer} onClick={e => e.stopPropagation()}
+            style={drawerModu === "profil" ? { position: "fixed", top: 0, right: 0, bottom: 0, left: "auto", width: "min(86vw, 340px)", maxWidth: 340, height: "100%", maxHeight: "100%", margin: 0, borderRadius: "16px 0 0 16px", overflowY: "auto" } : undefined}>
             <div className={styles.drawerHeader}>
               <div className={styles.logo}>
                 <img src="/almakistiyor-icon.png" alt="almakistiyor.com" className={styles.logoIconImg} width="36" height="36" />
@@ -200,6 +219,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
               </div>
               <button className={styles.drawerKapat} onClick={() => setMobilMenuAcik(false)}>✕</button>
             </div>
+            {drawerModu === "kategori" && (
             <div className={styles.drawerKategoriler}>
               {(kategoriAgaci && kategoriAgaci.length ? kategoriAgaci : kategoriler).map((kat) => {
                 const altlar = kat.altKategoriler || kat.altkategoriler || [];
@@ -257,7 +277,8 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
                 );
               })}
             </div>
-            <div className={styles.drawerFooter}>
+            )}
+            <div className={styles.drawerFooter} style={drawerModu === "profil" ? { marginTop: 0, flex: 1, borderTop: "none" } : undefined}>
               {user ? (
                 <div className={styles.drawerProfil}>
                   <div className={styles.drawerProfilUst}>
@@ -290,7 +311,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
           <span className={styles.navIcon}>🏠</span>
           <span className={styles.navLabel}>Ana Sayfa</span>
         </button>
-        <button className={styles.navItem} onClick={() => setMobilMenuAcik(true)}>
+        <button className={styles.navItem} onClick={() => { setDrawerModu("kategori"); setMobilMenuAcik(true); }}>
           <span className={styles.navIcon}>☰</span>
           <span className={styles.navLabel}>Kategoriler</span>
         </button>
@@ -303,7 +324,7 @@ export default function Navbar({ activeCategory, onCategoryChange, onIlanVer, ka
           <span className={styles.navLabel}>Mesajlar</span>{okunmamisMesaj > 0 && <span style={{marginLeft:4,background:'#E53E3E',color:'white',borderRadius:9,padding:'0 6px',fontSize:10,fontWeight:700}}>{okunmamisMesaj}</span>}
         </Link>
         {user ? (
-          <button className={styles.navItem} onClick={() => setMobilMenuAcik(true)}>
+          <button className={styles.navItem} onClick={() => { setDrawerModu("profil"); setMobilMenuAcik(true); }}>
             <span className={styles.navIcon}>👤</span>
             <span className={styles.navLabel}>Profil</span>
           </button>

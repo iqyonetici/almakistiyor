@@ -7,6 +7,41 @@ import styles from './kayit.module.css'
 
 const SARI = '#F5A623'
 
+const YASAK_KELIMELER = [
+  'sik','orospu','piç','pic','göt','got','amk','bok','oç','oc',
+  'salak','aptal','gerizekalı','gerizekal','kahpe','sürtük',
+  'siktir','amına','amina','ibne',
+]
+
+function adFormatla(deger) {
+  if (!deger) return deger
+  return deger.toLocaleLowerCase('tr-TR').replace(/(^|[\s-])\p{L}/gu, h => h.toLocaleUpperCase('tr-TR'))
+}
+
+function adGecerliMi(ad) {
+  if (!ad || ad.trim().length < 2) return false
+  const v = ad.trim().toLowerCase()
+  if (YASAK_KELIMELER.some(k => v.includes(k))) return false
+  if (!/^[a-zçğıöşüA-ZÇĞIİÖŞÜ\s-]+$/.test(ad.trim())) return false
+  if (/(.)\1\1/.test(v)) return false
+  return true
+}
+
+const YAYGIN_MAIL_SAGLAYICILAR = [
+  'gmail.com','hotmail.com','outlook.com','yahoo.com','icloud.com',
+  'msn.com','live.com','yandex.com','hotmail.com.tr','outlook.com.tr',
+  'mail.com','protonmail.com','gmx.com',
+]
+
+function emailFormatGecerliMi(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')
+}
+
+function emailYayginMi(email) {
+  if (!email || !email.includes('@')) return true
+  const alan = email.split('@')[1]?.toLowerCase().trim()
+  return YAYGIN_MAIL_SAGLAYICILAR.includes(alan)
+}
 function randomCaptcha() {
   const a = Math.floor(Math.random() * 9) + 1
   const b = Math.floor(Math.random() * 9) + 1
@@ -56,13 +91,23 @@ export default function Kayit() {
   const ilceler = getIlceler(sehir)
 
   // Zorunlu alan stili — hata yoksa sarı çerçeve
-  const zorunluStil = (alan) => hatalar[alan] ? undefined : { borderColor: SARI }
+  const zorunluStil = (alan, doluMu) => hatalar[alan] ? undefined : doluMu ? { borderColor: '#86efac' } : { borderColor: SARI }
+
+  function canliKontrolEt(alanlar) {
+    setHatalar(h => {
+      const yeni = {...h}
+      if ('ad' in alanlar) { if (adGecerliMi(alanlar.ad)) delete yeni.ad; else if (!alanlar.ad.trim()) delete yeni.ad; else yeni.ad = 'Geçerli bir ad girin' }
+      if ('soyad' in alanlar) { if (adGecerliMi(alanlar.soyad)) delete yeni.soyad; else if (!alanlar.soyad.trim()) delete yeni.soyad; else yeni.soyad = 'Geçerli bir soyad girin' }
+      if ('email' in alanlar) { if (!alanlar.email.trim() || emailFormatGecerliMi(alanlar.email)) delete yeni.email; else yeni.email = 'Geçerli e-posta girin' }
+      return yeni
+    })
+  }
 
   function validate() {
     const h = {}
-    if (!ad.trim()) h.ad = 'Zorunlu'
-    if (!soyad.trim()) h.soyad = 'Zorunlu'
-    if (!email.includes('@')) h.email = 'Geçerli e-posta girin'
+    if (!adGecerliMi(ad)) h.ad = ad.trim() ? 'Geçerli bir ad girin' : 'Zorunlu'
+    if (!adGecerliMi(soyad)) h.soyad = soyad.trim() ? 'Geçerli bir soyad girin' : 'Zorunlu'
+    if (!emailFormatGecerliMi(email)) h.email = 'Geçerli e-posta girin'
     if (telefon.replace(/\D/g,'').length < 10) h.telefon = 'En az 10 rakam'
     if (sifre.length < 6) h.sifre = 'En az 6 karakter'
     if (sifre !== sifre2) h.sifre2 = 'Şifreler eşleşmiyor'
@@ -78,7 +123,7 @@ export default function Kayit() {
     setYukleniyor(true)
     setKayitHata('')
 
-    const { error } = await kayitOl({
+    const { data, error } = await kayitOl({
       email, sifre, ad, soyad,
       telefon: telefon.replace(/\D/g,''),
       sehir, ilce,
@@ -98,18 +143,15 @@ export default function Kayit() {
     }).catch(() => {})
 
     // Başarılı — Supabase doğrulama maili gönderdi
-    setBasarili(true)
+    if (data && data.session) { router.push('/panel') } else { setBasarili(true) }
   }
 
   const Logo = () => (
-    <a href="/" className={styles.logo}>
-      <svg width="130" height="32" viewBox="0 0 300 72" fill="none">
-        <path d="M20 8 L36 4 L52 8 L52 30 C52 42 36 50 36 50 C36 50 20 42 20 30 Z" fill="#0D7A6B"/>
-        <path d="M27 27 L33 33 L46 20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <text x="62" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#0D7A6B">almak</text>
-        <text x="163" y="44" fontFamily="Sora,sans-serif" fontWeight="400" fontSize="28" fill="#1A1D23">istiyor</text>
-        <text x="277" y="44" fontFamily="Sora,sans-serif" fontWeight="700" fontSize="28" fill="#F5A623">.</text>
-      </svg>
+    <a href="/" className={styles.logo} style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none'}}>
+      <img src="/almakistiyor-icon.png" alt="almakistiyor.com" width="36" height="36" style={{borderRadius:8}} />
+      <span style={{fontSize:18,fontFamily:'Sora,sans-serif',color:'#1A1D23',letterSpacing:'-0.3px'}}>
+        <strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span>
+      </span>
     </a>
   )
 
@@ -152,33 +194,35 @@ export default function Kayit() {
 
           <div className={styles.boxBody}>
             <h2 className={styles.stepTitle}>Hesap oluşturun</h2>
-            <p className={styles.stepSub2}>
-              Bilgileriniz güvenle saklanır, üçüncü taraflarla paylaşılmaz.
-              <span style={{color:SARI,fontWeight:600}}> Sarı alanlar zorunludur.</span>
-            </p>
+            <div style={{display:'flex',alignItems:'center',gap:8,background:'#F0FBF8',border:'1px solid #B2DDD7',borderRadius:8,padding:'8px 12px',marginBottom:16,fontSize:12,color:'#085549',lineHeight:1.4}}>
+              <span style={{fontSize:15,flexShrink:0}}>🔒</span>
+              <span>Bilgileriniz güvenle saklanır, paylaşılmaz. <strong style={{color:SARI}}>Sarı alanlar zorunludur.</strong></span>
+            </div>
 
             <div className={styles.kompaktGrid}>
               <div className={styles.fg}>
                 <ZLabel>Ad</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.ad?styles.inputHata:''}`}
-                  style={zorunluStil('ad')}
-                  placeholder="Adınız" value={ad} onChange={e => setAd(e.target.value)} />
+                  style={zorunluStil('ad', adGecerliMi(ad))}
+                  placeholder="Adınız" value={ad} onChange={e => { const v = adFormatla(e.target.value); setAd(v); canliKontrolEt({ad: v}) }} />
                 {hatalar.ad && <span className={styles.hata}>{hatalar.ad}</span>}
               </div>
               <div className={styles.fg}>
                 <ZLabel>Soyad</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.soyad?styles.inputHata:''}`}
-                  style={zorunluStil('soyad')}
-                  placeholder="Soyadınız" value={soyad} onChange={e => setSoyad(e.target.value)} />
+                  style={zorunluStil('soyad', adGecerliMi(soyad))}
+                  placeholder="Soyadınız" value={soyad} onChange={e => { const v = adFormatla(e.target.value); setSoyad(v); canliKontrolEt({soyad: v}) }} />
                 {hatalar.soyad && <span className={styles.hata}>{hatalar.soyad}</span>}
+                {(ad.trim() || soyad.trim()) && <span style={{fontSize:11,color:'var(--teal-dark)',fontWeight:600,display:'block',marginTop:4}}>Profilde böyle görünecek: <strong>{(ad.trim()||'Adınız')} {soyad.trim() ? soyad.trim()[0].toUpperCase()+'.' : ''}</strong></span>}
               </div>
               <div className={styles.fg}>
                 <ZLabel>E-posta</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.email?styles.inputHata:''}`}
-                  style={zorunluStil('email')}
+                  style={zorunluStil('email', emailFormatGecerliMi(email))}
                   type="email" placeholder="ornek@email.com" value={email}
-                  onChange={e => setEmail(e.target.value)} />
+                  onChange={e => { setEmail(e.target.value); canliKontrolEt({email: e.target.value}) }} />
                 {hatalar.email && <span className={styles.hata}>{hatalar.email}</span>}
+                {!hatalar.email && email.trim() && emailFormatGecerliMi(email) && !emailYayginMi(email) && <span style={{fontSize:11,color:'#dc2626',display:'block',marginTop:3}}>Bu adresi az kullanılan bir sağlayıcıdan giriyorsunuz, doğru yazdığınızdan emin olun</span>}
               </div>
               <div className={styles.fg}>
                 <ZLabel not="(başında 0 olmadan)">Telefon</ZLabel>
@@ -194,7 +238,7 @@ export default function Kayit() {
               <div className={styles.fg}>
                 <ZLabel>Şehir</ZLabel>
                 <select className={`form-select ${styles.kompaktInput} ${hatalar.sehir?styles.inputHata:''}`}
-                  style={zorunluStil('sehir')}
+                  style={zorunluStil('sehir', !!sehir)}
                   value={sehir} onChange={e => { setSehir(e.target.value); setIlce('') }}>
                   <option value="">Şehir seçin</option>
                   {sehirler.map(s => <option key={s.il} value={s.il}>{s.il}</option>)}
@@ -212,7 +256,7 @@ export default function Kayit() {
               <div className={styles.fg}>
                 <ZLabel not="(en az 6 karakter)">Şifre</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.sifre?styles.inputHata:''}`}
-                  style={zorunluStil('sifre')}
+                  style={zorunluStil('sifre', sifre.length >= 6)}
                   type="password" placeholder="••••••••" value={sifre}
                   onChange={e => setSifre(e.target.value)} />
                 {hatalar.sifre && <span className={styles.hata}>{hatalar.sifre}</span>}
@@ -220,9 +264,9 @@ export default function Kayit() {
               <div className={styles.fg}>
                 <ZLabel>Şifre Tekrar</ZLabel>
                 <input className={`form-input ${styles.kompaktInput} ${hatalar.sifre2?styles.inputHata:''}`}
-                  style={zorunluStil('sifre2')}
+                  style={zorunluStil('sifre2', sifre2.length >= 6 && sifre === sifre2)}
                   type="password" placeholder="••••••••" value={sifre2}
-                  onChange={e => setSifre2(e.target.value)} />
+                  onChange={e => { const v = e.target.value; setSifre2(v); setHatalar(h => { const y = {...h}; if (v && sifre !== v) y.sifre2 = 'Şifreler eşleşmiyor'; else delete y.sifre2; return y }) }} />
                 {hatalar.sifre2 && <span className={styles.hata}>{hatalar.sifre2}</span>}
               </div>
             </div>

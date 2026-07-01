@@ -1,0 +1,82 @@
+import styles from './Footer.module.css'
+
+export default function Footer() {
+  return (
+    <footer className={styles.footer}>
+      <div className={`container ${styles.inner}`}>
+        <div className={styles.grid}>
+
+          {/* MARKA */}
+          <div className={styles.brand}>
+            <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:10}}>
+              <img src="/almakistiyor-icon.png" alt="almakistiyor.com" width="36" height="36" style={{borderRadius:8}} />
+              <span style={{fontSize:18, fontFamily:'Sora,sans-serif', color:'white', letterSpacing:'-0.3px'}}>
+                <strong>almak</strong>istiyor<span style={{color:'#F5A623'}}>.com</span>
+              </span>
+            </div>
+            <p>Alıcıların talep oluşturduğu, emlakçı ve galerilerin müşteri bulduğu Türkiye'nin güvenli reverse-listing platformu.</p>
+            <div className={styles.badges}>
+              <span className={styles.badge}>🔒 SSL Güvenli</span>
+              <span className={styles.badge}>✓ KVKK Uyumlu</span>
+              <span className={styles.badge}>🇹🇷 Türkiye</span>
+            </div>
+          </div>
+
+          {/* PLATFORM */}
+          <div className={styles.col}>
+            <h6>Platform</h6>
+            <a href="/nasil-calisir">Nasıl çalışır?</a>
+            <a href="/">Talep ilanları</a>
+            <a href="/blog">Blog</a>
+            <a href="/guvenlik">Güvenlik</a>
+          </div>
+
+          {/* KATEGORİLER */}
+          <div className={styles.col}>
+            <h6>Kategoriler</h6>
+            <a href="/?kategori=emlak">Emlak</a>
+            <a href="/?kategori=vasita">Vasıta</a>
+            <a href="/?kategori=alisveris">Alışveriş</a>
+            <a href="/?kategori=is-makineleri">İş Makineleri</a>
+            <a href="/?kategori=hayvanlar">Hayvanlar</a>
+          </div>
+
+          {/* YARDIM */}
+          <div className={styles.col}>
+            <h6>Yardım</h6>
+            <a href="/yardim">Yardım & İletişim</a>
+            <a href="/gizlilik">Gizlilik politikası</a>
+            <a href="/kullanim-sartlari">Kullanım şartları</a>
+            <a href="/kvkk">KVKK Aydınlatma</a>
+          </div>
+
+          {/* PRO ÜYELİK */}
+          <div className={styles.proKutu}>
+            <div className={styles.proBaslik}>PRO ÜYELİK</div>
+            <div className={styles.proOzellikler}>
+              {['Günde 10 ilan', 'Telefon görüntüleme', 'Öncelikli destek', 'Daha fazla mesaj', 'Onaylı rozet', 'Öne çıkarma'].map(f => (
+                <div key={f} className={styles.proOzellik}>
+                  <span className={styles.proCheck}>✓</span>
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+            <a href="/pro" className={styles.proBtn}>Hemen başla →</a>
+          </div>
+
+        </div>
+
+        {/* BOTTOM */}
+        <div className={styles.bottom}>
+          <span>© 2025 AlmakIstiyor.com — Tüm hakları saklıdır</span>
+          <div className={styles.bottomLinks}>
+            <a href="/gizlilik">Gizlilik</a>
+            <a href="/kullanim-sartlari">Kullanım Şartları</a>
+            <a href="/iletisim">İletişim</a>
+          </div>
+          <span className={styles.motto}>Alıcıyı koru · Satıcıyı kazan</span>
+        </div>
+      </div>
+    </footer>
+  )
+}

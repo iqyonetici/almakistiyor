@@ -126,3 +126,28 @@ export async function ilanSuresiDolduMaili(alici, ad, ilanBaslik) {
   `
   return gonder(alici, 'Talebinizin süresi doldu — ücretsiz uzatabilirsiniz', sablon('Yayın süreniz doldu', icerik, 'İlanlarıma Git', `${SITE_URL}/panel`))
 }
+
+// 7. Pro üyelik süresi dolmak üzere (3 gün kala)
+export async function proSuresiDolmakUzereMaili(alici, ad, paketAdi, bitisTarihi) {
+  const tarihStr = new Date(bitisTarihi).toLocaleDateString('tr-TR')
+  const icerik = `
+    Merhaba ${ad},<br><br>
+    <strong>${paketAdi}</strong> üyeliğinizin süresi <strong>${tarihStr}</strong> tarihinde sona erecek.<br><br>
+    Süreniz dolduğunda hesabınız otomatik olarak ücretsiz pakete geçecek ve Pro özellikleriniz
+    (yüksek ilan/mesaj limiti, telefon görüntüleme, öncelikli sıralama gibi) devre dışı kalacaktır.<br><br>
+    Kesintisiz devam etmek isterseniz üyeliğinizi yenileyebilirsiniz.
+  `
+  return gonder(alici, `${paketAdi} üyeliğiniz ${tarihStr} tarihinde sona eriyor`, sablon('Üyeliğinizin süresi dolmak üzere', icerik, 'Üyeliğimi Yenile', `${SITE_URL}/pro`))
+}
+
+// 8. Pro üyelik süresi doldu (otomatik ücretsize düştü)
+export async function proSuresiDolduMaili(alici, ad, paketAdi) {
+  const icerik = `
+    Merhaba ${ad},<br><br>
+    <strong>${paketAdi}</strong> üyeliğinizin süresi doldu ve hesabınız otomatik olarak
+    ücretsiz pakete geçirildi.<br><br>
+    Pro özelliklerinden (yüksek ilan/mesaj limiti, telefon görüntüleme, öncelikli sıralama)
+    yeniden yararlanmak isterseniz üyeliğinizi dilediğiniz zaman yenileyebilirsiniz.
+  `
+  return gonder(alici, `${paketAdi} üyeliğinizin süresi doldu`, sablon('Üyeliğinizin süresi doldu', icerik, 'Üyeliğimi Yenile', `${SITE_URL}/pro`))
+}

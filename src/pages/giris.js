@@ -23,7 +23,7 @@ export default function Giris() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [sifre, setSifre] = useState('')
-  const [captcha] = useState(randomCaptcha())
+  const [captcha, setCaptcha] = useState(randomCaptcha())
   const [captchaInput, setCaptchaInput] = useState('')
   const [hata, setHata] = useState('')
   const [yukleniyor, setYukleniyor] = useState(false)
@@ -32,7 +32,9 @@ export default function Giris() {
     e.preventDefault()
     setHata('')
     if (parseInt(captchaInput) !== captcha.answer) {
-      setHata(`Robot doğrulaması hatalı. ${captcha.a} + ${captcha.b} = ${captcha.answer}`)
+      setHata('Robot doğrulaması hatalı. Lütfen yeni soruyu cevaplayın.')
+      setCaptcha(randomCaptcha())
+      setCaptchaInput('')
       return
     }
     setYukleniyor(true)

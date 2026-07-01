@@ -366,24 +366,25 @@ export default function IlanKarti({ ilan, user, mesajHaklari, onMesajGonder, pro
         )}
 
         {/* Footer — sadece butonlar, sağa hizalı */}
-        <div style={{display:'flex', justifyContent:'flex-end', alignItems:'center', gap:6, marginTop:4}}>
+        <div style={{display:'flex', justifyContent:'flex-end', alignItems:'center', gap:6, marginTop:4, position:'relative', zIndex:3, pointerEvents:'auto'}}>
           {beklemede ? (
             <span style={{fontSize:11,color:'#DC2626',fontWeight:600}}>Onay sonrası satıcılar görecek</span>
           ) : (
             <>
               {telefonGoster && !mesajAcik && (
-                <div style={{position:'relative',zIndex:2}} onClick={e=>e.preventDefault()}>
+                <div style={{position:'relative',zIndex:3,pointerEvents:'auto'}} onClick={e=>e.stopPropagation()}>
                   <TelefonGosterButon ilanId={ilan.id} kullaniciEmail={user?.email} />
                 </div>
               )}
               {!mesajAcik && (
                 <button style={{
                   background:anaRenk.renk, color:'#fff', border:'none',
-                  borderRadius:6, padding:'6px 14px', fontSize:11.5, fontWeight:600,
+                  borderRadius:999, padding:'9px 18px', fontSize:13.5, fontWeight:700,
                   cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap',
-                  position:'relative', zIndex:2,
-                }} onClick={handleMesajAc}>
-                  💬 Mesaj Gönder
+                  display:'flex', alignItems:'center', gap:8,
+                  position:'relative', zIndex:3, pointerEvents:'auto',
+                }} onClick={(e)=>{ e.stopPropagation(); handleMesajAc() }}>
+                  <span style={{fontSize:15}}>💬</span> Mesaj Gönder
                 </button>
               )}
             </>

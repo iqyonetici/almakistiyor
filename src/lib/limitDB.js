@@ -197,4 +197,3 @@ export async function kalanMesajHakki(email) {
   return Math.max(0, haklar.gunlukMesaj - bugunku)
 }
 
-

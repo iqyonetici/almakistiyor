@@ -1,0 +1,119 @@
+// src/pages/iletisim.js
+import { useState } from 'react'
+import BilgiSayfasi, { h2Style, pStyle, kutuStyle } from '../components/BilgiSayfasi'
+import { destekTalebiOlustur } from '../lib/adminDB'
+
+const TUR_SECENEKLER = [
+  { v: 'soru', l: 'Soru' },
+  { v: 'teknik', l: 'Teknik sorun' },
+  { v: 'sikayet', l: 'Şikâyet / Kötüye kullanım' },
+  { v: 'oneri', l: 'Öneri' },
+  { v: 'istek', l: 'İstek' },
+]
+
+const inputStyle = {
+  width: '100%', padding: '11px 13px', borderRadius: 9,
+  border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit',
+  marginBottom: 12, boxSizing: 'border-box',
+}
+const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 5 }
+
+export default function Iletisim() {
+  const [form, setForm] = useState({ tur: 'soru', konu: '', ad: '', email: '', mesaj: '' })
+  const [durum, setDurum] = useState('')
+  const [hataMesaj, setHataMesaj] = useState('')
+
+  const guncelle = (k, v) => setForm(s => ({ ...s, [k]: v }))
+
+  async function gonder() {
+    if (!form.konu.trim() || !form.email.trim() || !form.mesaj.trim()) {
+      setDurum('hata'); setHataMesaj('Lütfen konu, e-posta ve mesaj alanlarını doldurun.'); return
+    }
+    setDurum('gonderiliyor'); setHataMesaj('')
+    const sonuc = await destekTalebiOlustur(form)
+    if (sonuc?.basarili) {
+      setDurum('basarili')
+      setForm({ tur: 'soru', konu: '', ad: '', email: '', mesaj: '' })
+    } else {
+      setDurum('hata'); setHataMesaj(sonuc?.hata || 'Bir hata oluştu, lütfen tekrar deneyin.')
+    }
+  }
+
+  return (
+    <BilgiSayfasi
+      baslik="İletişim"
+      aciklama="Soru, öneri veya sorunlarınız için aşağıdaki formu doldurun. Talebiniz ekibimize ulaşır, en kısa sürede yanıtlanır."
+    >
+      {durum === 'basarili' ? (
+        <div style={{ ...kutuStyle, background: '#DCFCE7', borderColor: '#86EFAC', textAlign: 'center', padding: '28px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+          <h2 style={{ ...h2Style, color: '#15803D', margin: '0 0 8px' }}>Talebiniz alındı!</h2>
+          <p style={{ margin: 0, color: '#166534' }}>
+            En kısa sürede size dönüş yapacağız. Yanıtımızı belirttiğiniz e-posta üzerinden takip edebilirsiniz.
+          </p>
+          <button onClick={() => setDurum('')} style={{
+            marginTop: 16, padding: '10px 20px', borderRadius: 9, border: 'none',
+            background: '#0D7A6B', color: 'white', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+          }}>Yeni talep oluştur</button>
+        </div>
+      ) : (
+        <>
+          <h2 style={h2Style}>Bize yazın</h2>
+          <p style={pStyle}>
+            Aşağıdaki formu doldurun; talebiniz doğrudan destek ekibimize iletilir.
+            Acil dolandırıcılık bildirimleri öncelikli değerlendirilir.
+          </p>
+
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: '20px 18px', margin: '18px 0' }}>
+            <label style={labelStyle}>Konu türü</label>
+            <select style={inputStyle} value={form.tur} onChange={e => guncelle('tur', e.target.value)}>
+              {TUR_SECENEKLER.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+            </select>
+
+            <label style={labelStyle}>Konu *</label>
+            <input style={inputStyle} type="text" placeholder="Kısa bir başlık"
+              value={form.konu} onChange={e => guncelle('konu', e.target.value)} maxLength={120} />
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <label style={labelStyle}>Adınız</label>
+                <input style={inputStyle} type="text" placeholder="İsteğe bağlı"
+                  value={form.ad} onChange={e => guncelle('ad', e.target.value)} maxLength={80} />
+              </div>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <label style={labelStyle}>E-posta *</label>
+                <input style={inputStyle} type="email" placeholder="ornek@email.com"
+                  value={form.email} onChange={e => guncelle('email', e.target.value)} maxLength={120} />
+              </div>
+            </div>
+
+            <label style={labelStyle}>Mesajınız *</label>
+            <textarea style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }}
+              placeholder="Durumu mümkün olduğunca detaylı anlatın..."
+              value={form.mesaj} onChange={e => guncelle('mesaj', e.target.value)} maxLength={2000} />
+
+            {durum === 'hata' && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', borderRadius: 8, padding: '10px 12px', fontSize: 13, marginBottom: 12 }}>
+                {hataMesaj}
+              </div>
+            )}
+
+            <button onClick={gonder} disabled={durum === 'gonderiliyor'} style={{
+              width: '100%', padding: '13px', borderRadius: 10, border: 'none',
+              background: durum === 'gonderiliyor' ? '#94a3b8' : '#0D7A6B',
+              color: 'white', fontSize: 15, fontWeight: 700, cursor: durum === 'gonderiliyor' ? 'default' : 'pointer',
+              fontFamily: 'inherit',
+            }}>
+              {durum === 'gonderiliyor' ? 'Gönderiliyor...' : 'Talebi Gönder'}
+            </button>
+          </div>
+
+          <div style={{ ...kutuStyle, background: '#FEF2F2', borderColor: '#FECACA' }}>
+            ⚠️ <strong>Dolandırıcılık şüphesi mi var?</strong> Hiçbir satıcıya ön ödeme/kapora
+            göndermeyin. Konu türünü "Şikâyet / Kötüye kullanım" seçip durumu bize bildirin.
+          </div>
+        </>
+      )}
+    </BilgiSayfasi>
+  )
+}

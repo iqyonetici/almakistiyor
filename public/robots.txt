@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://almakistiyor.com/sitemap.xml
